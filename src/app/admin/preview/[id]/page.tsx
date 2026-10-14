@@ -47,7 +47,7 @@ async function Preview({ params }: { params: PageProps<"/admin/preview/[id]">["p
         {errors.length > 0 ? (
           <p className="mt-10">The grid is not complete yet: {errors.join(" ")}</p>
         ) : (
-          <Rounds puzzle={toPublicPuzzle(puzzle, apiBase, date)} apiBase={apiBase} />
+          <Rounds puzzle={toPublicPuzzle(puzzle, apiBase, date)} apiBase={apiBase} storageKey={null} />
         )}
       </GameFrame>
       <SiteFooter />

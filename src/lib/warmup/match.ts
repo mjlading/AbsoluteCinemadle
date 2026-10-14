@@ -56,3 +56,26 @@ export function titleMatches(guess: string, answers: readonly (string | null)[])
     return editDistance(normalizedGuess, normalizedAnswer) <= allowedEdits(normalizedAnswer.length);
   });
 }
+
+/**
+ * Orders title suggestions for what the player has typed so far: titles that
+ * start with it first, then titles with a word that does, each by how many
+ * votes the film has on TMDB. Search engines rank partial words oddly, and the
+ * film a player has in mind is usually the well-known one.
+ */
+export function rankSuggestions<T extends { title: string; voteCount: number }>(
+  typed: string,
+  films: readonly T[],
+): T[] {
+  const query = normalizeTitle(typed);
+  const rank = (title: string) => {
+    const normalized = normalizeTitle(title);
+    if (normalized.startsWith(query)) return 0;
+    if (` ${normalized}`.includes(` ${query}`)) return 1;
+    return 2;
+  };
+  return films
+    .map((film) => ({ film, rank: rank(film.title) }))
+    .sort((a, b) => a.rank - b.rank || b.film.voteCount - a.film.voteCount)
+    .map(({ film }) => film);
+}

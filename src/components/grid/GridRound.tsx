@@ -1,11 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type Dispatch, type KeyboardEvent, type ReactNode } from "react";
 
 import { RULES } from "@/config/rules";
 import { fetchSolution, revealLabel, submitGuess } from "@/lib/game/api";
-import { canSubmit, gridReducer, initialGridState, isRepeatGuess, mistakesLeft } from "@/lib/game/grid-state";
-import type { PublicPuzzle } from "@/lib/puzzle/types";
+import {
+  canSubmit,
+  hintsLeft,
+  isRepeatGuess,
+  mistakesLeft,
+  solvedFilmIds,
+  type GridAction,
+  type GridState,
+} from "@/lib/game/grid-state";
+import type { HintKind, PublicPuzzle } from "@/lib/puzzle/types";
+import { HintDialog } from "@/components/hints/HintDialog";
+import { POINTS } from "@/config/scoring";
 import { Board } from "./Board";
 import { GroupBanner } from "./GroupBanner";
 import { InspectDialog } from "./InspectDialog";
@@ -29,19 +39,23 @@ type Message = { id: number; text: string };
 export function GridRound({
   puzzle,
   apiBase,
+  state,
+  dispatch,
   onContinue,
 }: {
   puzzle: PublicPuzzle;
   apiBase: string;
+  state: GridState;
+  dispatch: Dispatch<GridAction>;
   /** Leads on to the next round once this one is over. */
   onContinue?: () => void;
 }) {
-  const [state, dispatch] = useReducer(gridReducer, puzzle, initialGridState);
   const [pending, setPending] = useState(false);
   const [effect, setEffect] = useState<(TileEffect & { ids: string[] }) | null>(null);
   const [toast, setToast] = useState<Message | null>(null);
   const [announcement, setAnnouncement] = useState<Message | null>(null);
   const [inspectId, setInspectId] = useState<string | null>(null);
+  const [hintKind, setHintKind] = useState<HintKind | null>(null);
   const [inspectOrigin, setInspectOrigin] = useState<DOMRect | null>(null);
   const [revealingId, setRevealingId] = useState<string | null>(null);
   const [revealError, setRevealError] = useState<string | null>(null);
@@ -91,7 +105,7 @@ export function GridRound({
       cancelled = true;
       timers.forEach((t) => window.clearTimeout(t));
     };
-  }, [status, apiBase, solved, solutionAttempt]);
+  }, [status, apiBase, solved, solutionAttempt, dispatch]);
 
   // The action bar disappears when the round ends, so move focus to the summary.
   useEffect(() => {
@@ -287,6 +301,26 @@ export function GridRound({
               Submit
             </ActionButton>
           </div>
+          {(puzzle.hints.sound > 0 || puzzle.hints.review > 0) && (
+            <div className="flex w-full justify-center gap-2">
+              {puzzle.hints.sound > 0 && (
+                <HintButton
+                  label="Sound hint"
+                  cost={POINTS.grid.perSoundHint}
+                  left={hintsLeft(state, "sound", puzzle.hints.sound)}
+                  onClick={() => setHintKind("sound")}
+                />
+              )}
+              {puzzle.hints.review > 0 && (
+                <HintButton
+                  label="Review hint"
+                  cost={POINTS.grid.perReviewHint}
+                  left={hintsLeft(state, "review", puzzle.hints.review)}
+                  onClick={() => setHintKind("review")}
+                />
+              )}
+            </div>
+          )}
         </div>
       ) : (
         <>
@@ -323,6 +357,20 @@ export function GridRound({
       <p aria-live="polite" className="sr-only">
         {announcement && <span key={announcement.id}>{announcement.text}</span>}
       </p>
+
+      <HintDialog
+        kind={hintKind}
+        apiBase={apiBase}
+        solved={solvedFilmIds(state)}
+        soundHints={state.soundHints}
+        reviewHints={state.reviewHints}
+        left={hintKind ? hintsLeft(state, hintKind, puzzle.hints[hintKind]) : 0}
+        onIssued={(issued) => {
+          dispatch({ type: "hint_used", ...issued });
+          announce(`${issued.kind === "sound" ? "Sound" : "Review"} hint used.`);
+        }}
+        onClose={() => setHintKind(null)}
+      />
 
       <InspectDialog
         tile={inspected ?? null}
@@ -361,6 +409,32 @@ function ActionButton({
       }`}
     >
       {children}
+    </button>
+  );
+}
+
+function HintButton({
+  label,
+  cost,
+  left,
+  onClick,
+}: {
+  label: string;
+  cost: number;
+  left: number;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex min-h-12 max-w-[9.75rem] min-w-0 flex-1 flex-col items-center justify-center rounded-full border-[1.5px] border-ink/40 px-3 py-1 leading-tight hover:bg-ink/5"
+    >
+      <span className="text-sm font-semibold">{label}</span>{" "}
+      <span className="text-[0.8rem] text-ink-soft">
+        −{Math.abs(cost)}
+        <span className="sr-only"> points</span> · {left} left
+      </span>
     </button>
   );
 }

@@ -7,6 +7,7 @@ import { z } from "zod";
 import { BarcodeEditor } from "@/components/admin/BarcodeEditor";
 import { FilmControls } from "@/components/admin/FilmControls";
 import { FilmSearch } from "@/components/admin/FilmSearch";
+import { HintEditor } from "@/components/admin/HintEditor";
 import { ScheduleControls } from "@/components/admin/ScheduleControls";
 import { TileCard } from "@/components/admin/TileCard";
 import { TilePicker } from "@/components/admin/TilePicker";
@@ -16,6 +17,7 @@ import { RULES } from "@/config/rules";
 import { requireAdmin } from "@/lib/admin/auth";
 import { listScheduled } from "@/lib/admin/puzzles";
 import { addDays, formatPuzzleDate, utcIsoDate } from "@/lib/dates";
+import { namesForFilm } from "@/lib/hints/names";
 import { formatUsd } from "@/lib/llm/cost";
 import { spentMicroUsd } from "@/lib/llm/spend-guard";
 import { checkPuzzle } from "@/lib/puzzle/check";
@@ -221,6 +223,31 @@ async function Editor({ params }: { params: PageProps<"/admin/puzzles/[id]">["pa
                 barcodeId={film.barcode.id}
                 colors={film.barcode.colors}
                 upload={film.barcode.upload}
+              />
+            ))}
+          </ul>
+        </Section>
+      )}
+
+      {puzzle.films.length > 0 && (
+        <Section
+          title="Hints"
+          note={`Optional. Players can take up to ${RULES.grid.maxSoundHints} sound and ${RULES.grid.maxReviewHints} review hints a day, each from a film they haven't found yet, so hints on more films go further.`}
+        >
+          <ul className="flex flex-col gap-4">
+            {puzzle.films.map((film, index) => (
+              <HintEditor
+                key={film.tmdbId}
+                puzzleId={puzzle.id}
+                filmId={film.tmdbId}
+                title={film.title}
+                sound={film.soundHint}
+                review={film.reviewHint}
+                names={
+                  details[index]
+                    ? namesForFilm(details[index])
+                    : { titles: [film.title], actors: [], characters: [], directors: [] }
+                }
               />
             ))}
           </ul>

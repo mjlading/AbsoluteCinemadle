@@ -18,6 +18,10 @@ export function toPublicPuzzle(puzzle: Puzzle, apiBase: string, date: string): P
       countryName: entry.country ? countryName(entry.country) : null,
       literalTranslation: entry.literalTranslation,
     })),
+    hints: {
+      sound: puzzle.films.filter((f) => f.soundHint).length,
+      review: puzzle.films.filter((f) => f.reviewHint).length,
+    },
     tiles: puzzle.tiles.map((tile, index) => ({
       id: tile.id,
       number: index + 1,

@@ -260,3 +260,61 @@ export async function getForeignTitles(tmdbId: number): Promise<ForeignTitle[]> 
   }
   return results;
 }
+
+export interface Review {
+  id: string;
+  author: string;
+  content: string;
+  /** 0 to 10, when the reviewer gave one. */
+  rating: number | null;
+}
+
+/** TMDB user reviews of a film, in English. */
+export async function getReviews(tmdbId: number): Promise<Review[]> {
+  const { results } = await tmdb(
+    `/movie/${tmdbId}/reviews`,
+    z.object({
+      results: z.array(
+        z.object({
+          id: z.string(),
+          author: z.string(),
+          content: z.string(),
+          author_details: z.object({ rating: z.number().nullish() }).optional(),
+        }),
+      ),
+    }),
+    { language: "en-US" },
+  );
+  return results.map((r) => ({
+    id: r.id,
+    author: r.author,
+    content: r.content,
+    rating: r.author_details?.rating ?? null,
+  }));
+}
+
+export interface Video {
+  /** The YouTube video id. */
+  key: string;
+  name: string;
+  type: string;
+  official: boolean;
+}
+
+/** A film's YouTube videos on TMDB: official trailers and clips first, the rest after. */
+export async function getVideos(tmdbId: number): Promise<Video[]> {
+  const { results } = await tmdb(
+    `/movie/${tmdbId}/videos`,
+    z.object({
+      results: z.array(
+        z.object({ site: z.string(), key: z.string(), name: z.string(), type: z.string(), official: z.boolean() }),
+      ),
+    }),
+    { language: "en-US" },
+  );
+  const rank = (v: Video) => (v.official ? 0 : 2) + (["Trailer", "Clip", "Teaser"].includes(v.type) ? 0 : 1);
+  return results
+    .filter((v) => v.site === "YouTube")
+    .map(({ key, name, type, official }) => ({ key, name, type, official }))
+    .sort((a, b) => rank(a) - rank(b));
+}

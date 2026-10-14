@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useReducer, useRef, useState, type DragEvent } from "react";
+import { useEffect, useRef, useState, type Dispatch, type DragEvent } from "react";
 
 import { checkBonus, fetchBonus } from "@/lib/game/api";
-import { allAssigned, bonusReducer, correctCount, initialBonusState } from "@/lib/game/bonus-state";
+import { allAssigned, correctCount, type BonusAction, type BonusState } from "@/lib/game/bonus-state";
 import type { BonusFilm, PublicBonus } from "@/lib/puzzle/types";
 import { Barcode } from "./Barcode";
 
@@ -15,11 +15,21 @@ const describe = (film: BonusFilm) => `${film.title}${film.year ? ` (${film.year
  * Round 3: match each film's barcode to the film. Tap a barcode then a film (or
  * the other way round), or drag a film onto a barcode, then check all four at once.
  */
-export function BonusRound({ apiBase }: { apiBase: string }) {
+export function BonusRound({
+  apiBase,
+  state,
+  dispatch,
+  onContinue,
+}: {
+  apiBase: string;
+  state: BonusState;
+  dispatch: Dispatch<BonusAction>;
+  /** Leads on to the day's results once the matches are checked. */
+  onContinue: () => void;
+}) {
   const [bonus, setBonus] = useState<PublicBonus | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [attempt, setAttempt] = useState(0);
-  const [state, dispatch] = useReducer(bonusReducer, initialBonusState);
   const [checking, setChecking] = useState(false);
   const [checkError, setCheckError] = useState(false);
   const [announcement, setAnnouncement] = useState("");
@@ -230,7 +240,15 @@ export function BonusRound({ apiBase }: { apiBase: string }) {
       )}
 
       {done && (
-        <p className="mt-6 text-center text-ink-soft">That&apos;s today&apos;s puzzle. A new one opens at midnight.</p>
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={onContinue}
+            className="min-h-12 rounded-full bg-ink px-7 text-lg font-semibold text-table hover:bg-ink/85"
+          >
+            See your results
+          </button>
+        </div>
       )}
 
       <p aria-live="polite" className="sr-only">

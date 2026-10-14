@@ -85,78 +85,79 @@ export function TitleGuess({ disabled, onGuess, onSkip, canSkip }: TitleGuessPro
       <label htmlFor={inputId} className="sr-only">
         Which film is this?
       </label>
-      <div className="relative">
-        <input
-          ref={inputRef}
-          id={inputId}
-          role="combobox"
-          aria-expanded={films.length > 0}
-          aria-controls={listId}
-          aria-autocomplete="list"
-          aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
-          autoComplete="off"
-          autoCapitalize="words"
-          spellCheck={false}
-          placeholder="Which film is this?"
-          value={value}
-          disabled={disabled}
-          onChange={(event) => {
-            setValue(event.target.value);
-            setOpen(true);
-            setActive(-1);
-          }}
-          onKeyDown={onKeyDown}
-          onBlur={() => setOpen(false)}
-          className="min-h-12 w-full rounded-lg border-[1.5px] border-ink/30 bg-surface px-3 text-lg focus:border-ink disabled:opacity-60"
-        />
-        {films.length > 0 && (
-          <ul
-            id={listId}
-            role="listbox"
-            aria-label="Suggestions"
-            className="absolute inset-x-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-ink/15 bg-surface py-1 shadow-xl"
-          >
-            {films.map((film, index) => (
-              <li
-                key={film.tmdbId}
-                id={`${listId}-${index}`}
-                role="option"
-                aria-selected={index === active}
-                // Keep focus in the input; a mousedown here would blur it and close the list first.
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => {
-                  setValue(film.title);
-                  submit(film.title, film.tmdbId);
-                }}
-                className={`cursor-pointer px-3 py-2 ${index === active ? "bg-ink/10" : "hover:bg-ink/5"}`}
-              >
-                <span className="font-semibold">{film.title}</span>
-                {film.year && <span className="ml-2 text-ink-soft">{film.year}</span>}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {/* Guess sits beside the box, so the suggestion list never covers it. */}
       <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => {
-            setValue("");
-            onSkip();
-          }}
-          disabled={disabled || !canSkip}
-          className="min-h-11 flex-1 rounded-full border-[1.5px] border-ink px-4 font-semibold disabled:opacity-35"
-        >
-          Skip for now
-        </button>
+        <div className="relative min-w-0 flex-1">
+          <input
+            ref={inputRef}
+            id={inputId}
+            role="combobox"
+            aria-expanded={films.length > 0}
+            aria-controls={listId}
+            aria-autocomplete="list"
+            aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
+            autoComplete="off"
+            autoCapitalize="words"
+            spellCheck={false}
+            placeholder="Which film is this?"
+            value={value}
+            disabled={disabled}
+            onChange={(event) => {
+              setValue(event.target.value);
+              setOpen(true);
+              setActive(-1);
+            }}
+            onKeyDown={onKeyDown}
+            onBlur={() => setOpen(false)}
+            className="min-h-12 w-full rounded-lg border-[1.5px] border-ink/30 bg-surface px-3 text-lg focus:border-ink disabled:opacity-60"
+          />
+          {films.length > 0 && (
+            <ul
+              id={listId}
+              role="listbox"
+              aria-label="Suggestions"
+              className="absolute inset-x-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-ink/15 bg-surface py-1 shadow-xl"
+            >
+              {films.map((film, index) => (
+                <li
+                  key={film.tmdbId}
+                  id={`${listId}-${index}`}
+                  role="option"
+                  aria-selected={index === active}
+                  // Keep focus in the input; a mousedown here would blur it and close the list first.
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => {
+                    setValue(film.title);
+                    submit(film.title, film.tmdbId);
+                  }}
+                  className={`cursor-pointer px-3 py-2 ${index === active ? "bg-ink/10" : "hover:bg-ink/5"}`}
+                >
+                  <span className="font-semibold">{film.title}</span>
+                  {film.year && <span className="ml-2 text-ink-soft">{film.year}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <button
           type="submit"
           disabled={disabled || !query}
-          className="min-h-11 flex-1 rounded-full bg-ink px-4 font-semibold text-table disabled:opacity-35"
+          className="min-h-12 shrink-0 rounded-full bg-ink px-6 font-semibold text-table disabled:opacity-35"
         >
           Guess
         </button>
       </div>
+      <button
+        type="button"
+        onClick={() => {
+          setValue("");
+          onSkip();
+        }}
+        disabled={disabled || !canSkip}
+        className="min-h-11 self-center rounded-full border-[1.5px] border-ink px-6 font-semibold disabled:opacity-35"
+      >
+        Skip for now
+      </button>
     </form>
   );
 }

@@ -38,3 +38,15 @@ export async function getForeignTitles(tmdbId: number) {
   cacheLife("days");
   return api.getForeignTitles(tmdbId);
 }
+
+export async function getReviews(tmdbId: number) {
+  "use cache";
+  cacheLife("days");
+  return api.getReviews(tmdbId);
+}
+
+export async function getVideos(tmdbId: number) {
+  "use cache";
+  cacheLife("days");
+  return api.getVideos(tmdbId);
+}

@@ -43,6 +43,8 @@
   /* Same red in both schemes: dark enough for white button text. */
   --color-marker-strong: #d92b3f;
   --color-surface: var(--surface);
+  /* The lit table's colour in both schemes, for light buttons on the dark sheet. */
+  --color-lamp: #e8eef1;
   --color-on-tape: var(--on-tape);
   --font-sans: var(--font-sofia), ui-sans-serif, system-ui, sans-serif;
   --font-condensed: var(--font-sofia-condensed), ui-sans-serif, system-ui, sans-serif;
@@ -381,6 +383,66 @@ body {
   }
   100% {
     filter: none;
+  }
+}
+
+/*
+ * The sound hint's projector: a cone of light falling onto the player from
+ * above, with dust drifting in it. It ends at the player's top edge, since
+ * YouTube allows nothing drawn over the player itself. The lamp is dim until
+ * the clip plays, then it brightens and flickers like a running projector.
+ */
+.projector-beam {
+  width: 100%;
+  height: 3.5rem;
+  background:
+    radial-gradient(circle at 30% 40%, rgb(255 248 230 / 0.75) 0 0.8px, transparent 1.4px) 0 0 / 37px 29px,
+    radial-gradient(circle at 70% 20%, rgb(255 248 230 / 0.5) 0 0.6px, transparent 1.2px) 11px 7px / 53px 41px,
+    radial-gradient(circle at 50% 80%, rgb(255 248 230 / 0.6) 0 0.7px, transparent 1.3px) 5px 13px / 23px 61px,
+    radial-gradient(ellipse 18% 70% at 50% 0, rgb(255 246 220 / 0.6), transparent),
+    linear-gradient(to bottom, rgb(255 236 180 / 0.45), rgb(255 236 180 / 0.1));
+  clip-path: polygon(47% 0, 53% 0, 100% 100%, 0 100%);
+  opacity: 0.4;
+  transition: opacity 300ms ease-out;
+  animation: dust-drift 9s linear infinite;
+}
+
+.projector-beam[data-playing] {
+  opacity: 1;
+  animation:
+    dust-drift 9s linear infinite,
+    lamp-flicker 180ms steps(1, end) infinite;
+}
+
+@keyframes dust-drift {
+  to {
+    background-position:
+      37px 58px,
+      -42px 89px,
+      28px 135px,
+      0 0,
+      0 0;
+  }
+}
+
+@keyframes lamp-flicker {
+  0% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(0.86);
+  }
+}
+
+/* Results roll up line by line, like end credits. */
+.credit-line {
+  animation: credit-roll 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes credit-roll {
+  from {
+    opacity: 0;
+    translate: 0 2.5rem;
   }
 }
 

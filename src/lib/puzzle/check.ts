@@ -27,8 +27,18 @@ export function checkBarcodes(puzzle: Puzzle): GridCheck {
   return { errors, warnings: [] };
 }
 
+/** Hints are optional, but a film without one makes the hint buttons skip it. */
+export function checkHints(puzzle: Puzzle): GridCheck {
+  const warnings: string[] = [];
+  const noSound = puzzle.films.filter((f) => !f.soundHint).map((f) => f.title);
+  const noReview = puzzle.films.filter((f) => !f.reviewHint).map((f) => f.title);
+  if (noSound.length > 0) warnings.push(`No sound hint yet for ${noSound.join(", ")}.`);
+  if (noReview.length > 0) warnings.push(`No review hint yet for ${noReview.join(", ")}.`);
+  return { errors: [], warnings };
+}
+
 /** Everything that must hold before a puzzle can be scheduled. */
 export function checkPuzzle(puzzle: Puzzle): GridCheck {
-  const checks = [checkGrid(puzzle), checkWarmup(puzzle), checkBarcodes(puzzle)];
+  const checks = [checkGrid(puzzle), checkWarmup(puzzle), checkBarcodes(puzzle), checkHints(puzzle)];
   return { errors: checks.flatMap((c) => c.errors), warnings: checks.flatMap((c) => c.warnings) };
 }

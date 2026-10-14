@@ -51,6 +51,8 @@ Each entry says what was decided and why, so it can be revisited.
 - An answer counts if it is the film picked from the suggestions, or a typed English or original title.
   Typed titles ignore case, accents, punctuation and a leading "The", "A" or "An", allow one typo from 8 characters and two from 14, and must have the same sequel number.
 - Suggestions come from a public, cached TMDB title search; they only echo what the player typed.
+  They are reordered so titles starting with the typed text come first, then titles with a word that does, each by TMDB vote count, since the search ranks partial words oddly.
+- The Guess button sits beside the guess box, so the suggestion list never covers it.
 - Cards show the language and country as English names ("Spanish, Mexico").
 - A puzzle with no warm-up starts at the grid; only an admin preview can hit that, since scheduling needs 5 cards.
 - The warm-up answers route follows the same trust model as the grid solution route.
@@ -66,6 +68,40 @@ Each entry says what was decided and why, so it can be revisited.
   Bands are sorted with near-greys first (dark to light), then by hue in 30-degree slices, dark to light within each.
 - Palettes belong to the film and are generated once, when it is first added; uploads belong to one puzzle and replace the strip there.
 - Uploaded barcodes are re-encoded as WebP, at most 1600 by 400 pixels; players' browsers may cache one for a day after an admin replaces it.
+
+## Hints
+
+- Players can take up to 2 sound hints and 2 review hints a day (`RULES.grid`), during the grid only.
+  Each hint comes from a film they haven't found yet and is never one they already have.
+- The films with a given kind of hint are put in a fixed order per puzzle, so everyone gets the same first hint; a hint's place in that order is an opaque token that lets the server skip hints a player already has without the client learning which film a hint is for.
+- The hint buttons count down from the daily limit or the number of films with that kind of hint, whichever is smaller.
+  When the remaining films have no new hint (because the player solved the others), the player is told so and nothing is charged.
+- Hints a player has taken stay in the hint dialog for the rest of the day, so a paid hint can be reread or replayed for free.
+- Hints are shown in a dialog over the grid, opened from buttons below the main grid actions.
+- YouTube's terms forbid audio-only or hidden playback, overlays and players under 200 by 200 pixels, so the sound hint shows a visible YouTube player (on youtube-nocookie.com), as the spec's fallback allows.
+  YouTube's player always shows the video's title and thumbnail, which for most trailers name the film, so the sound hint is in practice a strong hint; the player is told this before paying, and the admin editor asks for videos whose title doesn't name the film where possible.
+- The clip is started by our own Play button (scripted playback is allowed while the player is fully visible) or by the player's own button, which some mobile browsers require.
+  The window uses YouTube's `start` and `end` player settings, so playback stops by itself; a replay seeks back to the start.
+- A sound hint is only charged once its player has loaded, so a clip that can't play costs nothing; a review hint is charged when it arrives.
+- Review hints show the reviewer's TMDB name and "on TMDB", with no link, as the owner decided; names of the film, its cast, characters and director are blanked automatically and checked by the admin.
+
+## Scoring, results and sharing
+
+- Every point value lives in `src/config/scoring.ts`; the best possible day is 5 warm-up titles, a clean grid and 4 barcodes.
+- The grid's 100 base points are shared out per film found (25 each), so a lost grid still earns points for its solved groups.
+  Mistakes, labels and hints are taken off that, and the grid never scores below zero.
+- Puzzle numbers count from the launch date in `src/config/site.ts` (#1 on that day).
+- The share text has the puzzle number and score, the warm-up as found/missed squares, one row of tier colors per grid guess (as in Connections), the bonus matches, and an icon per hint or revealed label, then the site address.
+  It never contains film titles.
+- A day joins the player's streak once its results screen opens, whether or not the grid was won.
+  The current streak still counts yesterday until midnight, so it doesn't drop to zero before the player has played today.
+
+## Saved progress
+
+- Each round's state is saved in localStorage under the puzzle date, with a signature of the puzzle's card and tile ids; if the admin edits a live puzzle, saved progress for it is dropped.
+- A reload resumes the round the player was on.
+  The warm-up clock keeps running while the page is closed, the film leader restarts from the intro, and a barcode held mid-match is let go.
+- The admin preview never saves progress or touches the streak.
 
 ## Admin editor
 

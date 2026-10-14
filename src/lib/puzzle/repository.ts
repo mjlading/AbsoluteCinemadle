@@ -4,7 +4,16 @@ import { and, asc, eq } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 
 import { db } from "@/db/client";
-import { barcodeUploads, films, puzzleFilms, puzzles, tiles, warmupEntries } from "@/db/schema";
+import {
+  barcodeUploads,
+  films,
+  puzzleFilms,
+  puzzles,
+  reviewHints,
+  soundHints,
+  tiles,
+  warmupEntries,
+} from "@/db/schema";
 import { seededRandom, shuffled } from "@/lib/random";
 import type { Puzzle, Tier } from "./types";
 
@@ -29,12 +38,22 @@ export async function loadPuzzle(id: string): Promise<Puzzle | null> {
       barcodeId: puzzleFilms.barcodeId,
       palette: films.palette,
       uploadType: barcodeUploads.contentType,
+      youtubeId: soundHints.youtubeId,
+      soundStart: soundHints.startSeconds,
+      soundEnd: soundHints.endSeconds,
+      reviewExcerpt: reviewHints.excerpt,
+      reviewAuthor: reviewHints.author,
     })
     .from(puzzleFilms)
     .innerJoin(films, eq(films.tmdbId, puzzleFilms.filmId))
     .leftJoin(
       barcodeUploads,
       and(eq(barcodeUploads.puzzleId, puzzleFilms.puzzleId), eq(barcodeUploads.filmId, puzzleFilms.filmId)),
+    )
+    .leftJoin(soundHints, and(eq(soundHints.puzzleId, puzzleFilms.puzzleId), eq(soundHints.filmId, puzzleFilms.filmId)))
+    .leftJoin(
+      reviewHints,
+      and(eq(reviewHints.puzzleId, puzzleFilms.puzzleId), eq(reviewHints.filmId, puzzleFilms.filmId)),
     )
     .where(eq(puzzleFilms.puzzleId, id))
     .orderBy(asc(puzzleFilms.tier));
@@ -67,11 +86,15 @@ export async function loadPuzzle(id: string): Promise<Puzzle | null> {
   return {
     id: row.id,
     date: row.date,
-    films: filmRows.map(({ barcodeId, palette, uploadType, ...f }) => ({
-      ...f,
-      tier: f.tier as Tier,
-      barcode: { id: barcodeId, colors: palette, upload: uploadType !== null },
-    })),
+    films: filmRows.map(
+      ({ barcodeId, palette, uploadType, youtubeId, soundStart, soundEnd, reviewExcerpt, reviewAuthor, ...f }) => ({
+        ...f,
+        tier: f.tier as Tier,
+        barcode: { id: barcodeId, colors: palette, upload: uploadType !== null },
+        soundHint: youtubeId ? { youtubeId, start: soundStart ?? 0, end: soundEnd ?? 0 } : null,
+        reviewHint: reviewExcerpt ? { excerpt: reviewExcerpt, author: reviewAuthor ?? "" } : null,
+      }),
+    ),
     tiles: shuffled(tileRows, seededRandom(row.id)),
     warmup: warmupRows.map(({ title, originalTitle, year, posterPath, ...entry }) => ({
       ...entry,

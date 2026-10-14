@@ -35,7 +35,33 @@ export interface PuzzleFilm {
     /** True when the admin uploaded an image that replaces the palette strip. */
     upload: boolean;
   };
+  soundHint: SoundHint | null;
+  reviewHint: ReviewHint | null;
 }
+
+/** A window of a YouTube video, played in a visible embedded player. */
+export interface SoundHint {
+  youtubeId: string;
+  start: number;
+  end: number;
+}
+
+/** A trimmed TMDB user review with names blanked out. */
+export interface ReviewHint {
+  excerpt: string;
+  author: string;
+}
+
+export type HintKind = "sound" | "review";
+
+/**
+ * A hint as handed to a player. `token` tells a puzzle's hints of one kind
+ * apart, so the player is never given the same one twice, without saying
+ * which film a hint belongs to.
+ */
+export type IssuedSoundHint = SoundHint & { token: number };
+export type IssuedReviewHint = ReviewHint & { token: number };
+export type IssuedHint = { kind: "sound"; hint: IssuedSoundHint } | { kind: "review"; hint: IssuedReviewHint };
 
 export interface PuzzleTile {
   /** Opaque id; must not hint at the film. */
@@ -103,6 +129,8 @@ export interface PublicPuzzle {
   date: string;
   warmup: PublicWarmupCard[];
   tiles: PublicTile[];
+  /** How many of the films have each kind of hint. */
+  hints: Record<HintKind, number>;
 }
 
 export interface WarmupAnswer {

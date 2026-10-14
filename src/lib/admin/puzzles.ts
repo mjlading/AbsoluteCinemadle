@@ -4,7 +4,16 @@ import { and, asc, count, desc, eq, gte, inArray, isNull, lte, type SQL } from "
 
 import { RULES } from "@/config/rules";
 import { db } from "@/db/client";
-import { barcodeUploads, films, puzzleFilms, puzzles, tiles, warmupEntries } from "@/db/schema";
+import {
+  barcodeUploads,
+  films,
+  puzzleFilms,
+  puzzles,
+  reviewHints,
+  soundHints,
+  tiles,
+  warmupEntries,
+} from "@/db/schema";
 import { generatePalette } from "@/lib/barcode/generate";
 import { newTileId } from "@/lib/ids";
 import { checkPuzzle } from "@/lib/puzzle/check";
@@ -255,5 +264,46 @@ export async function removeBarcodeUpload(puzzleId: string, filmId: number): Pro
   await db()
     .delete(barcodeUploads)
     .where(and(eq(barcodeUploads.puzzleId, puzzleId), eq(barcodeUploads.filmId, filmId)));
+  await touch(puzzleId);
+}
+
+export async function saveSoundHint(
+  puzzleId: string,
+  filmId: number,
+  hint: { youtubeId: string; start: number; end: number },
+): Promise<void> {
+  if (hint.end <= hint.start) throw new AdminError("The clip has to end after it starts.");
+  if (hint.end - hint.start > 6) throw new AdminError("Keep the clip to a few seconds; the hint is meant to be short.");
+  const values = { youtubeId: hint.youtubeId, startSeconds: hint.start, endSeconds: hint.end };
+  await db()
+    .insert(soundHints)
+    .values({ puzzleId, filmId, ...values })
+    .onConflictDoUpdate({ target: [soundHints.puzzleId, soundHints.filmId], set: values });
+  await touch(puzzleId);
+}
+
+export async function removeSoundHint(puzzleId: string, filmId: number): Promise<void> {
+  await db()
+    .delete(soundHints)
+    .where(and(eq(soundHints.puzzleId, puzzleId), eq(soundHints.filmId, filmId)));
+  await touch(puzzleId);
+}
+
+export async function saveReviewHint(
+  puzzleId: string,
+  filmId: number,
+  hint: { excerpt: string; author: string },
+): Promise<void> {
+  await db()
+    .insert(reviewHints)
+    .values({ puzzleId, filmId, ...hint })
+    .onConflictDoUpdate({ target: [reviewHints.puzzleId, reviewHints.filmId], set: hint });
+  await touch(puzzleId);
+}
+
+export async function removeReviewHint(puzzleId: string, filmId: number): Promise<void> {
+  await db()
+    .delete(reviewHints)
+    .where(and(eq(reviewHints.puzzleId, puzzleId), eq(reviewHints.filmId, filmId)));
   await touch(puzzleId);
 }

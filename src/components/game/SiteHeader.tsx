@@ -73,6 +73,17 @@ function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
         </li>
         <li>Tap a barcode and then a film (or drag the film onto it) to match them, then check all four at once.</li>
       </ul>
+      <h3 className="mt-5 font-semibold">Points</h3>
+      <ul className="mt-2 list-disc space-y-2 pl-5 leading-snug text-pretty">
+        <li>{POINTS.warmup.perCorrectTitle} for each warm-up film you name.</li>
+        <li>
+          Up to {POINTS.grid.base} for the grid, less {Math.abs(POINTS.grid.perMistake)} per mistake,{" "}
+          {Math.abs(POINTS.grid.perFlip)} per revealed label, {Math.abs(POINTS.grid.perSoundHint)} per sound hint and{" "}
+          {Math.abs(POINTS.grid.perReviewHint)} per review hint.
+        </li>
+        <li>{POINTS.barcode.perCorrectMatch} for each barcode you match.</li>
+        <li>A new puzzle opens at midnight, and your progress is saved on this device until then.</li>
+      </ul>
     </Dialog>
   );
 }

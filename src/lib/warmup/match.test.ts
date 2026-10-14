@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { editDistance, normalizeTitle, titleMatches } from "./match";
+import { editDistance, normalizeTitle, rankSuggestions, titleMatches } from "./match";
 
 describe("normalizeTitle", () => {
   it("ignores case, accents, punctuation and a leading article", () => {
@@ -45,5 +45,31 @@ describe("titleMatches", () => {
     );
     expect(titleMatches("   ", ["Up"])).toBe(false);
     expect(titleMatches("anything", [null])).toBe(false);
+  });
+});
+
+describe("rankSuggestions", () => {
+  const film = (title: string, voteCount: number) => ({ title, voteCount });
+
+  it("puts titles starting with the typed text first, then word matches, each by votes", () => {
+    const results = [
+      film("Guf Ha-Neschamot - Die Halle der Seelen", 3),
+      film("Live Free or Die Hard", 9000),
+      film("Die Hart", 400),
+      film("Die Hard", 12000),
+      film("Die Hard 2", 6000),
+    ];
+    expect(rankSuggestions("die ha", results).map((f) => f.title)).toEqual([
+      "Die Hard",
+      "Die Hard 2",
+      "Die Hart",
+      "Live Free or Die Hard",
+      "Guf Ha-Neschamot - Die Halle der Seelen",
+    ]);
+  });
+
+  it("ignores a leading article and punctuation, as matching does", () => {
+    const results = [film("Shining Through", 100), film("The Shining", 9000)];
+    expect(rankSuggestions("the shin", results).map((f) => f.title)).toEqual(["The Shining", "Shining Through"]);
   });
 });

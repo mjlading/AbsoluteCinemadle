@@ -5,6 +5,7 @@ export const RULES = {
     groupSize: 4,
     maxMistakes: 4,
     maxSoundHints: 2,
+    maxReviewHints: 2,
   },
   warmup: {
     titleCount: 5,

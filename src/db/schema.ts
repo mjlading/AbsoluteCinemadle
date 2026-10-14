@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   customType,
   check,
+  real,
   date,
   foreignKey,
   integer,
@@ -147,6 +148,47 @@ export const barcodeUploads = pgTable(
       columns: [t.puzzleId, t.filmId],
       foreignColumns: [puzzleFilms.puzzleId, puzzleFilms.filmId],
       name: "barcode_uploads_puzzle_film_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
+/** A short clip from an official trailer or scene on YouTube, played as a sound hint. Never downloaded or rehosted. */
+export const soundHints = pgTable(
+  "sound_hints",
+  {
+    puzzleId: uuid("puzzle_id").notNull(),
+    filmId: integer("film_id").notNull(),
+    youtubeId: text("youtube_id").notNull(),
+    startSeconds: real("start_seconds").notNull(),
+    endSeconds: real("end_seconds").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.puzzleId, t.filmId] }),
+    foreignKey({
+      columns: [t.puzzleId, t.filmId],
+      foreignColumns: [puzzleFilms.puzzleId, puzzleFilms.filmId],
+      name: "sound_hints_puzzle_film_fk",
+    }).onDelete("cascade"),
+    check("sound_hints_window", sql`${t.endSeconds} > ${t.startSeconds} and ${t.startSeconds} >= 0`),
+  ],
+);
+
+/** A trimmed excerpt of a TMDB user review, with names blanked, played as a text hint. */
+export const reviewHints = pgTable(
+  "review_hints",
+  {
+    puzzleId: uuid("puzzle_id").notNull(),
+    filmId: integer("film_id").notNull(),
+    excerpt: text("excerpt").notNull(),
+    /** The reviewer's TMDB name, shown with the excerpt. */
+    author: text("author").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.puzzleId, t.filmId] }),
+    foreignKey({
+      columns: [t.puzzleId, t.filmId],
+      foreignColumns: [puzzleFilms.puzzleId, puzzleFilms.filmId],
+      name: "review_hints_puzzle_film_fk",
     }).onDelete("cascade"),
   ],
 );

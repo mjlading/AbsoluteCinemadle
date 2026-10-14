@@ -6,8 +6,9 @@ Decisions taken where the spec is ambiguous live in [ASSUMPTIONS.md](ASSUMPTIONS
 
 ## Status
 
-Phases 1 to 4 are done (grid; database, TMDB and admin editor at `/admin`; warm-up with LLM back-translations; barcode bonus round); phase 5 (hints, scoring, results, streaks, saved progress) is next.
-Update this line when a phase completes.
+All five build phases are done (grid; database, TMDB and admin editor at `/admin`; warm-up with LLM back-translations; barcode bonus round; hints, scoring, results, streaks and saved progress).
+Before launch: production hosting (Supabase, Vercel, DNS for absolutecinemadle.fun), a refresh job for `films` rows older than about 5 months, and real puzzles.
+Update this section as that work lands.
 Phases are listed in SPEC.md under "Build phases"; owner additions (posters, review hint, animations) are listed there too.
 
 ## Stack

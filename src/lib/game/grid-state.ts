@@ -1,5 +1,13 @@
 import { RULES } from "@/config/rules";
-import type { GuessResult, PublicPuzzle, SolvedGroup } from "@/lib/puzzle/types";
+import type {
+  GuessResult,
+  HintKind,
+  IssuedHint,
+  IssuedReviewHint,
+  IssuedSoundHint,
+  PublicPuzzle,
+  SolvedGroup,
+} from "@/lib/puzzle/types";
 import { seededRandom, shuffled } from "@/lib/random";
 
 export type GridStatus = "playing" | "won" | "lost";
@@ -18,6 +26,9 @@ export interface GridState {
   guesses: string[][];
   /** Labels of flipped tiles, by tile id. */
   labels: Record<string, string>;
+  /** Hints the player has taken, kept so they can look at them again. */
+  soundHints: IssuedSoundHint[];
+  reviewHints: IssuedReviewHint[];
   status: GridStatus;
 }
 
@@ -27,6 +38,7 @@ export type GridAction =
   | { type: "shuffle"; seed: string }
   | { type: "guess_resolved"; tileIds: string[]; result: GuessResult }
   | { type: "label_revealed"; tileId: string; label: string }
+  | ({ type: "hint_used" } & IssuedHint)
   | { type: "group_revealed"; group: SolvedGroup };
 
 export function initialGridState(puzzle: PublicPuzzle): GridState {
@@ -39,6 +51,8 @@ export function initialGridState(puzzle: PublicPuzzle): GridState {
     mistakes: 0,
     guesses: [],
     labels: {},
+    soundHints: [],
+    reviewHints: [],
     status: "playing",
   };
 }
@@ -105,6 +119,15 @@ export function gridReducer(state: GridState, action: GridAction): GridState {
       };
     }
 
+    case "hint_used": {
+      const taken = takenHints(state, action.kind);
+      if (state.status !== "playing" || taken.length >= dailyHintLimit(action.kind)) return state;
+      if (taken.some((h) => h.token === action.hint.token)) return state;
+      return action.kind === "sound"
+        ? { ...state, soundHints: [...state.soundHints, action.hint] }
+        : { ...state, reviewHints: [...state.reviewHints, action.hint] };
+    }
+
     case "label_revealed":
       if (state.labels[action.tileId] === action.label) return state;
       return { ...state, labels: { ...state.labels, [action.tileId]: action.label } };
@@ -122,3 +145,20 @@ export function gridReducer(state: GridState, action: GridAction): GridState {
     }
   }
 }
+
+const dailyHintLimit = (kind: HintKind) => (kind === "sound" ? RULES.grid.maxSoundHints : RULES.grid.maxReviewHints);
+const takenHints = (state: GridState, kind: HintKind) => (kind === "sound" ? state.soundHints : state.reviewHints);
+
+/**
+ * Hints of a kind the player can still take: the daily limit, or fewer when
+ * fewer of the puzzle's films have that kind of hint (`offered`).
+ */
+export function hintsLeft(state: GridState, kind: HintKind, offered: number): number {
+  return Math.max(0, Math.min(dailyHintLimit(kind), offered) - takenHints(state, kind).length);
+}
+
+/** Tokens of the hints of a kind the player already has, so the server hands out a new one. */
+export const seenHintTokens = (state: GridState, kind: HintKind) => takenHints(state, kind).map((h) => h.token);
+
+/** The films the player has found so far, which hints must skip. */
+export const solvedFilmIds = (state: GridState) => state.solved.map((g) => g.filmId);

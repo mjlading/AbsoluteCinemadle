@@ -8,6 +8,7 @@ export const POINTS = {
     perMistake: -10,
     perFlip: -5,
     perSoundHint: -15,
+    perReviewHint: -10,
   },
   warmup: {
     perCorrectTitle: 10,

@@ -43,7 +43,12 @@ export function Game() {
       {puzzle ? (
         <>
           <LightTableSwitchOn date={puzzle.date} />
-          <Rounds key={puzzle.date} puzzle={puzzle} apiBase={puzzleApiBase(puzzle.date)} />
+          <Rounds
+            key={puzzle.date}
+            puzzle={puzzle}
+            apiBase={puzzleApiBase(puzzle.date)}
+            storageKey={`cinemadle:${puzzle.date}`}
+          />
         </>
       ) : error ? (
         <div className="mt-10 text-center">

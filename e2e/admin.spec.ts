@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { createDraft } from "./support/db";
+import { createDraft, sql } from "./support/db";
 import { E2E_ADMIN_PASSWORD } from "./support/env";
 import { endWarmupAndOpenGrid } from "./support/game";
 
@@ -133,6 +133,46 @@ test.describe("puzzle editor", () => {
     await expect(warmup.getByText("Card 1: Spirited Away (2001)")).toBeVisible();
     await expect(warmup.getByLabel("Film for warm-up card 2")).toBeVisible();
     await expect(page.getByText("Add 5 warm-up titles (1 so far).")).toBeVisible();
+  });
+});
+
+test.describe("hints", () => {
+  test.skip(({ isMobile }) => isMobile, "The editor is a desktop tool.");
+
+  test("a sound hint and a review hint are saved by hand, and removed", async ({ page }) => {
+    const id = await createDraft([{ tmdbId: 578, title: "Jaws", tier: 1 }], [0]);
+    await signIn(page);
+    await page.goto(`/admin/puzzles/${id}`);
+    const jaws = page.getByRole("region", { name: "Hints" }).getByRole("listitem").filter({ hasText: "Jaws" });
+    const sound = jaws.getByRole("group", { name: "Sound hint" });
+    const review = jaws.getByRole("group", { name: "Review hint" });
+
+    await sound.getByLabel("YouTube link").fill("https://www.youtube.com/watch?v=N9hzLQUGr34&t=5s");
+    await sound.getByLabel("Start (minutes:seconds)").fill("0:14");
+    await sound.getByLabel("End (minutes:seconds)").fill("0:12");
+    await expect(sound.getByText("Use whole seconds, with the end after the start, like 1:23 to 1:25.")).toBeVisible();
+    await expect(sound.getByRole("button", { name: "Save sound hint" })).toBeDisabled();
+    await sound.getByLabel("Start (minutes:seconds)").fill("0:12");
+    await sound.getByLabel("End (minutes:seconds)").fill("0:14");
+    await sound.getByRole("button", { name: "Save sound hint" }).click();
+    await expect(sound.getByRole("button", { name: "Save changes" })).toBeVisible();
+
+    await review.getByLabel("Excerpt").fill("You will never look at a calm beach the same way again.");
+    await review.getByLabel("Reviewer").fill("A. Reviewer");
+    await review.getByRole("button", { name: "Save review hint" }).click();
+    await expect(review.getByRole("button", { name: "Save changes" })).toBeVisible();
+
+    expect(await sql`select youtube_id, start_seconds, end_seconds from sound_hints where puzzle_id = ${id}`).toEqual([
+      { youtube_id: "N9hzLQUGr34", start_seconds: 12, end_seconds: 14 },
+    ]);
+    expect(await sql`select excerpt, author from review_hints where puzzle_id = ${id}`).toEqual([
+      { excerpt: "You will never look at a calm beach the same way again.", author: "A. Reviewer" },
+    ]);
+
+    await sound.getByRole("button", { name: "Remove" }).click();
+    await expect(sound.getByRole("button", { name: "Save sound hint" })).toBeVisible();
+    await expect(sound.getByLabel("YouTube link")).toHaveValue("");
+    expect(await sql`select 1 from sound_hints where puzzle_id = ${id}`).toHaveLength(0);
   });
 });
 

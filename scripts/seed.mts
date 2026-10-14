@@ -33,7 +33,7 @@ if (reset) {
     throw new Error("--reset wipes every puzzle, so it only runs against a database whose name ends in _test.");
   }
   await db.execute(
-    sql`truncate ${schema.barcodeUploads}, ${schema.warmupEntries}, ${schema.tiles}, ${schema.puzzleFilms}, ${schema.puzzles}, ${schema.films}`,
+    sql`truncate ${schema.soundHints}, ${schema.reviewHints}, ${schema.barcodeUploads}, ${schema.warmupEntries}, ${schema.tiles}, ${schema.puzzleFilms}, ${schema.puzzles}, ${schema.films}`,
   );
   console.log("Removed all puzzles.");
 }
@@ -80,11 +80,30 @@ async function addSampleWarmup(tx: Pick<typeof db, "select" | "insert">, puzzleI
     .values(SAMPLE_WARMUP.map((entry, i) => ({ ...entry, id: newTileId(), position: i + 1, puzzleId })));
 }
 
+/** Gives the sample films their sample sound and review hints, where they have none yet. */
+async function addSampleHints(tx: Pick<typeof db, "insert">, puzzleId: string) {
+  const sounds = SAMPLE_FILMS.filter((f) => f.soundHint).map((f) => ({
+    puzzleId,
+    filmId: f.tmdbId,
+    youtubeId: f.soundHint!.youtubeId,
+    startSeconds: f.soundHint!.start,
+    endSeconds: f.soundHint!.end,
+  }));
+  if (sounds.length > 0) await tx.insert(schema.soundHints).values(sounds).onConflictDoNothing();
+  const reviews = SAMPLE_FILMS.filter((f) => f.reviewHint).map((f) => ({
+    puzzleId,
+    filmId: f.tmdbId,
+    ...f.reviewHint!,
+  }));
+  if (reviews.length > 0) await tx.insert(schema.reviewHints).values(reviews).onConflictDoNothing();
+}
+
 for (const offset of offsets) {
   const date = localIsoDate(new Date(Date.now() + offset * 86_400_000));
   const [taken] = await db.select({ id: schema.puzzles.id }).from(schema.puzzles).where(eq(schema.puzzles.date, date));
   if (taken) {
     await addSampleWarmup(db, taken.id);
+    await addSampleHints(db, taken.id);
     console.log(`${date} already has a puzzle; kept it.`);
     continue;
   }
@@ -95,6 +114,7 @@ for (const offset of offsets) {
       .values(SAMPLE_FILMS.map((f) => ({ puzzleId: puzzle.id, filmId: f.tmdbId, tier: f.tier })));
     await tx.insert(schema.tiles).values(sampleTiles(newTileId).map((t) => ({ ...t, puzzleId: puzzle.id })));
     await addSampleWarmup(tx, puzzle.id);
+    await addSampleHints(tx, puzzle.id);
   });
   console.log(`Scheduled the sample puzzle for ${date}.`);
 }

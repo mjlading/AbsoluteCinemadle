@@ -1,9 +1,26 @@
-import type { PuzzleFilm, PuzzleTile, Tier, WarmupEntry } from "./types";
+import type { PuzzleFilm, PuzzleTile, ReviewHint, SoundHint, Tier, WarmupEntry } from "./types";
 
 /**
  * A puzzle with emoji placeholder art, for development seeds and tests.
  * Harrison Ford appears in two groups on purpose, as a red herring.
  */
+/** A sound hint for the sample puzzle: two seconds of the official Jaws 50th anniversary trailer. */
+const SAMPLE_SOUND_HINTS: Record<number, SoundHint> = {
+  578: { youtubeId: "N9hzLQUGr34", start: 12, end: 14 },
+};
+
+/** Hand-written review hints for the sample films (dev and tests); real ones come from TMDB reviews. */
+const SAMPLE_REVIEW_HINTS: Record<number, ReviewHint> = {
+  578: {
+    excerpt: "You will never look at a calm beach the same way again. [actor] carries the whole thing.",
+    author: "sample",
+  },
+  78: {
+    excerpt: "Rain, neon and a question about what it means to be human, all set to that synth score.",
+    author: "sample",
+  },
+};
+
 export const SAMPLE_FILMS: PuzzleFilm[] = [
   sampleFilm(578, "Jaws", 1975, 1, ["#0e2a3c", "#1d4f6e", "#3f7fa6", "#9cc7d8", "#d8c79a"]),
   sampleFilm(105, "Back to the Future", 1985, 2, ["#2a1c3d", "#6b2f7a", "#c2492f", "#e98a2b", "#f3c76b"]),
@@ -16,7 +33,16 @@ export const SAMPLE_FILMS: PuzzleFilm[] = [
  * TMDB; the seed replaces it with a generated one when TMDB is reachable.
  */
 function sampleFilm(tmdbId: number, title: string, year: number, tier: Tier, colors: string[]): PuzzleFilm {
-  return { tmdbId, title, year, posterPath: null, tier, barcode: { id: `sample-${tmdbId}`, colors, upload: false } };
+  return {
+    tmdbId,
+    title,
+    year,
+    posterPath: null,
+    tier,
+    barcode: { id: `sample-${tmdbId}`, colors, upload: false },
+    soundHint: SAMPLE_SOUND_HINTS[tmdbId] ?? null,
+    reviewHint: SAMPLE_REVIEW_HINTS[tmdbId] ?? null,
+  };
 }
 
 type TileSeed = [filmId: number, type: PuzzleTile["type"], label: string, glyph: string, hue: number];

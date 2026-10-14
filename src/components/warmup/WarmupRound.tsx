@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch } from "react";
 
 import { RULES } from "@/config/rules";
 import { fetchWarmupSolution, guessWarmup } from "@/lib/game/api";
-import { currentCardId, foundCount, initialWarmupState, warmupReducer } from "@/lib/game/warmup-state";
+import { currentCardId, foundCount, type WarmupAction, type WarmupState } from "@/lib/game/warmup-state";
 import type { PublicWarmupCard, WarmupAnswer } from "@/lib/puzzle/types";
 import { FilmLeader } from "./FilmLeader";
 import { TitleGuess } from "./TitleGuess";
@@ -21,13 +21,16 @@ const describe = (answer: WarmupAnswer) => `${answer.title}${answer.year ? ` (${
 export function WarmupRound({
   cards,
   apiBase,
+  state,
+  dispatch,
   onContinue,
 }: {
   cards: PublicWarmupCard[];
   apiBase: string;
+  state: WarmupState;
+  dispatch: Dispatch<WarmupAction>;
   onContinue: () => void;
 }) {
-  const [state, dispatch] = useReducer(warmupReducer, cards, initialWarmupState);
   const [now, setNow] = useState<number | null>(null);
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -54,7 +57,7 @@ export function WarmupRound({
       window.clearInterval(interval);
       window.clearTimeout(timeout);
     };
-  }, [phase, endsAt]);
+  }, [phase, endsAt, dispatch]);
 
   useEffect(() => {
     if (phase === "playing" && secondsLeft === LOW_TIME_SECONDS) {
@@ -74,7 +77,7 @@ export function WarmupRound({
     return () => {
       cancelled = true;
     };
-  }, [phase, apiBase]);
+  }, [phase, apiBase, dispatch]);
 
   useEffect(() => {
     if (!feedback) return;
@@ -82,7 +85,7 @@ export function WarmupRound({
     return () => window.clearTimeout(timer);
   }, [feedback]);
 
-  const begin = useCallback(() => dispatch({ type: "begin", now: Date.now() }), []);
+  const begin = useCallback(() => dispatch({ type: "begin", now: Date.now() }), [dispatch]);
 
   async function guess(text: string, tmdbId?: number) {
     if (!cardId || pending) return;
@@ -121,7 +124,7 @@ export function WarmupRound({
           <button
             type="button"
             onClick={() => dispatch({ type: "start" })}
-            className="mt-6 min-h-12 rounded-full bg-table px-7 text-lg font-semibold text-sheet hover:bg-white"
+            className="mt-6 min-h-12 rounded-full bg-lamp px-7 text-lg font-semibold text-sheet hover:bg-white"
           >
             Start the clock
           </button>

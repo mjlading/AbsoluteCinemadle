@@ -1,45 +1,25 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import type { BonusResult, PublicBonus, SolvedGroup } from "../src/lib/puzzle/types";
-import { localDate, skipToGrid } from "./support/game";
-
-async function apiBase(page: Page) {
-  return `/api/puzzles/${await localDate(page)}`;
-}
+import {
+  bonusAnswers as trueFilms,
+  barcodeButton as barcode,
+  fetchSolution,
+  filmButton as film,
+  guess,
+  skipToGrid,
+} from "./support/game";
 
 /** Plays the grid to the end (won, or lost after four mistakes) and opens the bonus round. */
 async function openBonus(page: Page, { win }: { win: boolean }) {
   await skipToGrid(page);
-  const base = await apiBase(page);
-  const { groups } = (await (await page.request.get(`${base}/solution`)).json()) as { groups: SolvedGroup[] };
+  const groups = await fetchSolution(page);
   const guesses = win
     ? groups.map((g) => g.tileIds)
     : [0, 1, 2, 3].map((i) => [groups[0].tileIds[i], groups[1].tileIds[i], groups[2].tileIds[i], groups[3].tileIds[i]]);
-  for (const tileIds of guesses) {
-    const deselect = page.getByRole("button", { name: "Deselect all" });
-    if (await deselect.isEnabled()) await deselect.click();
-    for (const id of tileIds) await page.locator(`[data-tile-id="${id}"] .tile-face`).click();
-    await page.getByRole("button", { name: "Submit" }).click();
-    await expect(page.locator("[aria-busy=true]")).toHaveCount(0);
-  }
+  for (const tileIds of guesses) await guess(page, tileIds);
   await page.getByRole("button", { name: "On to the bonus" }).click();
   await expect(page.getByRole("list", { name: "Barcodes" }).getByRole("listitem")).toHaveCount(4);
 }
-
-/** The true film for each barcode, as the check endpoint reports it (the client never knows it up front). */
-async function trueFilms(page: Page): Promise<{ bonus: PublicBonus; truth: Map<string, string> }> {
-  const base = await apiBase(page);
-  const bonus = (await (await page.request.get(`${base}/bonus`)).json()) as PublicBonus;
-  const response = await page.request.post(`${base}/bonus/check`, { data: { matches: {} } });
-  const { results } = (await response.json()) as { results: BonusResult[] };
-  const titles = new Map(bonus.films.map((f) => [f.filmId, f.title]));
-  return { bonus, truth: new Map(results.map((r) => [r.barcodeId, titles.get(r.filmId)!])) };
-}
-
-const barcode = (page: Page, index: number) =>
-  page.getByRole("list", { name: "Barcodes" }).getByRole("button", { name: new RegExp(`^Barcode ${index + 1},`) });
-const film = (page: Page, title: string) =>
-  page.getByRole("list", { name: "Films" }).getByRole("button", { name: new RegExp(`^${title}`) });
 
 test("barcodes are matched to the day's films by tapping", async ({ page }) => {
   await openBonus(page, { win: true });

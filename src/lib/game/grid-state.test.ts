@@ -4,9 +4,11 @@ import type { PublicPuzzle, SolvedGroup } from "@/lib/puzzle/types";
 import {
   canSubmit,
   gridReducer,
+  hintsLeft,
   initialGridState,
   isRepeatGuess,
   mistakesLeft,
+  seenHintTokens,
   type GridAction,
   type GridState,
 } from "./grid-state";
@@ -15,6 +17,7 @@ const ids = Array.from({ length: 16 }, (_, i) => `t${i + 1}`);
 const puzzle: PublicPuzzle = {
   date: "2026-10-14",
   warmup: [],
+  hints: { sound: 0, review: 0 },
   tiles: ids.map((id, i) => ({ id, number: i + 1, type: "still", imageUrl: `/img/${id}` })),
 };
 const group = (n: number, tier: SolvedGroup["tier"] = 1): SolvedGroup => ({
@@ -98,6 +101,43 @@ describe("gridReducer", () => {
   it("ignores revealed groups while still playing", () => {
     const state = initialGridState(puzzle);
     expect(gridReducer(state, { type: "group_revealed", group: group(0) })).toBe(state);
+  });
+
+  const sound = (token: number) => ({ youtubeId: "U1fu_sA7XhE", start: token, end: token + 2, token });
+  const review = (token: number) => ({ excerpt: `Line ${token}`, author: "someone", token });
+
+  it("keeps the hints taken while playing, and reports what is left", () => {
+    const state = run(
+      initialGridState(puzzle),
+      { type: "hint_used", kind: "sound", hint: sound(1) },
+      { type: "hint_used", kind: "review", hint: review(0) },
+    );
+    expect(state.soundHints).toEqual([sound(1)]);
+    expect(state.reviewHints).toEqual([review(0)]);
+    expect(hintsLeft(state, "sound", 4)).toBe(1);
+    expect(hintsLeft(state, "review", 4)).toBe(1);
+    // Only as many hints as films that have one.
+    expect(hintsLeft(state, "sound", 1)).toBe(0);
+    expect(seenHintTokens(state, "sound")).toEqual([1]);
+  });
+
+  it("takes each hint once, never past the daily limit, and none after the round", () => {
+    let state = run(
+      initialGridState(puzzle),
+      { type: "hint_used", kind: "review", hint: review(0) },
+      { type: "hint_used", kind: "review", hint: review(0) },
+    );
+    expect(state.reviewHints).toHaveLength(1);
+    state = run(
+      state,
+      { type: "hint_used", kind: "review", hint: review(1) },
+      { type: "hint_used", kind: "review", hint: review(2) },
+    );
+    expect(seenHintTokens(state, "review")).toEqual([0, 1]);
+    expect(hintsLeft(state, "review", 4)).toBe(0);
+
+    const lost = { ...initialGridState(puzzle), status: "lost" as const };
+    expect(gridReducer(lost, { type: "hint_used", kind: "sound", hint: sound(0) })).toBe(lost);
   });
 
   it("records flipped labels", () => {

@@ -1,6 +1,9 @@
 import type {
   BonusResult,
   GuessResult,
+  HintKind,
+  IssuedReviewHint,
+  IssuedSoundHint,
   PublicBonus,
   PublicPuzzle,
   SolvedGroup,
@@ -72,4 +75,21 @@ export function fetchBonus(base: string): Promise<PublicBonus> {
 
 export function checkBonus(base: string, matches: Record<string, number>): Promise<{ results: BonusResult[] }> {
   return request(`${base}/bonus/check`, { method: "POST", body: JSON.stringify({ matches }) });
+}
+
+/** The next hint of a kind for the films the player hasn't solved, or null if none is left. */
+export function requestHint(
+  base: string,
+  kind: "sound",
+  solved: number[],
+  seen: number[],
+): Promise<{ hint: IssuedSoundHint | null }>;
+export function requestHint(
+  base: string,
+  kind: "review",
+  solved: number[],
+  seen: number[],
+): Promise<{ hint: IssuedReviewHint | null }>;
+export function requestHint(base: string, kind: HintKind, solved: number[], seen: number[]) {
+  return request(`${base}/hints/${kind}`, { method: "POST", body: JSON.stringify({ solved, seen }) });
 }

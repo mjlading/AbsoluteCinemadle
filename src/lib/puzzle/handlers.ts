@@ -3,12 +3,13 @@ import "server-only";
 import { z } from "zod";
 
 import { RULES } from "@/config/rules";
+import { pickHint } from "@/lib/hints/pick";
 import { errorResponse, parseJsonBody } from "@/lib/http";
+import { seededRandom, shuffled } from "@/lib/random";
 import { posterUrl } from "@/lib/tmdb/images";
 import { titleMatches } from "@/lib/warmup/match";
 import { checkGuess, solution, tileLabel, toPublicPuzzle } from "./grid";
 import { parseTileImageSize, renderTileImage } from "./tile-image";
-import { seededRandom, shuffled } from "@/lib/random";
 import { getBarcodeUpload } from "./repository";
 import type { BonusResult, Puzzle, PublicBonus, WarmupAnswer, WarmupEntry, WarmupGuessResult } from "./types";
 
@@ -106,17 +107,20 @@ export function warmupSolutionResponse(puzzle: Puzzle): Response {
   return Response.json({ answers: puzzle.warmup.map(warmupAnswer) }, { headers: noStore });
 }
 
+/** The films in the order their barcodes are shown: shuffled, so position gives nothing away. */
+const barcodeOrder = (puzzle: Puzzle) => shuffled(puzzle.films, seededRandom(`${puzzle.id}:barcodes`));
+
 /**
  * The bonus round: the day's films (easiest first) and their barcodes in a
- * shuffled order, so position gives nothing away. Barcode ids are random, so
- * the pairing cannot be worked out from them.
+ * shuffled order. Barcode ids are random, so the pairing cannot be worked out
+ * from them.
  */
 export function bonusResponse(puzzle: Puzzle, apiBase: string): Response {
   const bonus: PublicBonus = {
     films: [...puzzle.films]
       .sort((a, b) => a.tier - b.tier)
       .map((f) => ({ filmId: f.tmdbId, title: f.title, year: f.year, posterUrl: posterUrl(f.posterPath) })),
-    barcodes: shuffled(puzzle.films, seededRandom(`${puzzle.id}:barcodes`)).map((f) => ({
+    barcodes: barcodeOrder(puzzle).map((f) => ({
       id: f.barcode.id,
       colors: f.barcode.upload ? null : f.barcode.colors,
       imageUrl: f.barcode.upload ? `${apiBase}/barcodes/${f.barcode.id}/image` : null,
@@ -127,11 +131,11 @@ export function bonusResponse(puzzle: Puzzle, apiBase: string): Response {
 
 const BonusCheckBody = z.object({ matches: z.record(z.string().max(64), z.number().int()) });
 
-/** Scores the player's barcode pairings, revealing the right film for every barcode. */
+/** Scores the player's barcode pairings, revealing the right film for every barcode, in the order they are shown. */
 export async function bonusCheckResponse(puzzle: Puzzle, request: Request): Promise<Response> {
   const body = await parseJsonBody(request, BonusCheckBody);
   if (body instanceof Response) return body;
-  const results: BonusResult[] = puzzle.films.map((f) => ({
+  const results: BonusResult[] = barcodeOrder(puzzle).map((f) => ({
     barcodeId: f.barcode.id,
     filmId: f.tmdbId,
     correct: body.matches[f.barcode.id] === f.tmdbId,
@@ -151,3 +155,24 @@ export async function barcodeImageResponse(
     headers: { "Content-Type": upload.contentType, "Cache-Control": cacheControl },
   });
 }
+
+const HintBody = z.object({
+  /** Films the player has already solved; hints only come from the others. */
+  solved: z.array(z.number().int()).max(4),
+  /** Tokens of the hints of this kind the player already has. */
+  seen: z.array(z.number().int().min(0)).max(4),
+});
+
+/**
+ * The next hint of a kind for the player, from a film they haven't solved and
+ * not one they already have; `{ hint: null }` when there is none left.
+ */
+async function hintResponse(puzzle: Puzzle, request: Request, field: "soundHint" | "reviewHint"): Promise<Response> {
+  const body = await parseJsonBody(request, HintBody);
+  if (body instanceof Response) return body;
+  const hint = pickHint(puzzle.films, field, `${puzzle.id}:${field}`, body.solved, body.seen);
+  return Response.json({ hint }, { headers: noStore });
+}
+
+export const soundHintResponse = (puzzle: Puzzle, request: Request) => hintResponse(puzzle, request, "soundHint");
+export const reviewHintResponse = (puzzle: Puzzle, request: Request) => hintResponse(puzzle, request, "reviewHint");

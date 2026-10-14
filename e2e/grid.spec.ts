@@ -1,24 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import type { PublicPuzzle, SolvedGroup } from "../src/lib/puzzle/types";
-import { localDate, skipToGrid } from "./support/game";
+import { fetchSolution, guess, localDate, skipToGrid, tileFace as tile } from "./support/game";
 
 /** Opens the game on the grid and fetches the answers out of band, so tests can play deliberately. */
 async function openGame(page: Page): Promise<SolvedGroup[]> {
   await skipToGrid(page);
-  const response = await page.request.get(`/api/puzzles/${await localDate(page)}/solution`);
-  return ((await response.json()) as { groups: SolvedGroup[] }).groups;
-}
-
-const tile = (page: Page, id: string) => page.locator(`[data-tile-id="${id}"] .tile-face`);
-
-async function guess(page: Page, tileIds: string[]) {
-  const deselect = page.getByRole("button", { name: "Deselect all" });
-  if (await deselect.isEnabled()) await deselect.click();
-  for (const id of tileIds) await tile(page, id).click();
-  await page.getByRole("button", { name: "Submit" }).click();
-  // The board is busy while the server checks the guess and the result animates.
-  await expect(page.locator("[aria-busy=true]")).toHaveCount(0);
+  return fetchSolution(page);
 }
 
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
