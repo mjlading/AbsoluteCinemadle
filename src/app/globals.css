@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+/*
+ * Light table and contact sheet: the page is the lit table, the board is a dark
+ * contact sheet, selections are red china-marker rings, and solved groups are
+ * strips of colored tape. Tier tapes follow the dyes of color film (cyan,
+ * yellow, magenta) plus the white paper tape used to label film cans.
+ */
+:root {
+  --table: #e8eef1;
+  --ink: #181b21;
+  --ink-soft: #525a67;
+  --sheet: #17191e;
+  --sheet-edge: #2c3038;
+  --marker: #d92b3f;
+  --surface: #ffffff;
+  --tier-1: #4cc3d9;
+  --tier-2: #f2c641;
+  --tier-3: #e2579b;
+  --tier-4: #edebe3;
+  --on-tape: #181b21;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --table: #0e1014;
+    --ink: #e6eaef;
+    --ink-soft: #9aa3b1;
+    --sheet: #1b1e25;
+    --sheet-edge: #323743;
+    --marker: #ff4d61;
+    --surface: #1b1e25;
+  }
+}
+
+@theme inline {
+  --color-table: var(--table);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-sheet: var(--sheet);
+  --color-sheet-edge: var(--sheet-edge);
+  --color-marker: var(--marker);
+  /* Same red in both schemes: dark enough for white button text. */
+  --color-marker-strong: #d92b3f;
+  --color-surface: var(--surface);
+  --color-on-tape: var(--on-tape);
+  --font-sans: var(--font-sofia), ui-sans-serif, system-ui, sans-serif;
+  --font-condensed: var(--font-sofia-condensed), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-sofia-xc), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--table);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* Banners match tile rows: --tile is one column of the 4-column grid. */
+.board-stack {
+  --gap: 6px;
+  --tile: calc((100cqi - 3 * var(--gap)) / 4);
+}
+
+/* Tiles sit on the dark sheet, so their focus ring is white. */
+.tile-face:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+.tile-face img {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.marker-ring path {
+  fill: none;
+  stroke: var(--marker);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 100;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 1.5px rgb(0 0 0 / 0.7));
+  animation: marker-draw 240ms ease-out;
+}
+
+@keyframes marker-draw {
+  from {
+    stroke-dashoffset: 100;
+  }
+}
+
+.tile-label {
+  animation: label-flip 280ms ease-out;
+  transform-origin: bottom;
+}
+
+@keyframes label-flip {
+  from {
+    transform: perspective(300px) rotateX(-90deg);
+  }
+}
+
+.tile[data-effect="shake"] {
+  animation: tile-shake 380ms ease-in-out;
+}
+
+@keyframes tile-shake {
+  20%,
+  60% {
+    translate: -5px 0;
+  }
+  40%,
+  80% {
+    translate: 5px 0;
+  }
+}
+
+.tile[data-effect="settle"] .tile-face {
+  animation: tile-settle 420ms ease-out forwards;
+}
+
+@keyframes tile-settle {
+  40% {
+    scale: 1.06;
+    box-shadow: 0 0 0 3px var(--settle-color);
+  }
+  100% {
+    scale: 0.94;
+    box-shadow: 0 0 0 3px var(--settle-color);
+    opacity: 0.6;
+  }
+}
+
+.group-banner {
+  animation: tape-press 300ms cubic-bezier(0.2, 0.8, 0.3, 1.2);
+}
+
+@keyframes tape-press {
+  from {
+    opacity: 0;
+    scale: 1.04 0.7;
+  }
+}
+
+.toast {
+  animation: toast-in 160ms ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+
+dialog::backdrop {
+  background: rgb(10 12 16 / 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
