@@ -1,10 +1,10 @@
 import "server-only";
 
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 
 import { db } from "@/db/client";
-import { films, puzzleFilms, puzzles, tiles, warmupEntries } from "@/db/schema";
+import { barcodeUploads, films, puzzleFilms, puzzles, tiles, warmupEntries } from "@/db/schema";
 import { seededRandom, shuffled } from "@/lib/random";
 import type { Puzzle, Tier } from "./types";
 
@@ -26,9 +26,16 @@ export async function loadPuzzle(id: string): Promise<Puzzle | null> {
       year: films.year,
       posterPath: films.posterPath,
       tier: puzzleFilms.tier,
+      barcodeId: puzzleFilms.barcodeId,
+      palette: films.palette,
+      uploadType: barcodeUploads.contentType,
     })
     .from(puzzleFilms)
     .innerJoin(films, eq(films.tmdbId, puzzleFilms.filmId))
+    .leftJoin(
+      barcodeUploads,
+      and(eq(barcodeUploads.puzzleId, puzzleFilms.puzzleId), eq(barcodeUploads.filmId, puzzleFilms.filmId)),
+    )
     .where(eq(puzzleFilms.puzzleId, id))
     .orderBy(asc(puzzleFilms.tier));
 
@@ -60,7 +67,11 @@ export async function loadPuzzle(id: string): Promise<Puzzle | null> {
   return {
     id: row.id,
     date: row.date,
-    films: filmRows.map((f) => ({ ...f, tier: f.tier as Tier })),
+    films: filmRows.map(({ barcodeId, palette, uploadType, ...f }) => ({
+      ...f,
+      tier: f.tier as Tier,
+      barcode: { id: barcodeId, colors: palette, upload: uploadType !== null },
+    })),
     tiles: shuffled(tileRows, seededRandom(row.id)),
     warmup: warmupRows.map(({ title, originalTitle, year, posterPath, ...entry }) => ({
       ...entry,
@@ -77,4 +88,16 @@ export async function getScheduledPuzzle(date: string): Promise<Puzzle | null> {
 
   const [row] = await db().select({ id: puzzles.id }).from(puzzles).where(eq(puzzles.date, date));
   return row ? loadPuzzle(row.id) : null;
+}
+
+/** The barcode image an admin uploaded for one film of a puzzle, if any. */
+export async function getBarcodeUpload(
+  puzzleId: string,
+  filmId: number,
+): Promise<{ contentType: string; data: Buffer } | null> {
+  const [row] = await db()
+    .select({ contentType: barcodeUploads.contentType, data: barcodeUploads.data })
+    .from(barcodeUploads)
+    .where(and(eq(barcodeUploads.puzzleId, puzzleId), eq(barcodeUploads.filmId, filmId)));
+  return row ?? null;
 }

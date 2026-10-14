@@ -27,6 +27,14 @@ export interface PuzzleFilm {
   year: number | null;
   posterPath: string | null;
   tier: Tier;
+  barcode: {
+    /** Opaque id used in the bonus round. */
+    id: string;
+    /** The generated palette strip, hex colours sorted by hue. */
+    colors: string[] | null;
+    /** True when the admin uploaded an image that replaces the palette strip. */
+    upload: boolean;
+  };
 }
 
 export interface PuzzleTile {
@@ -116,3 +124,29 @@ export interface SolvedGroup {
 }
 
 export type GuessResult = { kind: "correct"; group: SolvedGroup } | { kind: "one_away" } | { kind: "wrong" };
+
+/** A barcode as the bonus round shows it: either colour bands or an uploaded image. */
+export interface PublicBarcode {
+  id: string;
+  colors: string[] | null;
+  imageUrl: string | null;
+}
+
+export interface BonusFilm {
+  filmId: number;
+  title: string;
+  year: number | null;
+  posterUrl: string | null;
+}
+
+export interface PublicBonus {
+  films: BonusFilm[];
+  barcodes: PublicBarcode[];
+}
+
+export interface BonusResult {
+  barcodeId: string;
+  /** The film this barcode really belongs to. */
+  filmId: number;
+  correct: boolean;
+}

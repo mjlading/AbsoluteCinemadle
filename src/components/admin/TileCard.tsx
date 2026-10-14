@@ -31,7 +31,7 @@ export function TileCard({ puzzleId, tile }: { puzzleId: string; tile: EditorTil
   return (
     <li className="flex flex-col gap-1.5">
       <div className="relative aspect-square overflow-hidden rounded-[3px] bg-sheet">
-        <Image src={tile.imageUrl} alt="" fill unoptimized sizes="10rem" className="object-cover" />
+        <Image src={tile.imageUrl} alt="" fill unoptimized loading="eager" sizes="10rem" className="object-cover" />
       </div>
       <span className="text-xs text-ink-soft first-letter:uppercase">{TILE_TYPE_NAMES[tile.type]}</span>
       <label htmlFor={labelId} className="sr-only">

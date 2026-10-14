@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 
+import { BonusRound } from "@/components/bonus/BonusRound";
 import { GridRound } from "@/components/grid/GridRound";
 import { WarmupRound } from "@/components/warmup/WarmupRound";
 import type { PublicPuzzle } from "@/lib/puzzle/types";
 
-type Round = "warmup" | "grid";
+type Round = "warmup" | "grid" | "bonus";
 
-const ROUNDS: { id: Round | "bonus"; name: string }[] = [
+const ROUNDS: { id: Round; name: string }[] = [
   { id: "warmup", name: "Warm-up" },
   { id: "grid", name: "Grid" },
   { id: "bonus", name: "Bonus" },
@@ -21,11 +22,11 @@ export function Rounds({ puzzle, apiBase }: { puzzle: PublicPuzzle; apiBase: str
   return (
     <>
       <RoundTracker current={round} />
-      {round === "warmup" ? (
+      {round === "warmup" && (
         <WarmupRound cards={puzzle.warmup} apiBase={apiBase} onContinue={() => setRound("grid")} />
-      ) : (
-        <GridRound puzzle={puzzle} apiBase={apiBase} />
       )}
+      {round === "grid" && <GridRound puzzle={puzzle} apiBase={apiBase} onContinue={() => setRound("bonus")} />}
+      {round === "bonus" && <BonusRound apiBase={apiBase} />}
     </>
   );
 }

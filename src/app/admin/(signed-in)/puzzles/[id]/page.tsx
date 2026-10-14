@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { z } from "zod";
 
+import { BarcodeEditor } from "@/components/admin/BarcodeEditor";
 import { FilmControls } from "@/components/admin/FilmControls";
 import { FilmSearch } from "@/components/admin/FilmSearch";
 import { ScheduleControls } from "@/components/admin/ScheduleControls";
@@ -204,6 +205,27 @@ async function Editor({ params }: { params: PageProps<"/admin/puzzles/[id]">["pa
           <LlmSpend />
         </Suspense>
       </Section>
+
+      {puzzle.films.length > 0 && (
+        <Section
+          title="Barcodes"
+          note="For the bonus round. Each strip is built from the film's TMDB stills; upload an image to replace one."
+        >
+          <ul className="grid gap-6 md:grid-cols-2">
+            {puzzle.films.map((film) => (
+              <BarcodeEditor
+                key={film.tmdbId}
+                puzzleId={puzzle.id}
+                filmId={film.tmdbId}
+                title={film.title}
+                barcodeId={film.barcode.id}
+                colors={film.barcode.colors}
+                upload={film.barcode.upload}
+              />
+            ))}
+          </ul>
+        </Section>
+      )}
 
       <Section title="Red herrings" note="Links between the films, for tiles that point the wrong way on purpose.">
         <Suspense fallback={<p className="text-ink-soft">Looking up filmographies&hellip;</p>}>

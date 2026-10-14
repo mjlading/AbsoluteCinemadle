@@ -178,3 +178,12 @@ export async function suggestBackTranslations(input: {
     return { ok: false, error: "Suggestions are unavailable right now. Write the translation yourself." };
   }
 }
+
+export async function regenerateBarcode(puzzleId: string, filmId: number): Promise<ActionResult> {
+  PuzzleId.parse(puzzleId);
+  return change(() => admin.regeneratePalette(FilmId.parse(filmId)));
+}
+
+export async function removeBarcodeUpload(puzzleId: string, filmId: number): Promise<ActionResult> {
+  return change(() => admin.removeBarcodeUpload(PuzzleId.parse(puzzleId), FilmId.parse(filmId)));
+}

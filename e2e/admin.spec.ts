@@ -136,6 +136,26 @@ test.describe("puzzle editor", () => {
   });
 });
 
+test.describe("barcodes", () => {
+  test.skip(({ isMobile }) => isMobile, "The editor is a desktop tool.");
+
+  test("an uploaded image replaces a missing barcode", async ({ page }) => {
+    // A film the seed never touched, so it has no generated barcode yet.
+    const id = await createDraft([{ tmdbId: 694, title: "The Shining", tier: 1 }], [0]);
+    await signIn(page);
+    await page.goto(`/admin/puzzles/${id}`);
+    await expect(page.getByText("The Shining needs a barcode: regenerate it or upload one.")).toBeVisible();
+
+    const barcodes = page.getByRole("region", { name: "Barcodes" });
+    await barcodes.getByLabel("Barcode image for The Shining").setInputFiles("e2e/fixtures/barcode.png");
+    await expect(barcodes.getByText("(uploaded)")).toBeVisible();
+    await expect(page.getByText("The Shining needs a barcode: regenerate it or upload one.")).toHaveCount(0);
+
+    await barcodes.getByRole("button", { name: "Use the generated strip" }).click();
+    await expect(page.getByText("The Shining needs a barcode: regenerate it or upload one.")).toBeVisible();
+  });
+});
+
 async function fillCard(
   warmup: ReturnType<Page["getByRole"]>,
   foreignTitle: string,

@@ -8,7 +8,9 @@ import { posterUrl } from "@/lib/tmdb/images";
 import { titleMatches } from "@/lib/warmup/match";
 import { checkGuess, solution, tileLabel, toPublicPuzzle } from "./grid";
 import { parseTileImageSize, renderTileImage } from "./tile-image";
-import type { Puzzle, WarmupAnswer, WarmupEntry, WarmupGuessResult } from "./types";
+import { seededRandom, shuffled } from "@/lib/random";
+import { getBarcodeUpload } from "./repository";
+import type { BonusResult, Puzzle, PublicBonus, WarmupAnswer, WarmupEntry, WarmupGuessResult } from "./types";
 
 /*
  * Request handling shared by the player routes (/api/puzzles/[date]/...) and
@@ -102,4 +104,50 @@ export async function warmupGuessResponse(puzzle: Puzzle, request: Request): Pro
 /** Every warm-up answer, for revealing the cards once the round is over. */
 export function warmupSolutionResponse(puzzle: Puzzle): Response {
   return Response.json({ answers: puzzle.warmup.map(warmupAnswer) }, { headers: noStore });
+}
+
+/**
+ * The bonus round: the day's films (easiest first) and their barcodes in a
+ * shuffled order, so position gives nothing away. Barcode ids are random, so
+ * the pairing cannot be worked out from them.
+ */
+export function bonusResponse(puzzle: Puzzle, apiBase: string): Response {
+  const bonus: PublicBonus = {
+    films: [...puzzle.films]
+      .sort((a, b) => a.tier - b.tier)
+      .map((f) => ({ filmId: f.tmdbId, title: f.title, year: f.year, posterUrl: posterUrl(f.posterPath) })),
+    barcodes: shuffled(puzzle.films, seededRandom(`${puzzle.id}:barcodes`)).map((f) => ({
+      id: f.barcode.id,
+      colors: f.barcode.upload ? null : f.barcode.colors,
+      imageUrl: f.barcode.upload ? `${apiBase}/barcodes/${f.barcode.id}/image` : null,
+    })),
+  };
+  return Response.json(bonus, { headers: noStore });
+}
+
+const BonusCheckBody = z.object({ matches: z.record(z.string().max(64), z.number().int()) });
+
+/** Scores the player's barcode pairings, revealing the right film for every barcode. */
+export async function bonusCheckResponse(puzzle: Puzzle, request: Request): Promise<Response> {
+  const body = await parseJsonBody(request, BonusCheckBody);
+  if (body instanceof Response) return body;
+  const results: BonusResult[] = puzzle.films.map((f) => ({
+    barcodeId: f.barcode.id,
+    filmId: f.tmdbId,
+    correct: body.matches[f.barcode.id] === f.tmdbId,
+  }));
+  return Response.json({ results }, { headers: noStore });
+}
+
+export async function barcodeImageResponse(
+  puzzle: Puzzle,
+  barcodeId: string,
+  cacheControl = "public, max-age=86400",
+): Promise<Response> {
+  const film = puzzle.films.find((f) => f.barcode.id === barcodeId);
+  const upload = film?.barcode.upload ? await getBarcodeUpload(puzzle.id, film.tmdbId) : null;
+  if (!upload) return errorResponse(404, "That barcode has no image.");
+  return new Response(new Uint8Array(upload.data), {
+    headers: { "Content-Type": upload.contentType, "Cache-Control": cacheControl },
+  });
 }

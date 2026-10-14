@@ -16,9 +16,19 @@ export function checkWarmup(puzzle: Puzzle): GridCheck {
   return { errors, warnings: [] };
 }
 
+/** Bands a generated barcode needs before it is worth matching. */
+const MIN_BANDS = 3;
+
+/** Every grid film needs a barcode for the bonus round: a generated palette strip or an upload. */
+export function checkBarcodes(puzzle: Puzzle): GridCheck {
+  const errors = puzzle.films
+    .filter((film) => !film.barcode.upload && (film.barcode.colors?.length ?? 0) < MIN_BANDS)
+    .map((film) => `${film.title} needs a barcode: regenerate it or upload one.`);
+  return { errors, warnings: [] };
+}
+
 /** Everything that must hold before a puzzle can be scheduled. */
 export function checkPuzzle(puzzle: Puzzle): GridCheck {
-  const grid = checkGrid(puzzle);
-  const warmup = checkWarmup(puzzle);
-  return { errors: [...grid.errors, ...warmup.errors], warnings: [...grid.warnings, ...warmup.warnings] };
+  const checks = [checkGrid(puzzle), checkWarmup(puzzle), checkBarcodes(puzzle)];
+  return { errors: checks.flatMap((c) => c.errors), warnings: checks.flatMap((c) => c.warnings) };
 }

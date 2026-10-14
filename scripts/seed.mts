@@ -12,6 +12,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 import * as schema from "../src/db/schema";
+import { generatePalette } from "../src/lib/barcode/generate";
 import { localIsoDate } from "../src/lib/dates";
 import { newTileId } from "../src/lib/ids";
 import { SAMPLE_FILMS, SAMPLE_WARMUP, SAMPLE_WARMUP_FILMS, sampleTiles } from "../src/lib/puzzle/sample-puzzle";
@@ -32,26 +33,30 @@ if (reset) {
     throw new Error("--reset wipes every puzzle, so it only runs against a database whose name ends in _test.");
   }
   await db.execute(
-    sql`truncate ${schema.warmupEntries}, ${schema.tiles}, ${schema.puzzleFilms}, ${schema.puzzles}, ${schema.films}`,
+    sql`truncate ${schema.barcodeUploads}, ${schema.warmupEntries}, ${schema.tiles}, ${schema.puzzleFilms}, ${schema.puzzles}, ${schema.films}`,
   );
   console.log("Removed all puzzles.");
 }
 
 for (const film of [...SAMPLE_FILMS, ...SAMPLE_WARMUP_FILMS]) {
+  const builtInPalette = "barcode" in film ? film.barcode.colors : null;
   let details = {
     title: film.title,
     originalTitle: null as string | null,
     year: film.year,
     posterPath: null as string | null,
+    palette: builtInPalette,
   };
   if (process.env.TMDB_READ_ACCESS_TOKEN) {
     try {
       const movie = await getMovie(film.tmdbId);
+      const generated = builtInPalette ? await generatePalette(movie.backdrops) : [];
       details = {
         title: movie.title,
         originalTitle: movie.originalTitle,
         year: movie.year,
         posterPath: movie.posterPath,
+        palette: generated.length >= 3 ? generated : builtInPalette,
       };
     } catch (error) {
       console.warn(`Using built-in details for ${film.title}: ${(error as Error).message}`);

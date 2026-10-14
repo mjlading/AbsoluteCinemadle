@@ -1,4 +1,12 @@
-import type { GuessResult, PublicPuzzle, SolvedGroup, WarmupAnswer, WarmupGuessResult } from "@/lib/puzzle/types";
+import type {
+  BonusResult,
+  GuessResult,
+  PublicBonus,
+  PublicPuzzle,
+  SolvedGroup,
+  WarmupAnswer,
+  WarmupGuessResult,
+} from "@/lib/puzzle/types";
 
 export class ApiError extends Error {
   constructor(
@@ -56,4 +64,12 @@ export interface FilmSuggestion {
 
 export function suggestFilms(query: string, signal: AbortSignal): Promise<{ results: FilmSuggestion[] }> {
   return request(`/api/films/search?q=${encodeURIComponent(query)}`, { signal });
+}
+
+export function fetchBonus(base: string): Promise<PublicBonus> {
+  return request(`${base}/bonus`);
+}
+
+export function checkBonus(base: string, matches: Record<string, number>): Promise<{ results: BonusResult[] }> {
+  return request(`${base}/bonus/check`, { method: "POST", body: JSON.stringify({ matches }) });
 }

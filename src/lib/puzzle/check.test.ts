@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { checkPuzzle, checkWarmup } from "./check";
+import { checkBarcodes, checkPuzzle, checkWarmup } from "./check";
 import { SAMPLE_FILMS, SAMPLE_WARMUP, SAMPLE_WARMUP_FILMS, sampleTiles } from "./sample-puzzle";
 import type { Puzzle, WarmupEntry } from "./types";
 
@@ -46,5 +46,23 @@ describe("checkPuzzle", () => {
     const result = checkPuzzle({ ...puzzle, tiles: puzzle.tiles.slice(1), warmup: [] });
     expect(result.errors).toContain("Add 5 warm-up titles (0 so far).");
     expect(result.errors.some((e) => e.endsWith("of 4 tiles."))).toBe(true);
+  });
+});
+
+describe("checkBarcodes", () => {
+  it("passes films with a palette or an upload", () => {
+    const films = puzzle.films.map((f, i) =>
+      i === 0 ? { ...f, barcode: { ...f.barcode, colors: null, upload: true } } : f,
+    );
+    expect(checkBarcodes({ ...puzzle, films }).errors).toEqual([]);
+  });
+
+  it("asks for a barcode when the palette is missing or too short", () => {
+    const films = puzzle.films.map((f, i) =>
+      i === 1 ? { ...f, barcode: { ...f.barcode, colors: ["#000000", "#ffffff"], upload: false } } : f,
+    );
+    expect(checkBarcodes({ ...puzzle, films }).errors).toEqual([
+      "Back to the Future needs a barcode: regenerate it or upload one.",
+    ]);
   });
 });

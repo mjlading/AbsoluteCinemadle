@@ -4,7 +4,8 @@ import { and, asc, count, desc, eq, gte, inArray, isNull, lte, type SQL } from "
 
 import { RULES } from "@/config/rules";
 import { db } from "@/db/client";
-import { films, puzzleFilms, puzzles, tiles, warmupEntries } from "@/db/schema";
+import { barcodeUploads, films, puzzleFilms, puzzles, tiles, warmupEntries } from "@/db/schema";
+import { generatePalette } from "@/lib/barcode/generate";
 import { newTileId } from "@/lib/ids";
 import { checkPuzzle } from "@/lib/puzzle/check";
 import { loadPuzzle } from "@/lib/puzzle/repository";
@@ -69,14 +70,19 @@ export async function deletePuzzle(id: string): Promise<void> {
 
 const touch = (puzzleId: string) => db().update(puzzles).set({ updatedAt: new Date() }).where(eq(puzzles.id, puzzleId));
 
-/** Stores a film's current TMDB details (TMDB data may be kept for 6 months at most). */
+/**
+ * Stores a film's current TMDB details (TMDB data may be kept for 6 months at
+ * most), generating its barcode the first time.
+ */
 async function syncFilm(tmdbId: number): Promise<void> {
   const movie = await getMovie(tmdbId);
+  const [existing] = await db().select({ palette: films.palette }).from(films).where(eq(films.tmdbId, tmdbId));
   const details = {
     title: movie.title,
     originalTitle: movie.originalTitle,
     year: movie.year,
     posterPath: movie.posterPath,
+    palette: existing?.palette?.length ? existing.palette : await generatePalette(movie.backdrops),
     syncedAt: new Date(),
   };
   await db()
@@ -223,5 +229,31 @@ export async function removeWarmupEntry(puzzleId: string, entryId: string): Prom
   await db()
     .delete(warmupEntries)
     .where(and(eq(warmupEntries.puzzleId, puzzleId), eq(warmupEntries.id, entryId)));
+  await touch(puzzleId);
+}
+
+/** Rebuilds a film's barcode from its current TMDB backdrops. */
+export async function regeneratePalette(filmId: number): Promise<void> {
+  const movie = await getMovie(filmId);
+  const palette = await generatePalette(movie.backdrops);
+  if (palette.length === 0) throw new AdminError("TMDB has no stills to build a barcode from. Upload one instead.");
+  await db().update(films).set({ palette }).where(eq(films.tmdbId, filmId));
+}
+
+export async function saveBarcodeUpload(puzzleId: string, filmId: number, contentType: string, data: Buffer) {
+  await db()
+    .insert(barcodeUploads)
+    .values({ puzzleId, filmId, contentType, data })
+    .onConflictDoUpdate({
+      target: [barcodeUploads.puzzleId, barcodeUploads.filmId],
+      set: { contentType, data, createdAt: new Date() },
+    });
+  await touch(puzzleId);
+}
+
+export async function removeBarcodeUpload(puzzleId: string, filmId: number): Promise<void> {
+  await db()
+    .delete(barcodeUploads)
+    .where(and(eq(barcodeUploads.puzzleId, puzzleId), eq(barcodeUploads.filmId, filmId)));
   await touch(puzzleId);
 }

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  customType,
   check,
   date,
   foreignKey,
@@ -27,6 +28,8 @@ export const films = pgTable("films", {
   originalTitle: text("original_title"),
   year: integer("year"),
   posterPath: text("poster_path"),
+  /** The film's barcode: one dominant colour (hex) per TMDB backdrop, sorted by hue. */
+  palette: jsonb("palette").$type<string[]>(),
   syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -48,6 +51,8 @@ export const puzzleFilms = pgTable(
       .notNull()
       .references(() => films.tmdbId),
     tier: smallint("tier").notNull(),
+    /** Opaque id for this film's barcode in the bonus round; must not be derivable from the film. */
+    barcodeId: uuid("barcode_id").notNull().defaultRandom(),
   },
   (t) => [
     primaryKey({ columns: [t.puzzleId, t.filmId] }),
@@ -123,3 +128,25 @@ export const llmUsage = pgTable("llm_usage", {
   costMicroUsd: integer("cost_micro_usd").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => "bytea" });
+
+/** A barcode image the admin uploaded for one film of one puzzle, replacing the generated palette strip. */
+export const barcodeUploads = pgTable(
+  "barcode_uploads",
+  {
+    puzzleId: uuid("puzzle_id").notNull(),
+    filmId: integer("film_id").notNull(),
+    contentType: text("content_type").notNull(),
+    data: bytea("data").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.puzzleId, t.filmId] }),
+    foreignKey({
+      columns: [t.puzzleId, t.filmId],
+      foreignColumns: [puzzleFilms.puzzleId, puzzleFilms.filmId],
+      name: "barcode_uploads_puzzle_film_fk",
+    }).onDelete("cascade"),
+  ],
+);

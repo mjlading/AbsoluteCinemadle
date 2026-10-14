@@ -1,15 +1,23 @@
-import type { PuzzleFilm, PuzzleTile, WarmupEntry } from "./types";
+import type { PuzzleFilm, PuzzleTile, Tier, WarmupEntry } from "./types";
 
 /**
  * A puzzle with emoji placeholder art, for development seeds and tests.
  * Harrison Ford appears in two groups on purpose, as a red herring.
  */
 export const SAMPLE_FILMS: PuzzleFilm[] = [
-  { tmdbId: 578, title: "Jaws", year: 1975, posterPath: null, tier: 1 },
-  { tmdbId: 105, title: "Back to the Future", year: 1985, posterPath: null, tier: 2 },
-  { tmdbId: 85, title: "Raiders of the Lost Ark", year: 1981, posterPath: null, tier: 3 },
-  { tmdbId: 78, title: "Blade Runner", year: 1982, posterPath: null, tier: 4 },
+  sampleFilm(578, "Jaws", 1975, 1, ["#0e2a3c", "#1d4f6e", "#3f7fa6", "#9cc7d8", "#d8c79a"]),
+  sampleFilm(105, "Back to the Future", 1985, 2, ["#2a1c3d", "#6b2f7a", "#c2492f", "#e98a2b", "#f3c76b"]),
+  sampleFilm(85, "Raiders of the Lost Ark", 1981, 3, ["#2b1d12", "#5c3a1e", "#8a5a2b", "#b98a4d", "#e0c38c"]),
+  sampleFilm(78, "Blade Runner", 1982, 4, ["#0b1a24", "#123c4a", "#1f6f7a", "#c86b2a", "#e9a14b"]),
 ];
+
+/**
+ * Sample films carry a hand-made palette, so the bonus round works without
+ * TMDB; the seed replaces it with a generated one when TMDB is reachable.
+ */
+function sampleFilm(tmdbId: number, title: string, year: number, tier: Tier, colors: string[]): PuzzleFilm {
+  return { tmdbId, title, year, posterPath: null, tier, barcode: { id: `sample-${tmdbId}`, colors, upload: false } };
+}
 
 type TileSeed = [filmId: number, type: PuzzleTile["type"], label: string, glyph: string, hue: number];
 

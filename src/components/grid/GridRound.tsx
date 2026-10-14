@@ -26,7 +26,16 @@ const plural = (count: number, word: string) => `${count} ${word}${count === 1 ?
 type Message = { id: number; text: string };
 
 /** `apiBase` is where guesses go: the day's puzzle for players, a draft for the admin preview. */
-export function GridRound({ puzzle, apiBase }: { puzzle: PublicPuzzle; apiBase: string }) {
+export function GridRound({
+  puzzle,
+  apiBase,
+  onContinue,
+}: {
+  puzzle: PublicPuzzle;
+  apiBase: string;
+  /** Leads on to the next round once this one is over. */
+  onContinue?: () => void;
+}) {
   const [state, dispatch] = useReducer(gridReducer, puzzle, initialGridState);
   const [pending, setPending] = useState(false);
   const [effect, setEffect] = useState<(TileEffect & { ids: string[] }) | null>(null);
@@ -196,6 +205,7 @@ export function GridRound({ puzzle, apiBase }: { puzzle: PublicPuzzle; apiBase: 
   ];
   const inspected = inspectId && state.order.includes(inspectId) ? tilesById.get(inspectId) : undefined;
   const flips = Object.keys(state.labels).length;
+  const allRevealed = state.solved.length + state.revealed.length === groupCount;
 
   return (
     <section aria-labelledby="grid-heading" className="mt-6">
@@ -295,6 +305,17 @@ export function GridRound({ puzzle, apiBase }: { puzzle: PublicPuzzle; apiBase: 
                 Try again
               </button>
             </p>
+          )}
+          {onContinue && (status === "won" || allRevealed) && (
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                onClick={onContinue}
+                className="min-h-12 rounded-full bg-ink px-7 text-lg font-semibold text-table hover:bg-ink/85"
+              >
+                On to the bonus
+              </button>
+            </div>
           )}
         </>
       )}

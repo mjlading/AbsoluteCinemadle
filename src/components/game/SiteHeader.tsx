@@ -65,6 +65,14 @@ function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
         </li>
         <li>On a keyboard, arrow keys move between frames, Space selects and I opens the larger view.</li>
       </ul>
+      <h3 className="mt-5 font-semibold">3. Bonus</h3>
+      <ul className="mt-2 list-disc space-y-2 pl-5 leading-snug text-pretty">
+        <li>
+          Each of the grid&apos;s films gets a barcode: a strip with one band per still, in that still&apos;s main
+          colour.
+        </li>
+        <li>Tap a barcode and then a film (or drag the film onto it) to match them, then check all four at once.</li>
+      </ul>
     </Dialog>
   );
 }

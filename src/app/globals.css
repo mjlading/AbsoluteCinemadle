@@ -365,6 +365,25 @@ body {
   }
 }
 
+/* A barcode develops in like a print in the tray: pale, then the colour comes up. */
+.barcode {
+  animation: develop 1400ms ease-out both;
+}
+
+@keyframes develop {
+  0% {
+    filter: brightness(2.4) saturate(0) contrast(0.35);
+    opacity: 0.35;
+  }
+  45% {
+    filter: brightness(1.5) saturate(0.4) contrast(0.7);
+    opacity: 1;
+  }
+  100% {
+    filter: none;
+  }
+}
+
 dialog::backdrop {
   background: rgb(10 12 16 / 0.6);
   animation: backdrop-in 200ms ease-out;

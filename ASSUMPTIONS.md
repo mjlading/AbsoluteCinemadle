@@ -55,6 +55,18 @@ Each entry says what was decided and why, so it can be revisited.
 - A puzzle with no warm-up starts at the grid; only an admin preview can hit that, since scheduling needs 5 cards.
 - The warm-up answers route follows the same trust model as the grid solution route.
 
+## Bonus round
+
+- The round opens after the grid, won or lost, with the four films easiest first and their barcodes in a shuffled order.
+- Barcode ids are random per puzzle and film, so the pairing can't be worked out from them; the films themselves are no secret by then.
+- Players match all four, then check once; every barcode then shows whether it was right and, if not, the right film.
+- Barcodes "develop" in as the round opens (pale to full colour) rather than on a correct match, since players need the colours to match them at all.
+- A palette strip has one band per backdrop, up to 30, each the largest colour cluster (k-means) of a small thumbnail.
+  Near-black and blown-out pixels are ignored unless they fill most of the frame, and clusters closer than a small distance are merged.
+  Bands are sorted with near-greys first (dark to light), then by hue in 30-degree slices, dark to light within each.
+- Palettes belong to the film and are generated once, when it is first added; uploads belong to one puzzle and replace the strip there.
+- Uploaded barcodes are re-encoded as WebP, at most 1600 by 400 pixels; players' browsers may cache one for a day after an admin replaces it.
+
 ## Admin editor
 
 - There is one admin, signed in with `ADMIN_PASSWORD`; the session is a signed cookie valid for 30 days.
