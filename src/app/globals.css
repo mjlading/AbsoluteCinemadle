@@ -108,18 +108,31 @@ body {
   }
 }
 
+/* A wrong guess: the frames jump like film slipping in the projector gate. */
 .tile[data-effect="shake"] {
-  animation: tile-shake 380ms ease-in-out;
+  animation: gate-slip 380ms steps(1, end);
 }
 
-@keyframes tile-shake {
-  20%,
-  60% {
-    translate: -5px 0;
+@keyframes gate-slip {
+  0% {
+    translate: 0 -7px;
+    filter: brightness(1.35);
   }
-  40%,
-  80% {
-    translate: 5px 0;
+  18% {
+    translate: 0 5px;
+    filter: brightness(0.8);
+  }
+  36% {
+    translate: 0 -3px;
+    filter: brightness(1.15);
+  }
+  54% {
+    translate: 0 2px;
+    filter: none;
+  }
+  72%,
+  100% {
+    translate: 0 0;
   }
 }
 
@@ -161,8 +174,141 @@ body {
   }
 }
 
+/* Confetti: tier-colored tape bits and a few tiny film frames, falling once. */
+.confetti-piece {
+  position: absolute;
+  top: -24px;
+  border-radius: 1px;
+  animation-name: confetti-fall;
+  animation-timing-function: cubic-bezier(0.25, 0.6, 0.45, 1);
+  animation-fill-mode: both;
+}
+
+.confetti-film {
+  background:
+    radial-gradient(circle, var(--table) 0 1.1px, transparent 1.4px) 0 0 / 4px 3.6px repeat-x,
+    radial-gradient(circle, var(--table) 0 1.1px, transparent 1.4px) 0 100% / 4px 3.6px repeat-x,
+    #17191e;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--drift), 105vh, 0) rotate(var(--spin));
+    opacity: 0;
+  }
+}
+
+/* The light table switching on: a fluorescent tube's stutter, then full light. */
+.light-table-switch-on {
+  animation: tube-start 900ms linear forwards;
+}
+
+@keyframes tube-start {
+  0% {
+    opacity: 0.88;
+  }
+  12% {
+    opacity: 0.25;
+  }
+  18% {
+    opacity: 0.8;
+  }
+  30% {
+    opacity: 0.1;
+  }
+  36% {
+    opacity: 0.55;
+  }
+  55% {
+    opacity: 0;
+  }
+  62% {
+    opacity: 0.18;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.reel-spinner {
+  animation: reel-spin 1.1s linear infinite;
+}
+
+@keyframes reel-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* "Absolute cinema": the spotlight clicks on, then the hands go up. */
+.cinema-figure-animated .cinema-spot {
+  animation: spot-on 700ms steps(1, end) both;
+}
+
+@keyframes spot-on {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.6;
+  }
+  40% {
+    opacity: 0.15;
+  }
+  60%,
+  100% {
+    opacity: 1;
+  }
+}
+
+.cinema-arm {
+  transform-box: view-box;
+}
+
+.cinema-arm-left {
+  transform-origin: 47px 60px;
+}
+
+.cinema-arm-right {
+  transform-origin: 73px 60px;
+}
+
+.cinema-figure-animated .cinema-arm-left {
+  animation: raise-left 620ms 650ms cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+.cinema-figure-animated .cinema-arm-right {
+  animation: raise-right 620ms 650ms cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+@keyframes raise-left {
+  from {
+    rotate: -128deg;
+  }
+}
+
+@keyframes raise-right {
+  from {
+    rotate: 128deg;
+  }
+}
+
 dialog::backdrop {
   background: rgb(10 12 16 / 0.6);
+  animation: backdrop-in 200ms ease-out;
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

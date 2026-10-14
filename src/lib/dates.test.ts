@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatPuzzleDate, isIsoDate, isPlayableDate, localIsoDate } from "./dates";
+import { addDays, formatPuzzleDate, isIsoDate, isPlayableDate, localIsoDate, utcIsoDate } from "./dates";
 
 describe("isIsoDate", () => {
   it("accepts real dates and rejects everything else", () => {
@@ -36,5 +36,19 @@ describe("localIsoDate", () => {
 describe("formatPuzzleDate", () => {
   it("formats without shifting the day", () => {
     expect(formatPuzzleDate("2026-10-14")).toBe("Wednesday 14 October");
+  });
+});
+
+describe("addDays", () => {
+  it("crosses month and year ends", () => {
+    expect(addDays("2026-10-31", 1)).toBe("2026-11-01");
+    expect(addDays("2026-12-31", 14)).toBe("2027-01-14");
+    expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
+  });
+});
+
+describe("utcIsoDate", () => {
+  it("uses the UTC calendar day", () => {
+    expect(utcIsoDate(new Date("2026-10-14T23:30:00-05:00"))).toBe("2026-10-15");
   });
 });

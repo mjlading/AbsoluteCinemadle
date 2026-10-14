@@ -5,19 +5,23 @@ The full brief is [docs/SPEC.md](docs/SPEC.md); read it before starting any phas
 Decisions taken where the spec is ambiguous live in [ASSUMPTIONS.md](ASSUMPTIONS.md); add to it instead of stopping to ask.
 
 ## Status
-Phase 1 (main grid with a hardcoded puzzle) is done and awaiting the owner's check-in; phase 2 is next.
+
+Phases 1 and 2 are done (grid; database, TMDB and admin editor at `/admin`); phase 3 (warm-up) is next.
 Update this line when a phase completes.
-Phases are listed in SPEC.md under "Build phases"; stop and check in with the owner after phase 1.
+Phases are listed in SPEC.md under "Build phases"; owner additions (posters, review hint, animations) are listed there too.
 
 ## Stack
+
 Next.js 16 App Router (Cache Components on) + React 19 + TypeScript + Tailwind v4, npm, Node 24.
 Postgres via Drizzle (local Docker Postgres for dev, Supabase for prod).
 Player progress lives in localStorage; there are no player accounts.
-Commands: see `package.json` scripts (`dev`, `lint`, `typecheck`, `test`, `test:e2e`).
-`test:e2e` builds the app and runs it on port 3200 for the duration of the tests.
-Puzzles come from `src/lib/puzzle/source.ts`; until phase 2 it serves `sample-puzzle.ts` for every date.
+Commands: see `package.json` scripts; first-time setup is in README.md.
+`test:e2e` migrates and seeds the `cinemadle_test` database, builds the app and serves it on port 3200.
+Players read puzzles through `src/lib/puzzle/source.ts` (cached, date-gated); the admin edits them through `src/lib/admin/puzzles.ts`.
+On networks that intercept TLS (the owner's work laptop), Node needs `NODE_USE_SYSTEM_CA=1` to reach TMDB.
 
 ## Hard rules
+
 - Answers never reach the client before they are earned.
   Guesses are validated by the server; the client only gets opaque tile ids.
   Tile images are served through our own image route under opaque ids, so TMDB file paths and uncropped backdrops never leak (prop crops are rendered server-side).
@@ -27,13 +31,15 @@ Puzzles come from `src/lib/puzzle/source.ts`; until phase 2 it serves `sample-pu
 - Never download, rehost or stream film video or audio.
   Sound hints use a visible YouTube embed with start/end times only.
 - Every point value lives in the single scoring config file; never hardcode scores elsewhere.
-- LLM use: model `claude-haiku-4-5` only, server-side, admin-triggered only.
+- LLM use: model `claude-haiku-5-5` only, server-side, admin-triggered only.
   Every call goes through the spend guard, which records cost in the DB and refuses calls once the USD 10 lifetime cap would be exceeded.
   Do not add an LLM call site that bypasses it, and do not change the model or cap without the owner's approval.
 - Ask the owner before adding any new paid or keyed third-party API.
 - Show the TMDB attribution in the footer; TMDB use is licensed for non-commercial use only.
+- TMDB data may be kept for at most 6 months: `films.synced_at` records when it was fetched, and stale rows must be refreshed, not kept.
 
 ## Verifying work
+
 - Pure game logic (grid state, scoring, fuzzy matching, validation, palette extraction) gets Vitest unit tests.
 - Player flows get Playwright E2E tests.
 - Check UI changes in a real browser at phone width (390px) and desktop, with keyboard only, before calling them done.

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useLayoutEffect, useRef } from "react";
 
 import { CloseButton, Dialog } from "@/components/ui/Dialog";
 import { POINTS } from "@/config/scoring";
@@ -9,6 +10,8 @@ import { tileAltText } from "./tile-text";
 
 interface InspectDialogProps {
   tile: PublicTile | null;
+  /** Where the tile sits on screen, so the view can grow out of it like a slide lifted to a loupe. */
+  originRect: DOMRect | null;
   label?: string;
   selected: boolean;
   /** False when four other tiles are already selected. */
@@ -23,6 +26,7 @@ interface InspectDialogProps {
 /** A tile shown large, with the paid label reveal and a select toggle. */
 export function InspectDialog({
   tile,
+  originRect,
   label,
   selected,
   canSelect,
@@ -33,6 +37,16 @@ export function InspectDialog({
   onClose,
 }: InspectDialogProps) {
   const flipCost = Math.abs(POINTS.grid.perFlip);
+  const imageRef = useRef<HTMLDivElement>(null);
+  const tileId = tile?.id;
+
+  useLayoutEffect(() => {
+    const image = imageRef.current;
+    const dialog = image?.closest("dialog");
+    if (!tileId || !image || !dialog || !originRect) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    loupeZoom(dialog, image, originRect);
+  }, [tileId, originRect]);
 
   return (
     <Dialog open={tile !== null} onClose={onClose} labelledBy="inspect-title" className="max-w-md bg-sheet text-white">
@@ -45,9 +59,9 @@ export function InspectDialog({
             <CloseButton onClick={onClose} />
           </div>
 
-          <div className="relative mt-3 aspect-square overflow-hidden rounded-[4px] bg-sheet-edge">
+          <div ref={imageRef} className="relative mt-3 aspect-square overflow-hidden rounded-[4px] bg-sheet-edge">
             <Image
-              src={tile.imageUrl}
+              src={`${tile.imageUrl}?size=large`}
               alt=""
               fill
               unoptimized
@@ -93,11 +107,28 @@ export function InspectDialog({
               {error}
             </p>
           )}
-          {!selected && !canSelect && (
-            <p className="mt-2 text-sm text-white/70">Four tiles are already selected.</p>
-          )}
+          {!selected && !canSelect && <p className="mt-2 text-sm text-white/70">Four tiles are already selected.</p>}
         </>
       )}
     </Dialog>
+  );
+}
+
+/** Grows the dialog out of the tile: the big image starts exactly over the tile and expands into place. */
+function loupeZoom(dialog: HTMLElement, image: HTMLElement, origin: DOMRect) {
+  const box = dialog.getBoundingClientRect();
+  const target = image.getBoundingClientRect();
+  if (target.width === 0) return;
+  const scale = origin.width / target.width;
+  dialog.animate(
+    [
+      {
+        transformOrigin: `${target.left - box.left}px ${target.top - box.top}px`,
+        transform: `translate(${origin.left - target.left}px, ${origin.top - target.top}px) scale(${scale})`,
+        opacity: 0.4,
+      },
+      { transformOrigin: `${target.left - box.left}px ${target.top - box.top}px`, transform: "none", opacity: 1 },
+    ],
+    { duration: 300, easing: "cubic-bezier(0.2, 0.85, 0.25, 1)" },
   );
 }

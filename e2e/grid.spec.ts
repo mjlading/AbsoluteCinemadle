@@ -13,7 +13,8 @@ async function localDate(page: Page): Promise<string> {
 /** Opens the game and fetches the answers out of band, so tests can play deliberately. */
 async function openGame(page: Page): Promise<SolvedGroup[]> {
   await page.goto("/");
-  await expect(page.getByRole("list", { name: "Tiles" }).getByRole("listitem")).toHaveCount(16);
+  // Generous: the first visit to a freshly started server also warms its caches.
+  await expect(page.getByRole("list", { name: "Tiles" }).getByRole("listitem")).toHaveCount(16, { timeout: 15_000 });
   const response = await page.request.get(`/api/puzzles/${await localDate(page)}/solution`);
   return ((await response.json()) as { groups: SolvedGroup[] }).groups;
 }
@@ -73,12 +74,23 @@ test("the fourth mistake ends the round and reveals every film", async ({ page }
   await expect(page.getByRole("button", { name: "Submit" })).toHaveCount(0);
 });
 
-test("finding all four films wins the round", async ({ page }) => {
+test("a perfect grid is absolute cinema", async ({ page }) => {
   const groups = await openGame(page);
   for (const group of groups) await guess(page, group.tileIds);
 
+  await expect(page.getByRole("heading", { name: "Absolute cinema." })).toBeFocused();
+  await expect(page.getByText("All 4 films, no mistakes, 0 labels revealed.")).toBeVisible();
+});
+
+test("finding all four films after a mistake wins the round", async ({ page }) => {
+  const [a, b, c, d] = await openGame(page);
+  await guess(page, [a.tileIds[0], b.tileIds[0], c.tileIds[0], d.tileIds[0]]);
+  for (const group of [a, b, c, d]) await guess(page, group.tileIds);
+
   await expect(page.getByRole("heading", { name: "You found all 4 films" })).toBeFocused();
-  await expect(page.getByText("0 mistakes, 0 labels revealed.")).toBeVisible();
+  await expect(page.getByText("1 mistake, 0 labels revealed.")).toBeVisible();
+  const films = page.getByRole("list", { name: "Films" });
+  await expect(films.getByRole("listitem")).toHaveCount(4);
 });
 
 test("revealing a label shows it on the tile and announces it", async ({ page }) => {
@@ -87,7 +99,10 @@ test("revealing a label shows it on the tile and announces it", async ({ page })
   const labelResponse = await page.request.post(`/api/puzzles/${await localDate(page)}/labels`, { data: { tileId } });
   const { label } = (await labelResponse.json()) as { label: string };
 
-  await page.locator(`[data-tile-id="${tileId}"]`).getByRole("button", { name: /^Inspect tile/ }).click();
+  await page
+    .locator(`[data-tile-id="${tileId}"]`)
+    .getByRole("button", { name: /^Inspect tile/ })
+    .click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog).not.toContainText(label);
@@ -151,9 +166,7 @@ test("the puzzle payload carries no answers", async ({ page }) => {
 
   const puzzle = JSON.parse(body) as PublicPuzzle;
   expect(puzzle.tiles).toHaveLength(16);
-  for (const group of groups) {
-    expect(body).not.toContain(group.title);
-    expect(body).not.toContain(group.filmId);
-  }
+  for (const group of groups) expect(body).not.toContain(group.title);
+  expect(body).not.toMatch(/film|tmdb|tier|label/i);
   await expect(page.locator("img[alt]").first()).toHaveAttribute("alt", /^Tile \d+, /);
 });

@@ -4,8 +4,9 @@ Decisions taken where [docs/SPEC.md](docs/SPEC.md) is ambiguous or silent.
 Each entry says what was decided and why, so it can be revisited.
 
 ## General
+
 - The game is named "Absolute Cinemadle", after the repository folder.
-- The LLM is `claude-haiku-4-5` ($1 input / $5 output per million tokens), because the requested "Haiku 5.5" does not exist and Haiku 4.5 is the cheapest current model.
+- The LLM is `claude-haiku-5-5`, as the owner asked: $0.10 input / $0.50 output per million tokens for prompts up to 100,000 tokens.
 - The USD 10 LLM cap is a lifetime cap enforced by a ledger table: before each call, the worst-case cost (input tokens plus `max_tokens` of output) must fit in the remaining budget.
   A spend limit on the Anthropic Console workspace is recommended as a second, independent backstop.
 - Package manager is npm, because pnpm is not installed and npm needs no extra setup.
@@ -13,16 +14,22 @@ Each entry says what was decided and why, so it can be revisited.
 - Local development uses Postgres in Docker; production uses a Supabase Postgres connection string.
 
 ## Puzzle day and answer protection
+
 - A puzzle day is the player's local calendar date (`YYYY-MM-DD`), sent by the client.
   The server refuses dates later than the current UTC date plus one day, since local dates run from UTC-12 to UTC+14 and anything later would be peeking at a future puzzle.
 - The solution route answers at any time, because whether a round is over is only known in the browser.
   Calling it directly is the same as giving up, so it only spoils the caller's own game.
 - Guesses are checked by a server route that returns only "correct" (with that group's film and tiles), "one away" or "wrong".
   Mistake, flip and hint counts are tracked in localStorage, so a determined player can only cheat their own score, which is acceptable without accounts.
-- Tile images go through an image route keyed by an opaque per-tile id, which also renders prop crops server-side.
+- Tile images go through an image route keyed by an opaque per-tile id, which renders the crop server-side.
   A CSS-only crop would ship the full backdrop to the browser and give the prop away.
+- Every TMDB tile, not just props, is a square crop chosen by the admin (centered for stills, from the top for portraits), so players never receive a full frame.
+- Tiles are immutable apart from their label: a different picture or crop makes a new tile, so tile images can be cached for 30 days.
+  Player tile images are cached publicly; admin preview images are cached privately, so drafts never land in a shared cache.
+- Posters on solved banners load straight from TMDB's image CDN, because they only appear once the film is earned.
 
 ## Main grid rules
+
 - The round ends on the 4th mistake, as in Connections.
 - A "one away" guess counts as a mistake.
 - Re-submitting a set already guessed wrong is rejected with an "already guessed" message and costs nothing.
@@ -33,3 +40,27 @@ Each entry says what was decided and why, so it can be revisited.
 - Players can shuffle the remaining tiles, as in Connections.
 - Taps are ignored while a guess is being checked or its result is animating.
 - Tier colors follow the dyes of color film plus white film-can tape: 1 cyan, 2 yellow, 3 magenta, 4 white.
+- A perfect grid means no mistakes; revealed labels do not spoil it.
+
+## Admin editor
+
+- There is one admin, signed in with `ADMIN_PASSWORD`; the session is a signed cookie valid for 30 days.
+  A wrong password costs 600 ms, which slows guessing without needing shared state between server instances.
+- The admin calendar uses UTC dates, a few hours off the owner's local midnight at most.
+- Headshots come from TMDB profile photos; stills, empty sets and props come from backdrops, text-free ones first.
+- The same picture and crop twice blocks scheduling; two different crops of one picture and identical type mixes in every film are warnings only.
+- Puzzles can be scheduled on any date, including past ones, and live puzzles can be edited, with a warning.
+- The red-herring helper compares the top 20 billed cast and the directors of the chosen films, and lists the three best-known other films (by TMDB vote count) of each film's directors and top 3 cast.
+- Film details are re-fetched from TMDB whenever a film is added to a puzzle.
+  A periodic refresh of `films` rows older than about 5 months is still needed before launch, to honour TMDB's 6-month limit.
+
+## Animations
+
+- The light table flickers on only the first time a browser opens a given day's puzzle (remembered in localStorage).
+- Confetti plays on any win; the "absolute cinema" pictogram only on a perfect one.
+- All animations collapse to an instant change when the player's device asks for reduced motion.
+
+## Development and tests
+
+- E2E tests run against a production build and a separate `cinemadle_test` database that is wiped and seeded on each run.
+- Admin tests that need TMDB skip themselves when no `TMDB_READ_ACCESS_TOKEN` is available.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 
 interface DialogProps {
   open: boolean;
@@ -14,7 +14,8 @@ interface DialogProps {
 export function Dialog({ open, onClose, labelledBy, className = "", children }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
 
-  useEffect(() => {
+  // A layout effect, so the dialog is open before paint and callers can animate it from its final position.
+  useLayoutEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     if (open && !dialog.open) dialog.showModal();

@@ -1,4 +1,4 @@
-import { solution } from "@/lib/puzzle/grid";
+import { solutionResponse } from "@/lib/puzzle/handlers";
 import { puzzleOrErrorResponse } from "@/lib/puzzle/source";
 
 /**
@@ -9,5 +9,5 @@ import { puzzleOrErrorResponse } from "@/lib/puzzle/source";
 export async function GET(_request: Request, ctx: RouteContext<"/api/puzzles/[date]/solution">) {
   const puzzle = await puzzleOrErrorResponse((await ctx.params).date);
   if (puzzle instanceof Response) return puzzle;
-  return Response.json({ groups: solution(puzzle) }, { headers: { "Cache-Control": "no-store" } });
+  return solutionResponse(puzzle);
 }

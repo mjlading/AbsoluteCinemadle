@@ -7,10 +7,7 @@ export function errorResponse(status: number, error: string): Response {
 }
 
 /** Parses a JSON request body against a schema, or returns the 400 response to send instead. */
-export async function parseJsonBody<T extends z.ZodType>(
-  request: Request,
-  schema: T,
-): Promise<z.infer<T> | Response> {
+export async function parseJsonBody<T extends z.ZodType>(request: Request, schema: T): Promise<z.infer<T> | Response> {
   let body: unknown;
   try {
     body = await request.json();

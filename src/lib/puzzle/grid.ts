@@ -1,40 +1,39 @@
 import { RULES } from "@/config/rules";
-import type { GuessResult, PublicPuzzle, Puzzle, SolvedGroup } from "./types";
+import { posterUrl } from "@/lib/tmdb/images";
+import type { GuessResult, PublicPuzzle, Puzzle, SolvedGroup, TileImage } from "./types";
 
-export function tileImageUrl(date: string, tileId: string): string {
-  return `/api/puzzles/${date}/tiles/${tileId}/image`;
-}
-
-/** The only view of a puzzle the client gets before it has earned anything. */
-export function toPublicPuzzle(puzzle: Puzzle): PublicPuzzle {
+/**
+ * The only view of a puzzle the client gets before it has earned anything.
+ * `apiBase` is where the client sends guesses and loads images, e.g. `/api/puzzles/2026-10-14`.
+ */
+export function toPublicPuzzle(puzzle: Puzzle, apiBase: string, date: string): PublicPuzzle {
   return {
-    date: puzzle.date,
+    date,
     tiles: puzzle.tiles.map((tile, index) => ({
       id: tile.id,
       number: index + 1,
       type: tile.type,
-      imageUrl: tileImageUrl(puzzle.date, tile.id),
+      imageUrl: `${apiBase}/tiles/${tile.id}/image`,
     })),
   };
 }
 
-export function solvedGroup(puzzle: Puzzle, filmId: string): SolvedGroup {
-  const film = puzzle.films.find((f) => f.id === filmId);
-  if (!film) throw new Error(`Film ${filmId} is not in the puzzle for ${puzzle.date}`);
+export function solvedGroup(puzzle: Puzzle, filmId: number): SolvedGroup {
+  const film = puzzle.films.find((f) => f.tmdbId === filmId);
+  if (!film) throw new Error(`Film ${filmId} is not in puzzle ${puzzle.id}`);
   return {
-    filmId: film.id,
+    filmId: film.tmdbId,
     title: film.title,
     year: film.year,
+    posterUrl: posterUrl(film.posterPath),
     tier: film.tier,
-    tileIds: puzzle.tiles.filter((t) => t.filmId === film.id).map((t) => t.id),
+    tileIds: puzzle.tiles.filter((t) => t.filmId === film.tmdbId).map((t) => t.id),
   };
 }
 
 /** Every group, easiest first. */
 export function solution(puzzle: Puzzle): SolvedGroup[] {
-  return [...puzzle.films]
-    .sort((a, b) => a.tier - b.tier)
-    .map((film) => solvedGroup(puzzle, film.id));
+  return [...puzzle.films].sort((a, b) => a.tier - b.tier).map((film) => solvedGroup(puzzle, film.tmdbId));
 }
 
 export type CheckedGuess = GuessResult | { kind: "invalid"; reason: string };
@@ -48,7 +47,7 @@ export function checkGuess(puzzle: Puzzle, tileIds: readonly string[]): CheckedG
     return { kind: "invalid", reason: "A guess cannot repeat a tile." };
   }
 
-  const filmCounts = new Map<string, number>();
+  const filmCounts = new Map<number, number>();
   for (const id of tileIds) {
     const tile = puzzle.tiles.find((t) => t.id === id);
     if (!tile) return { kind: "invalid", reason: `Unknown tile ${id}.` };
@@ -65,33 +64,59 @@ export function tileLabel(puzzle: Puzzle, tileId: string): string | null {
   return puzzle.tiles.find((t) => t.id === tileId)?.label ?? null;
 }
 
-/**
- * Structural problems that make a grid unplayable, as human-readable messages.
- * An empty list means the grid is valid.
- */
-export function gridProblems(puzzle: Puzzle): string[] {
+const imageSource = (image: TileImage) => (image.kind === "tmdb" ? image.path : `${image.glyph}`);
+const imageKey = (image: TileImage) =>
+  image.kind === "tmdb" ? `${image.path}@${JSON.stringify(image.crop)}` : `${image.glyph}@${image.hue}`;
+
+export interface GridCheck {
+  /** Problems that make the grid unplayable; scheduling is blocked until they are fixed. */
+  errors: string[];
+  /** Things worth a second look that do not block scheduling. */
+  warnings: string[];
+}
+
+export function checkGrid(puzzle: Puzzle): GridCheck {
   const { groupCount, groupSize } = RULES.grid;
-  const problems: string[] = [];
+  const errors: string[] = [];
+  const warnings: string[] = [];
 
   if (puzzle.films.length !== groupCount) {
-    problems.push(`Expected ${groupCount} films, found ${puzzle.films.length}.`);
+    errors.push(`Pick ${groupCount} films (${puzzle.films.length} so far).`);
   }
-  const tiers = new Set(puzzle.films.map((f) => f.tier));
-  if (tiers.size !== puzzle.films.length) problems.push("Each film needs its own difficulty tier.");
-
-  if (puzzle.tiles.length !== groupCount * groupSize) {
-    problems.push(`Expected ${groupCount * groupSize} tiles, found ${puzzle.tiles.length}.`);
+  if (new Set(puzzle.films.map((f) => f.tier)).size !== puzzle.films.length) {
+    errors.push("Each film needs its own difficulty tier.");
   }
   for (const film of puzzle.films) {
-    const count = puzzle.tiles.filter((t) => t.filmId === film.id).length;
-    if (count !== groupSize) problems.push(`${film.title} has ${count} tiles instead of ${groupSize}.`);
+    const count = puzzle.tiles.filter((t) => t.filmId === film.tmdbId).length;
+    if (count !== groupSize) errors.push(`${film.title} has ${count} of ${groupSize} tiles.`);
   }
-  const filmIds = new Set(puzzle.films.map((f) => f.id));
-  for (const tile of puzzle.tiles) {
-    if (!filmIds.has(tile.filmId)) problems.push(`Tile ${tile.id} belongs to no film in this puzzle.`);
+  const filmIds = new Set(puzzle.films.map((f) => f.tmdbId));
+  if (puzzle.tiles.some((t) => !filmIds.has(t.filmId))) errors.push("Some tiles belong to no film in this puzzle.");
+  if (new Set(puzzle.tiles.map((t) => t.id)).size !== puzzle.tiles.length) errors.push("Tile ids must be unique.");
+
+  const byKey = Map.groupBy(puzzle.tiles, (t) => imageKey(t.image));
+  if ([...byKey.values()].some((group) => group.length > 1)) {
+    errors.push("The same picture is used for more than one tile.");
   }
-  if (new Set(puzzle.tiles.map((t) => t.id)).size !== puzzle.tiles.length) {
-    problems.push("Tile ids must be unique.");
+  const bySource = Map.groupBy(puzzle.tiles, (t) => imageSource(t.image));
+  const reused = [...bySource.values()].filter(
+    (group) => group.length > 1 && new Set(group.map((t) => imageKey(t.image))).size > 1,
+  );
+  if (reused.length > 0) {
+    warnings.push("Some tiles are different crops of the same picture, which can make them easy to pair up.");
   }
-  return problems;
+
+  // Identical type mixes let players solve by elimination (spec: never enforce one of each type).
+  const mixes = puzzle.films.map((film) =>
+    puzzle.tiles
+      .filter((t) => t.filmId === film.tmdbId)
+      .map((t) => t.type)
+      .sort()
+      .join(","),
+  );
+  if (puzzle.films.length === groupCount && errors.length === 0 && new Set(mixes).size === 1) {
+    warnings.push("Every film has the same mix of tile types, which lets players solve by elimination.");
+  }
+
+  return { errors, warnings };
 }

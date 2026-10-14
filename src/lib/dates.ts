@@ -26,6 +26,17 @@ export function isPlayableDate(date: string, now: Date = new Date()): boolean {
   return isIsoDate(date) && date <= tomorrowUtc;
 }
 
+/** Today's date in UTC, which the admin uses to plan the calendar. */
+export function utcIsoDate(now: Date = new Date()): string {
+  return now.toISOString().slice(0, 10);
+}
+
+/** A YYYY-MM-DD date moved by a number of days. */
+export function addDays(date: string, days: number): string {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
+}
+
 /** "Wednesday 14 October" for a YYYY-MM-DD date, independent of the viewer's time zone. */
 export function formatPuzzleDate(date: string): string {
   const [year, month, day] = date.split("-").map(Number);

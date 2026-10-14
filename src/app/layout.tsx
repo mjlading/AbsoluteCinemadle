@@ -24,7 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${sofia.variable} ${sofiaCondensed.variable} ${sofiaExtraCondensed.variable} h-full antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );
 }

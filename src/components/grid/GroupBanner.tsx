@@ -10,21 +10,26 @@ interface GroupBannerProps {
   revealed: boolean;
 }
 
-/** A strip of colored tape over a solved row: film title, year and the four frames. */
+/** A strip of colored tape over a solved row: poster, film title, year and the four frames. */
 export function GroupBanner({ group, tilesById, revealed }: GroupBannerProps) {
   return (
     <li
-      className="group-banner flex h-(--tile) list-none items-center gap-3 rounded-[3px] py-[7px] pl-3 pr-[7px] text-on-tape"
+      className="group-banner flex h-(--tile) list-none items-center gap-3 rounded-[3px] p-[7px] text-on-tape"
       style={{ background: `var(--tier-${group.tier})` }}
     >
+      <div className="relative aspect-[2/3] h-full shrink-0 overflow-hidden rounded-[2px] bg-sheet shadow-[0_1px_2px_rgb(0_0_0/0.35)]">
+        {group.posterUrl && (
+          <Image src={group.posterUrl} alt="" fill unoptimized sizes="4rem" className="object-cover" />
+        )}
+      </div>
       <div className="min-w-0 flex-1">
-        <h3 className="line-clamp-2 font-display text-[1.7rem] font-[850] leading-[0.92] text-balance">
+        <h3 className="line-clamp-2 font-display text-[1.6rem] font-[850] leading-[0.92] text-balance">
           <span className="sr-only">{revealed ? "Revealed: " : "Solved: "}</span>
           {group.title}
         </h3>
         <p className="mt-1 text-sm font-semibold leading-none">
           {group.year}
-          {revealed && <span className="font-normal">, revealed</span>}
+          {revealed && <span className="font-normal">{group.year ? ", " : ""}revealed</span>}
           <span className="sr-only">
             , difficulty {group.tier} of {RULES.grid.groupCount}
           </span>

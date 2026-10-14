@@ -10,6 +10,7 @@ import { Board } from "./Board";
 import { GroupBanner } from "./GroupBanner";
 import { InspectDialog } from "./InspectDialog";
 import { MistakeMeter } from "./MistakeMeter";
+import { RoundSummary } from "./RoundSummary";
 import { Tile, type TileEffect } from "./Tile";
 
 const COLUMNS = 4;
@@ -24,13 +25,15 @@ const plural = (count: number, word: string) => `${count} ${word}${count === 1 ?
 
 type Message = { id: number; text: string };
 
-export function GridRound({ puzzle }: { puzzle: PublicPuzzle }) {
+/** `apiBase` is where guesses go: the day's puzzle for players, a draft for the admin preview. */
+export function GridRound({ puzzle, apiBase }: { puzzle: PublicPuzzle; apiBase: string }) {
   const [state, dispatch] = useReducer(gridReducer, puzzle, initialGridState);
   const [pending, setPending] = useState(false);
   const [effect, setEffect] = useState<(TileEffect & { ids: string[] }) | null>(null);
   const [toast, setToast] = useState<Message | null>(null);
   const [announcement, setAnnouncement] = useState<Message | null>(null);
   const [inspectId, setInspectId] = useState<string | null>(null);
+  const [inspectOrigin, setInspectOrigin] = useState<DOMRect | null>(null);
   const [revealingId, setRevealingId] = useState<string | null>(null);
   const [revealError, setRevealError] = useState<string | null>(null);
   const [focusId, setFocusId] = useState<string | null>(null);
@@ -41,7 +44,7 @@ export function GridRound({ puzzle }: { puzzle: PublicPuzzle }) {
   const messageSeq = useRef(0);
 
   const { groupCount, groupSize } = RULES.grid;
-  const { status, date, solved } = state;
+  const { status, solved } = state;
   const playing = status === "playing";
   const tilesById = useMemo(() => new Map(puzzle.tiles.map((t) => [t.id, t])), [puzzle.tiles]);
   const activeId = focusId && state.order.includes(focusId) ? focusId : (state.order[0] ?? null);
@@ -60,7 +63,7 @@ export function GridRound({ puzzle }: { puzzle: PublicPuzzle }) {
     if (status !== "lost") return;
     let cancelled = false;
     const timers: number[] = [];
-    fetchSolution(date).then(
+    fetchSolution(apiBase).then(
       ({ groups }) => {
         if (cancelled) return;
         const found = new Set(solved.map((g) => g.filmId));
@@ -79,7 +82,7 @@ export function GridRound({ puzzle }: { puzzle: PublicPuzzle }) {
       cancelled = true;
       timers.forEach((t) => window.clearTimeout(t));
     };
-  }, [status, date, solved, solutionAttempt]);
+  }, [status, apiBase, solved, solutionAttempt]);
 
   // The action bar disappears when the round ends, so move focus to the summary.
   useEffect(() => {
@@ -94,6 +97,7 @@ export function GridRound({ puzzle }: { puzzle: PublicPuzzle }) {
 
   function inspect(tileId: string) {
     setRevealError(null);
+    setInspectOrigin(tileRefs.current.get(tileId)?.getBoundingClientRect() ?? null);
     setInspectId(tileId);
   }
 
@@ -108,7 +112,7 @@ export function GridRound({ puzzle }: { puzzle: PublicPuzzle }) {
 
     setPending(true);
     try {
-      const result = await submitGuess(date, tileIds);
+      const result = await submitGuess(apiBase, tileIds);
       if (result.kind === "correct") {
         setEffect({ kind: "settle", ids: tileIds, color: `var(--tier-${result.group.tier})` });
         await wait(prefersReducedMotion() ? 0 : SETTLE_MS);
@@ -139,7 +143,7 @@ export function GridRound({ puzzle }: { puzzle: PublicPuzzle }) {
     setRevealingId(tileId);
     setRevealError(null);
     try {
-      const { label } = await revealLabel(date, tileId);
+      const { label } = await revealLabel(apiBase, tileId);
       dispatch({ type: "label_revealed", tileId, label });
       announce(`Label revealed: ${label}.`);
     } catch {
@@ -263,7 +267,10 @@ export function GridRound({ puzzle }: { puzzle: PublicPuzzle }) {
             >
               Shuffle
             </ActionButton>
-            <ActionButton onClick={() => dispatch({ type: "deselect_all" })} disabled={pending || state.selected.length === 0}>
+            <ActionButton
+              onClick={() => dispatch({ type: "deselect_all" })}
+              disabled={pending || state.selected.length === 0}
+            >
               Deselect all
             </ActionButton>
             <ActionButton primary onClick={submit} disabled={pending || !canSubmit(state)}>
@@ -272,17 +279,10 @@ export function GridRound({ puzzle }: { puzzle: PublicPuzzle }) {
           </div>
         </div>
       ) : (
-        <div className="mt-6 text-center">
-          <h3 ref={summaryRef} tabIndex={-1} className="font-display text-[2rem] font-[850] leading-none">
-            {status === "won" ? `You found all ${groupCount} films` : "Out of mistakes"}
-          </h3>
-          <p className="mt-2 text-ink-soft">
-            {status === "won"
-              ? `${plural(state.mistakes, "mistake")}, ${plural(flips, "label")} revealed.`
-              : "Here are today's films."}
-          </p>
+        <>
+          <RoundSummary won={status === "won"} mistakes={state.mistakes} flips={flips} headingRef={summaryRef} />
           {solutionFailed && (
-            <p className="mt-3">
+            <p className="mt-3 text-center">
               Couldn&apos;t load the answers.{" "}
               <button
                 type="button"
@@ -296,7 +296,7 @@ export function GridRound({ puzzle }: { puzzle: PublicPuzzle }) {
               </button>
             </p>
           )}
-        </div>
+        </>
       )}
 
       <p aria-live="polite" className="sr-only">
@@ -305,6 +305,7 @@ export function GridRound({ puzzle }: { puzzle: PublicPuzzle }) {
 
       <InspectDialog
         tile={inspected ?? null}
+        originRect={inspectOrigin}
         label={inspected ? state.labels[inspected.id] : undefined}
         selected={!!inspected && state.selected.includes(inspected.id)}
         canSelect={playing && state.selected.length < groupSize}

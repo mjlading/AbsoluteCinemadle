@@ -17,9 +17,10 @@ const puzzle: PublicPuzzle = {
   tiles: ids.map((id, i) => ({ id, number: i + 1, type: "still", imageUrl: `/img/${id}` })),
 };
 const group = (n: number, tier: SolvedGroup["tier"] = 1): SolvedGroup => ({
-  filmId: `film${n}`,
+  filmId: 1000 + n,
   title: `Film ${n}`,
   year: 2000 + n,
+  posterUrl: null,
   tier,
   tileIds: ids.slice(n * 4, n * 4 + 4),
 });
@@ -51,13 +52,11 @@ describe("gridReducer", () => {
   });
 
   it("wins once all four groups are found", () => {
-    const actions = [0, 1, 2, 3].map(
-      (n): GridAction => ({
-        type: "guess_resolved",
-        tileIds: group(n).tileIds,
-        result: { kind: "correct", group: group(n) },
-      }),
-    );
+    const actions = [0, 1, 2, 3].map((n): GridAction => ({
+      type: "guess_resolved",
+      tileIds: group(n).tileIds,
+      result: { kind: "correct", group: group(n) },
+    }));
     const state = run(initialGridState(puzzle), ...actions);
     expect(state.status).toBe("won");
     expect(state.order).toEqual([]);

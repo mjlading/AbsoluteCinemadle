@@ -1,14 +1,13 @@
 import "server-only";
 
 import { isPlayableDate } from "@/lib/dates";
-import { samplePuzzle } from "./sample-puzzle";
+import { getScheduledPuzzle } from "./repository";
 import type { Puzzle } from "./types";
 
 /** The puzzle for a date, or null if there is none or the date is not playable yet. */
 export async function getPuzzle(date: string, now: Date = new Date()): Promise<Puzzle | null> {
   if (!isPlayableDate(date, now)) return null;
-  // Phase 1: every date serves the bundled sample puzzle.
-  return samplePuzzle(date);
+  return getScheduledPuzzle(date);
 }
 
 /** Loads the puzzle for a route's date param, or the error response to return instead. */

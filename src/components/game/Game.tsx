@@ -5,10 +5,12 @@ import { useEffect, useState } from "react";
 import { Board } from "@/components/grid/Board";
 import { GridRound } from "@/components/grid/GridRound";
 import { RULES } from "@/config/rules";
-import { ApiError, fetchPuzzle } from "@/lib/game/api";
+import { ApiError, fetchPuzzle, puzzleApiBase } from "@/lib/game/api";
 import { localIsoDate } from "@/lib/dates";
 import type { PublicPuzzle } from "@/lib/puzzle/types";
-import { SiteHeader } from "./SiteHeader";
+import { GameFrame } from "./GameFrame";
+import { LightTableSwitchOn } from "./LightTableSwitchOn";
+import { ReelSpinner } from "./ReelSpinner";
 
 /** Loads the puzzle for the player's local date; the server can't know that date during prerendering. */
 export function Game() {
@@ -18,7 +20,7 @@ export function Game() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchPuzzle(localIsoDate()).then(
+    fetchPuzzle(puzzleApiBase(localIsoDate())).then(
       (loaded) => {
         if (!cancelled) setPuzzle(loaded);
       },
@@ -37,10 +39,12 @@ export function Game() {
   }, [attempt]);
 
   return (
-    <main className="mx-auto w-full max-w-[34rem] px-4 pb-12 pt-5">
-      <SiteHeader date={puzzle?.date ?? null} />
+    <GameFrame date={puzzle?.date ?? null}>
       {puzzle ? (
-        <GridRound key={puzzle.date} puzzle={puzzle} />
+        <>
+          <LightTableSwitchOn date={puzzle.date} />
+          <GridRound key={puzzle.date} puzzle={puzzle} apiBase={puzzleApiBase(puzzle.date)} />
+        </>
       ) : error ? (
         <div className="mt-10 text-center">
           <p>{error}</p>
@@ -58,7 +62,7 @@ export function Game() {
       ) : (
         <GridSkeleton />
       )}
-    </main>
+    </GameFrame>
   );
 }
 
@@ -66,7 +70,10 @@ function GridSkeleton() {
   const { groupCount, groupSize } = RULES.grid;
   return (
     <div className="mt-6">
-      <p className="mb-3 text-ink-soft">Loading today&apos;s puzzle&hellip;</p>
+      <p className="mb-3 flex items-center gap-2 text-ink-soft">
+        <ReelSpinner className="size-5" />
+        Loading today&apos;s puzzle&hellip;
+      </p>
       <Board busy>
         <div className="grid grid-cols-4 gap-(--gap)">
           {Array.from({ length: groupCount * groupSize }, (_, i) => (

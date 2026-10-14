@@ -21,20 +21,21 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
-const base = (date: string) => `/api/puzzles/${date}`;
+/** Where today's game lives; an admin preview uses `/api/admin/puzzles/<id>` instead. */
+export const puzzleApiBase = (date: string) => `/api/puzzles/${date}`;
 
-export function fetchPuzzle(date: string): Promise<PublicPuzzle> {
-  return request(base(date));
+export function fetchPuzzle(base: string): Promise<PublicPuzzle> {
+  return request(base);
 }
 
-export function submitGuess(date: string, tileIds: string[]): Promise<GuessResult> {
-  return request(`${base(date)}/guess`, { method: "POST", body: JSON.stringify({ tileIds }) });
+export function submitGuess(base: string, tileIds: string[]): Promise<GuessResult> {
+  return request(`${base}/guess`, { method: "POST", body: JSON.stringify({ tileIds }) });
 }
 
-export function revealLabel(date: string, tileId: string): Promise<{ tileId: string; label: string }> {
-  return request(`${base(date)}/labels`, { method: "POST", body: JSON.stringify({ tileId }) });
+export function revealLabel(base: string, tileId: string): Promise<{ tileId: string; label: string }> {
+  return request(`${base}/labels`, { method: "POST", body: JSON.stringify({ tileId }) });
 }
 
-export function fetchSolution(date: string): Promise<{ groups: SolvedGroup[] }> {
-  return request(`${base(date)}/solution`);
+export function fetchSolution(base: string): Promise<{ groups: SolvedGroup[] }> {
+  return request(`${base}/solution`);
 }

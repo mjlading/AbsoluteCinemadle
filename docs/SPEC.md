@@ -4,12 +4,30 @@ Original brief from the project owner, kept as the source of truth.
 Where it is ambiguous, the decision taken is recorded in [ASSUMPTIONS.md](../ASSUMPTIONS.md).
 
 ## Owner constraints (added at kickoff, 2026-10-14)
-- LLM calls use the cheapest Anthropic model.
-  The owner asked for "Haiku 5.5", which does not exist, so `claude-haiku-4-5` is used.
+
+- LLM calls use the cheapest Anthropic model, Claude Haiku 5.5 (`claude-haiku-5-5`).
 - Total LLM spend is capped at USD 10, enforced in code.
 - Any other paid or keyed API must be raised with the owner before it is used.
 
+## Owner additions (after phase 1)
+
+- Solved and revealed group banners show the film's poster on the left (from phase 2, when posters come from TMDB).
+- Review hint (phase 5, next to the sound hint): shows a curated excerpt of a TMDB user review for a random unsolved film, at a point cost.
+  - The admin picks a passage from the film's TMDB reviews; names from the credits are blanked automatically, then the admin edits and approves it.
+  - An optional "suggest excerpts" button uses the LLM within the spend cap.
+  - Show the reviewer's name; do not link to the full review.
+  - Films without a usable review simply have no review hint.
+- Movie-flavored animations, each short, triggered by a player action or round start, and off under reduced motion:
+  film leader countdown before the warm-up, loupe zoom into the large tile view, film slipping in the gate on a wrong guess,
+  projector beam on the sound hint, barcodes developing into color in the bonus round, end-credits roll on the results screen,
+  light table flickering on at the first visit of the day, and a spinning reel while loading.
+  The owner will say later which ones to remove.
+- A simplified, non-identifying pictogram nodding to the "absolute cinema" meme (a seated figure raising both hands under a spotlight).
+  It plays on a perfect grid (no mistakes) and doubles as the site icon.
+- Confetti when the grid is solved, made of pieces in the site's own vocabulary (tier-colored tape and tiny film frames).
+
 ## Overview
+
 Build a mobile-first daily movie puzzle game with three rounds per day, taking a player about 5–10 minutes total:
 
 1. **Warm-up - Back-translated titles:** guess films from foreign release titles translated literally back into English.
@@ -21,6 +39,7 @@ Everyone gets the same puzzle each day.
 Puzzles are hand-curated in an admin editor, not auto-generated.
 
 ## Tech stack (defaults; change only with good reason)
+
 - Next.js (App Router) + TypeScript + Tailwind CSS
 - Postgres (Supabase is fine) for puzzles and content; localStorage for player progress and streaks (no player accounts in v1)
 - TMDB API for film metadata, cast, headshots, stills and foreign titles.
@@ -28,6 +47,7 @@ Puzzles are hand-curated in an admin editor, not auto-generated.
 - YouTube IFrame Player API for sound hints
 
 ## Round 1: Warm-up (back-translated titles)
+
 - 5 titles, 60-second timer for the whole round.
 - Each card shows the foreign title, its language/country and the literal English back-translation.
 - The player types the real English title, with autocomplete from TMDB search and fuzzy matching (ignore case, punctuation and leading "The").
@@ -35,6 +55,7 @@ Puzzles are hand-curated in an admin editor, not auto-generated.
 - Skipping is allowed; skipped and unanswered titles are revealed at the end of the round.
 
 ## Round 2: Main grid
+
 - 16 tiles in random order, each with one of four tile types:
   - `headshot`: actor photo (TMDB profile image)
   - `still`: a frame from the film (TMDB backdrop)
@@ -58,6 +79,7 @@ Puzzles are hand-curated in an admin editor, not auto-generated.
     If audio-only or hidden playback isn't allowed, show the player visibly for the 2 seconds and treat it as a stronger hint.
 
 ## Round 3: Bonus (barcode match)
+
 - Show the 4 barcodes and the 4 films from today's grid (revealed even if the player failed the grid).
   The player drags or taps to match them.
 - Barcode generation: true movie barcodes need the full film, which we won't use.
@@ -67,6 +89,7 @@ Puzzles are hand-curated in an admin editor, not auto-generated.
   - Also allow the admin to upload a custom barcode image per film to override the generated one.
 
 ## Scoring and results
+
 - Keep all point values in one config file, e.g.:
   - grid base 100, −10 per mistake, −5 per flip, −15 per sound hint
   - +10 per warm-up title, +10 per correct barcode match
@@ -76,6 +99,7 @@ Puzzles are hand-curated in an admin editor, not auto-generated.
   Save progress so a refresh resumes mid-game.
 
 ## Admin puzzle editor (password-protected route)
+
 - Film search through TMDB; choose 4 films and assign difficulty tiers.
 - For each film, browse its cast headshots and backdrops in a picker:
   - Pick an image as a `headshot`, `still` or `empty_set` tile.
@@ -100,11 +124,13 @@ Puzzles are hand-curated in an admin editor, not auto-generated.
   - barcodes present for all 4 films
 
 ## Data model (suggested)
+
 - Film: tmdbId, title, year
 - Tile: id, puzzleId, filmId, type, imageUrl, crop (nullable), label
 - Puzzle: date, 4 films with difficulty, 16 tiles, 5 warm-up entries, 4 barcodes, sound hints [{filmId, youtubeId, start, end}]
 
 ## Constraints
+
 - Images come from TMDB under its terms: show the required TMDB attribution in the footer, and check whether the current terms allow our intended use (non-commercial vs. commercial).
 - Never host or stream film video or audio files ourselves.
 - Accessibility:
@@ -116,6 +142,7 @@ Puzzles are hand-curated in an admin editor, not auto-generated.
   Validate guesses server-side, or obfuscate the group mapping.
 
 ## Build phases
+
 Finish each phase in a playable state before starting the next.
 
 1. Main grid only, using a hardcoded JSON puzzle with placeholder images.
@@ -127,6 +154,7 @@ Finish each phase in a playable state before starting the next.
 5. Sound hints, scoring, results and share text, streaks, and progress persistence.
 
 Stretch goals (do not build unless asked):
+
 - AI inpainting to remove people from stills for `empty_set` tiles
 - An archive of past puzzles
 - Head-to-head mode
