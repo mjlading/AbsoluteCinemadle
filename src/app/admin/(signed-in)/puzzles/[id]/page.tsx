@@ -9,10 +9,15 @@ import { FilmSearch } from "@/components/admin/FilmSearch";
 import { ScheduleControls } from "@/components/admin/ScheduleControls";
 import { TileCard } from "@/components/admin/TileCard";
 import { TilePicker } from "@/components/admin/TilePicker";
+import { AddWarmupEntry, WarmupEntryCard } from "@/components/admin/WarmupBuilder";
+import { LLM } from "@/config/llm";
 import { RULES } from "@/config/rules";
 import { requireAdmin } from "@/lib/admin/auth";
 import { listScheduled } from "@/lib/admin/puzzles";
 import { addDays, formatPuzzleDate, utcIsoDate } from "@/lib/dates";
+import { formatUsd } from "@/lib/llm/cost";
+import { spentMicroUsd } from "@/lib/llm/spend-guard";
+import { checkPuzzle } from "@/lib/puzzle/check";
 import { checkGrid } from "@/lib/puzzle/grid";
 import { loadPuzzle } from "@/lib/puzzle/repository";
 import { TIERS, type PuzzleFilm } from "@/lib/puzzle/types";
@@ -41,7 +46,9 @@ async function Editor({ params }: { params: PageProps<"/admin/puzzles/[id]">["pa
   const details = await Promise.all(
     puzzle.films.map((film) => getMovie(film.tmdbId).catch((): MovieDetails | null => null)),
   );
-  const check = checkGrid(puzzle);
+  // The preview only needs a playable grid; scheduling needs everything.
+  const gridReady = checkGrid(puzzle).errors.length === 0;
+  const check = checkPuzzle(puzzle);
   const today = utcIsoDate();
   const live = puzzle.date !== null && puzzle.date <= today;
   const tileBase = `/api/admin/puzzles/${puzzle.id}`;
@@ -56,7 +63,7 @@ async function Editor({ params }: { params: PageProps<"/admin/puzzles/[id]">["pa
           <h1 className="font-display text-4xl font-[900] leading-none">
             {puzzle.date ? `Puzzle for ${formatPuzzleDate(puzzle.date)}` : "Draft puzzle"}
           </h1>
-          {check.errors.length === 0 ? (
+          {gridReady ? (
             <Link
               href={`/admin/preview/${puzzle.id}`}
               className="min-h-11 content-center rounded-full border-[1.5px] border-ink px-5 font-semibold hover:bg-ink/5"
@@ -158,6 +165,46 @@ async function Editor({ params }: { params: PageProps<"/admin/puzzles/[id]">["pa
         );
       })}
 
+      <Section
+        title="Warm-up"
+        note={`${puzzle.warmup.length} of ${RULES.warmup.titleCount}. Films that are not in the grid, under foreign release titles with a word-for-word translation.`}
+      >
+        {puzzle.warmup.length > 0 && (
+          <ol className="flex flex-col gap-3">
+            {puzzle.warmup.map((entry) => (
+              <WarmupEntryCard
+                key={`${entry.id}:${entry.literalTranslation}`}
+                puzzleId={puzzle.id}
+                entry={{
+                  id: entry.id,
+                  position: entry.position,
+                  foreignTitle: entry.foreignTitle,
+                  language: entry.language,
+                  country: entry.country,
+                  literalTranslation: entry.literalTranslation,
+                  film: { title: entry.answer.title, year: entry.answer.year, posterPath: entry.answer.posterPath },
+                }}
+              />
+            ))}
+          </ol>
+        )}
+        {puzzle.warmup.length < RULES.warmup.titleCount && (
+          <div className={puzzle.warmup.length > 0 ? "mt-6" : ""}>
+            <AddWarmupEntry
+              puzzleId={puzzle.id}
+              nextPosition={
+                Array.from({ length: RULES.warmup.titleCount }, (_, i) => i + 1).find(
+                  (p) => !puzzle.warmup.some((e) => e.position === p),
+                ) ?? puzzle.warmup.length + 1
+              }
+            />
+          </div>
+        )}
+        <Suspense fallback={null}>
+          <LlmSpend />
+        </Suspense>
+      </Section>
+
       <Section title="Red herrings" note="Links between the films, for tiles that point the wrong way on purpose.">
         <Suspense fallback={<p className="text-ink-soft">Looking up filmographies&hellip;</p>}>
           <RedHerrings films={details.filter((d): d is MovieDetails => d !== null)} />
@@ -258,4 +305,14 @@ async function Schedule({
   const suggested =
     Array.from({ length: horizon }, (_, i) => addDays(today, i)).find((d) => !taken.has(d)) ?? addDays(today, horizon);
   return <ScheduleControls puzzleId={puzzleId} date={date} suggestedDate={suggested} blocked={blocked} />;
+}
+
+/** What the translation suggestions have cost so far, against the cap. */
+async function LlmSpend() {
+  const spent = await spentMicroUsd();
+  return (
+    <p className="mt-4 text-xs text-ink-soft">
+      Translation suggestions so far: {formatUsd(spent)} of the {formatUsd(LLM.spendCapMicroUsd)} budget.
+    </p>
+  );
 }

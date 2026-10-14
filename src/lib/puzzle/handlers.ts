@@ -4,9 +4,11 @@ import { z } from "zod";
 
 import { RULES } from "@/config/rules";
 import { errorResponse, parseJsonBody } from "@/lib/http";
+import { posterUrl } from "@/lib/tmdb/images";
+import { titleMatches } from "@/lib/warmup/match";
 import { checkGuess, solution, tileLabel, toPublicPuzzle } from "./grid";
 import { parseTileImageSize, renderTileImage } from "./tile-image";
-import type { Puzzle } from "./types";
+import type { Puzzle, WarmupAnswer, WarmupEntry, WarmupGuessResult } from "./types";
 
 /*
  * Request handling shared by the player routes (/api/puzzles/[date]/...) and
@@ -68,4 +70,36 @@ export async function tileImageResponse(
     console.error(`Could not render tile ${tileId}`, error);
     return errorResponse(502, "The picture for this tile could not be loaded.");
   }
+}
+
+const warmupAnswer = (entry: WarmupEntry): WarmupAnswer => ({
+  cardId: entry.id,
+  title: entry.answer.title,
+  year: entry.answer.year,
+  posterUrl: posterUrl(entry.answer.posterPath),
+});
+
+const WarmupGuessBody = z.object({
+  cardId: z.string().max(64),
+  guess: z.string().max(200),
+  /** Set when the player picked a film from the suggestions. */
+  tmdbId: z.number().int().positive().optional(),
+});
+
+/** Checks a warm-up guess; the answer is only returned once it has been earned. */
+export async function warmupGuessResponse(puzzle: Puzzle, request: Request): Promise<Response> {
+  const body = await parseJsonBody(request, WarmupGuessBody);
+  if (body instanceof Response) return body;
+  const entry = puzzle.warmup.find((e) => e.id === body.cardId);
+  if (!entry) return errorResponse(404, "That card is not in this puzzle.");
+
+  const correct =
+    body.tmdbId === entry.filmId || titleMatches(body.guess, [entry.answer.title, entry.answer.originalTitle]);
+  const result: WarmupGuessResult = correct ? { correct: true, answer: warmupAnswer(entry) } : { correct: false };
+  return Response.json(result, { headers: noStore });
+}
+
+/** Every warm-up answer, for revealing the cards once the round is over. */
+export function warmupSolutionResponse(puzzle: Puzzle): Response {
+  return Response.json({ answers: puzzle.warmup.map(warmupAnswer) }, { headers: noStore });
 }

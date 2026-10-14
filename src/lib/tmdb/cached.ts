@@ -32,3 +32,9 @@ export async function getPersonFilmography(personId: number) {
   cacheLife("days");
   return api.getPersonFilmography(personId);
 }
+
+export async function getForeignTitles(tmdbId: number) {
+  "use cache";
+  cacheLife("days");
+  return api.getForeignTitles(tmdbId);
+}

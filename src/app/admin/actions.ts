@@ -9,6 +9,8 @@ import { endAdminSession, requireAdmin, startAdminSession } from "@/lib/admin/au
 import * as admin from "@/lib/admin/puzzles";
 import { passwordMatches } from "@/lib/admin/session-token";
 import { isIsoDate } from "@/lib/dates";
+import { SpendCapError } from "@/lib/llm/spend-guard";
+import { suggestLiteralTranslations } from "@/lib/llm/back-translate";
 import { PUZZLES_TAG } from "@/lib/puzzle/repository";
 import { TILE_TYPES } from "@/lib/puzzle/types";
 
@@ -29,6 +31,26 @@ const NewTile = z.object({
   }),
 });
 const IsoDate = z.string().refine(isIsoDate, "Pick a date.");
+const LanguageCode = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(/^[a-z]{2,3}$/, "Use a two-letter language code, like es.");
+const CountryCode = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .regex(/^[A-Z]{2}$/, "Use a two-letter country code, like MX.")
+  .nullable();
+const ForeignTitle = z.string().trim().min(1, "Enter the foreign title.").max(200);
+const LiteralTranslation = z.string().trim().min(1, "Enter the literal translation.").max(200);
+const NewWarmupEntry = z.object({
+  filmId: FilmId,
+  foreignTitle: ForeignTitle,
+  language: LanguageCode,
+  country: CountryCode,
+  literalTranslation: LiteralTranslation,
+});
 
 /** Runs an admin change, turning expected problems into messages and refreshing what players and the editor see. */
 async function change(work: () => Promise<void>): Promise<ActionResult> {
@@ -108,4 +130,51 @@ export async function schedulePuzzle(puzzleId: string, date: string): Promise<Ac
 
 export async function unschedulePuzzle(puzzleId: string): Promise<ActionResult> {
   return change(() => admin.unschedule(PuzzleId.parse(puzzleId)));
+}
+
+export async function addWarmupEntry(puzzleId: string, entry: unknown): Promise<ActionResult> {
+  return change(() => admin.addWarmupEntry(PuzzleId.parse(puzzleId), NewWarmupEntry.parse(entry)));
+}
+
+export async function updateWarmupTranslation(
+  puzzleId: string,
+  entryId: string,
+  literalTranslation: string,
+): Promise<ActionResult> {
+  return change(() =>
+    admin.updateWarmupTranslation(
+      PuzzleId.parse(puzzleId),
+      z.string().parse(entryId),
+      LiteralTranslation.parse(literalTranslation),
+    ),
+  );
+}
+
+export async function removeWarmupEntry(puzzleId: string, entryId: string): Promise<ActionResult> {
+  return change(() => admin.removeWarmupEntry(PuzzleId.parse(puzzleId), z.string().parse(entryId)));
+}
+
+export type SuggestionResult = { ok: true; candidates: string[] } | { ok: false; error: string };
+
+/** Literal back-translation candidates from the LLM, inside the spend cap. */
+export async function suggestBackTranslations(input: {
+  foreignTitle: string;
+  language: string;
+  country: string | null;
+}): Promise<SuggestionResult> {
+  await requireAdmin();
+  const parsed = z
+    .object({ foreignTitle: ForeignTitle, language: LanguageCode, country: CountryCode })
+    .safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  try {
+    const candidates = await suggestLiteralTranslations(parsed.data);
+    return candidates.length > 0
+      ? { ok: true, candidates }
+      : { ok: false, error: "No suggestions came back. Write the translation yourself." };
+  } catch (error) {
+    if (error instanceof SpendCapError) return { ok: false, error: error.message };
+    console.error("Back-translation failed", error);
+    return { ok: false, error: "Suggestions are unavailable right now. Write the translation yourself." };
+  }
 }

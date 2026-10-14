@@ -19,6 +19,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.0",
     "postgres": "^3.4.9",

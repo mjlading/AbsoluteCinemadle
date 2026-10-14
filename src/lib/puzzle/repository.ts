@@ -4,7 +4,7 @@ import { asc, eq } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 
 import { db } from "@/db/client";
-import { films, puzzleFilms, puzzles, tiles } from "@/db/schema";
+import { films, puzzleFilms, puzzles, tiles, warmupEntries } from "@/db/schema";
 import { seededRandom, shuffled } from "@/lib/random";
 import type { Puzzle, Tier } from "./types";
 
@@ -38,11 +38,34 @@ export async function loadPuzzle(id: string): Promise<Puzzle | null> {
     .where(eq(tiles.puzzleId, id))
     .orderBy(asc(tiles.id));
 
+  const warmupRows = await db()
+    .select({
+      id: warmupEntries.id,
+      position: warmupEntries.position,
+      filmId: warmupEntries.filmId,
+      foreignTitle: warmupEntries.foreignTitle,
+      language: warmupEntries.language,
+      country: warmupEntries.country,
+      literalTranslation: warmupEntries.literalTranslation,
+      title: films.title,
+      originalTitle: films.originalTitle,
+      year: films.year,
+      posterPath: films.posterPath,
+    })
+    .from(warmupEntries)
+    .innerJoin(films, eq(films.tmdbId, warmupEntries.filmId))
+    .where(eq(warmupEntries.puzzleId, id))
+    .orderBy(asc(warmupEntries.position));
+
   return {
     id: row.id,
     date: row.date,
     films: filmRows.map((f) => ({ ...f, tier: f.tier as Tier })),
     tiles: shuffled(tileRows, seededRandom(row.id)),
+    warmup: warmupRows.map(({ title, originalTitle, year, posterPath, ...entry }) => ({
+      ...entry,
+      answer: { title, originalTitle, year, posterPath },
+    })),
   };
 }
 

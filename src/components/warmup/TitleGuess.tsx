@@ -1,0 +1,162 @@
+"use client";
+
+import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+
+import { suggestFilms, type FilmSuggestion } from "@/lib/game/api";
+
+interface TitleGuessProps {
+  disabled: boolean;
+  onGuess: (guess: string, tmdbId?: number) => void;
+  onSkip: () => void;
+  /** False when this is the only card left, so skipping would change nothing. */
+  canSkip: boolean;
+}
+
+/**
+ * The guess box: free text, with TMDB title suggestions as a combobox.
+ * Picking a suggestion submits it straight away, since the clock is running.
+ */
+export function TitleGuess({ disabled, onGuess, onSkip, canSkip }: TitleGuessProps) {
+  const inputId = useId();
+  const listId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [value, setValue] = useState("");
+  const [suggestions, setSuggestions] = useState<{ query: string; films: FilmSuggestion[] } | null>(null);
+  const [active, setActive] = useState(-1);
+  const [open, setOpen] = useState(false);
+  const query = value.trim();
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (query.length < 2) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      suggestFilms(query, controller.signal).then(
+        ({ results }) => setSuggestions({ query, films: results }),
+        () => {},
+      );
+    }, 180);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query]);
+
+  // Results for an earlier, shorter prefix stay up while the refined ones load; anything else is stale.
+  const fresh = suggestions && query.toLowerCase().startsWith(suggestions.query.toLowerCase());
+  const films = open && query.length >= 2 && fresh ? suggestions.films : [];
+
+  const submit = (guess: string, tmdbId?: number) => {
+    if (!guess.trim() || disabled) return;
+    onGuess(guess, tmdbId);
+    setOpen(false);
+    setActive(-1);
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (films.length === 0) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActive((i) => (i + 1) % films.length);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActive((i) => (i <= 0 ? films.length - 1 : i - 1));
+    } else if (event.key === "Escape") {
+      setOpen(false);
+      setActive(-1);
+    } else if (event.key === "Enter" && active >= 0) {
+      event.preventDefault();
+      const film = films[active];
+      setValue(film.title);
+      submit(film.title, film.tmdbId);
+    }
+  };
+
+  const onSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    submit(value);
+  };
+
+  return (
+    <form onSubmit={onSubmit} className="flex flex-col gap-3">
+      <label htmlFor={inputId} className="sr-only">
+        Which film is this?
+      </label>
+      <div className="relative">
+        <input
+          ref={inputRef}
+          id={inputId}
+          role="combobox"
+          aria-expanded={films.length > 0}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
+          autoComplete="off"
+          autoCapitalize="words"
+          spellCheck={false}
+          placeholder="Which film is this?"
+          value={value}
+          disabled={disabled}
+          onChange={(event) => {
+            setValue(event.target.value);
+            setOpen(true);
+            setActive(-1);
+          }}
+          onKeyDown={onKeyDown}
+          onBlur={() => setOpen(false)}
+          className="min-h-12 w-full rounded-lg border-[1.5px] border-ink/30 bg-surface px-3 text-lg focus:border-ink disabled:opacity-60"
+        />
+        {films.length > 0 && (
+          <ul
+            id={listId}
+            role="listbox"
+            aria-label="Suggestions"
+            className="absolute inset-x-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-ink/15 bg-surface py-1 shadow-xl"
+          >
+            {films.map((film, index) => (
+              <li
+                key={film.tmdbId}
+                id={`${listId}-${index}`}
+                role="option"
+                aria-selected={index === active}
+                // Keep focus in the input; a mousedown here would blur it and close the list first.
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  setValue(film.title);
+                  submit(film.title, film.tmdbId);
+                }}
+                className={`cursor-pointer px-3 py-2 ${index === active ? "bg-ink/10" : "hover:bg-ink/5"}`}
+              >
+                <span className="font-semibold">{film.title}</span>
+                {film.year && <span className="ml-2 text-ink-soft">{film.year}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setValue("");
+            onSkip();
+          }}
+          disabled={disabled || !canSkip}
+          className="min-h-11 flex-1 rounded-full border-[1.5px] border-ink px-4 font-semibold disabled:opacity-35"
+        >
+          Skip for now
+        </button>
+        <button
+          type="submit"
+          disabled={disabled || !query}
+          className="min-h-11 flex-1 rounded-full bg-ink px-4 font-semibold text-table disabled:opacity-35"
+        >
+          Guess
+        </button>
+      </div>
+    </form>
+  );
+}

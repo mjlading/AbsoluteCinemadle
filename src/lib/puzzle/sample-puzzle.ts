@@ -1,4 +1,4 @@
-import type { PuzzleFilm, PuzzleTile } from "./types";
+import type { PuzzleFilm, PuzzleTile, WarmupEntry } from "./types";
 
 /**
  * A puzzle with emoji placeholder art, for development seeds and tests.
@@ -42,3 +42,40 @@ export function sampleTiles(newId: () => string): PuzzleTile[] {
     image: { kind: "placeholder", glyph, hue },
   }));
 }
+
+/** Warm-up films for the sample puzzle: none of them is in the grid. */
+export const SAMPLE_WARMUP_FILMS = [
+  { tmdbId: 562, title: "Die Hard", year: 1988 },
+  { tmdbId: 771, title: "Home Alone", year: 1990 },
+  { tmdbId: 621, title: "Grease", year: 1978 },
+  { tmdbId: 703, title: "Annie Hall", year: 1977 },
+  { tmdbId: 38, title: "Eternal Sunshine of the Spotless Mind", year: 2004 },
+];
+
+type WarmupSeed = Omit<WarmupEntry, "id" | "position" | "answer">;
+
+export const SAMPLE_WARMUP: WarmupSeed[] = [
+  { filmId: 562, foreignTitle: "Duro de matar", language: "es", country: "MX", literalTranslation: "Hard to Kill" },
+  {
+    filmId: 771,
+    foreignTitle: "Mi pobre angelito",
+    language: "es",
+    country: "MX",
+    literalTranslation: "My Poor Little Angel",
+  },
+  { filmId: 621, foreignTitle: "Vaselina", language: "es", country: "AR", literalTranslation: "Vaseline" },
+  {
+    filmId: 703,
+    foreignTitle: "Der Stadtneurotiker",
+    language: "de",
+    country: "DE",
+    literalTranslation: "The City Neurotic",
+  },
+  {
+    filmId: 38,
+    foreignTitle: "Se mi lasci ti cancello",
+    language: "it",
+    country: "IT",
+    literalTranslation: "If You Leave Me I Delete You",
+  },
+];

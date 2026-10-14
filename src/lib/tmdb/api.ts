@@ -107,6 +107,7 @@ export interface CrewMember {
 }
 
 export interface MovieDetails extends MovieSummary {
+  originalTitle: string | null;
   cast: CastMember[];
   directors: CrewMember[];
   /** Text-free backdrops first, then English ones. */
@@ -116,6 +117,7 @@ export interface MovieDetails extends MovieSummary {
 const MovieDetailsSchema = z.object({
   id: z.number(),
   title: z.string(),
+  original_title: nullableString,
   release_date: z.string().nullish(),
   poster_path: nullableString,
   vote_count: z.number().default(0),
@@ -143,6 +145,7 @@ export async function getMovie(tmdbId: number): Promise<MovieDetails> {
   return {
     tmdbId: m.id,
     title: m.title,
+    originalTitle: m.original_title && m.original_title !== m.title ? m.original_title : null,
     year: yearOf(m.release_date),
     posterPath: m.poster_path,
     voteCount: m.vote_count,
@@ -200,4 +203,60 @@ export async function getPersonFilmography(personId: number): Promise<PersonFilm
     acted: credits.cast.map(toSummary),
     directed: credits.crew.filter((c) => c.job === "Director").map(toSummary),
   };
+}
+
+export interface ForeignTitle {
+  title: string;
+  /** ISO 639-1, or null when TMDB only knows the country. */
+  language: string | null;
+  /** ISO 3166-1, or null when TMDB only knows the language. */
+  country: string | null;
+}
+
+/**
+ * Release titles from other countries and languages (TMDB translations and
+ * alternative titles), without the English title and without duplicates.
+ */
+export async function getForeignTitles(tmdbId: number): Promise<ForeignTitle[]> {
+  const [{ translations }, { titles }, movie] = await Promise.all([
+    tmdb(
+      `/movie/${tmdbId}/translations`,
+      z.object({
+        translations: z.array(
+          z.object({
+            iso_639_1: z.string(),
+            iso_3166_1: z.string(),
+            data: z.object({ title: z.string().nullish() }),
+          }),
+        ),
+      }),
+    ),
+    tmdb(
+      `/movie/${tmdbId}/alternative_titles`,
+      z.object({ titles: z.array(z.object({ iso_3166_1: z.string(), title: z.string() })) }),
+    ),
+    tmdb(`/movie/${tmdbId}`, z.object({ title: z.string() }), { language: "en-US" }),
+  ]);
+
+  const key = (title: string) => title.trim().toLowerCase();
+  const english = key(movie.title);
+  const seen = new Set<string>();
+  const results: ForeignTitle[] = [];
+  const add = (candidate: ForeignTitle) => {
+    const id = `${key(candidate.title)}|${candidate.country ?? ""}`;
+    if (!candidate.title.trim() || key(candidate.title) === english || seen.has(id)) return;
+    seen.add(id);
+    results.push({ ...candidate, title: candidate.title.trim() });
+  };
+
+  for (const t of translations) {
+    if (t.iso_639_1 !== "en" && t.data.title)
+      add({ title: t.data.title, language: t.iso_639_1, country: t.iso_3166_1 || null });
+  }
+  for (const t of titles) {
+    if (!["US", "GB", "AU", "CA", "IE", "NZ"].includes(t.iso_3166_1)) {
+      add({ title: t.title, language: null, country: t.iso_3166_1 || null });
+    }
+  }
+  return results;
 }

@@ -8,6 +8,13 @@
       "when": 1791980929407,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791984590441,
+      "tag": "0001_warmup_and_llm_usage",
+      "breakpoints": true
     }
   ]
 }

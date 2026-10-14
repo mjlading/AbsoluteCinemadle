@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { createDraft } from "./support/db";
 import { E2E_ADMIN_PASSWORD } from "./support/env";
+import { endWarmupAndOpenGrid } from "./support/game";
 
 const hasTmdb = Boolean(process.env.TMDB_READ_ACCESS_TOKEN);
 
@@ -67,7 +68,15 @@ test.describe("puzzle editor", () => {
         { tmdbId: 78, title: "Blade Runner", tier: 4 },
       ],
       [4, 4, 4, 3],
+      [
+        { tmdbId: 562, title: "Die Hard", tier: 0 },
+        { tmdbId: 771, title: "Home Alone", tier: 0 },
+        { tmdbId: 621, title: "Grease", tier: 0 },
+        { tmdbId: 703, title: "Annie Hall", tier: 0 },
+        { tmdbId: 38, title: "Eternal Sunshine of the Spotless Mind", tier: 0 },
+      ],
     );
+    await page.clock.install();
     await signIn(page);
     await page.goto(`/admin/puzzles/${id}`);
     await expect(page.getByText("Blade Runner has 3 of 4 tiles.")).toBeVisible();
@@ -92,10 +101,51 @@ test.describe("puzzle editor", () => {
 
     await page.getByRole("link", { name: "Preview as a player" }).click();
     await expect(page.getByText(/Nothing you do here is saved/)).toBeVisible();
+    await endWarmupAndOpenGrid(page);
     const response = await page.request.get(`/api/admin/puzzles/${id}/solution`);
     const [jaws] = ((await response.json()) as { groups: { tileIds: string[] }[] }).groups;
     for (const tileId of jaws.tileIds) await page.locator(`[data-tile-id="${tileId}"] .tile-face`).click();
     await page.getByRole("button", { name: "Submit" }).click();
     await expect(page.getByRole("heading", { name: "Solved: Jaws" })).toBeVisible();
   });
+
+  test("builds a warm-up card from a foreign title", async ({ page }) => {
+    test.skip(!hasTmdb, "Needs TMDB_READ_ACCESS_TOKEN in .env.local.");
+    const id = await createDraft([{ tmdbId: 578, title: "Jaws", tier: 1 }], [0]);
+    await signIn(page);
+    await page.goto(`/admin/puzzles/${id}`);
+    const warmup = page.getByRole("region", { name: "Warm-up" });
+
+    // A grid film is refused.
+    await warmup.getByLabel("Film for warm-up card 1").fill("Jaws");
+    await warmup
+      .getByRole("list", { name: "Search results" })
+      .getByRole("button", { name: /^Jaws\s*1975$/ })
+      .click();
+    await fillCard(warmup, "Der weiße Hai", "de", "DE", "The White Shark");
+    await expect(warmup.getByRole("alert").filter({ hasText: "That film is in the grid" })).toBeVisible();
+
+    await warmup.getByRole("button", { name: "Choose another film" }).click();
+    await warmup.getByLabel("Film for warm-up card 1").fill("Spirited Away");
+    await warmup.getByRole("list", { name: "Search results" }).getByRole("button").first().click();
+    await expect(warmup.getByText("Foreign titles on TMDB")).toBeVisible();
+    await fillCard(warmup, "Chihiros Reise ins Zauberland", "de", "DE", "Chihiro's Journey into the Magic Land");
+    await expect(warmup.getByText("Card 1: Spirited Away (2001)")).toBeVisible();
+    await expect(warmup.getByLabel("Film for warm-up card 2")).toBeVisible();
+    await expect(page.getByText("Add 5 warm-up titles (1 so far).")).toBeVisible();
+  });
 });
+
+async function fillCard(
+  warmup: ReturnType<Page["getByRole"]>,
+  foreignTitle: string,
+  language: string,
+  country: string,
+  literal: string,
+) {
+  await warmup.getByLabel("Foreign title", { exact: true }).fill(foreignTitle);
+  await warmup.getByLabel("Language code").fill(language);
+  await warmup.getByLabel(/^Country code/).fill(country);
+  await warmup.getByLabel(/^Literal translation/).fill(literal);
+  await warmup.getByRole("button", { name: "Add to the warm-up" }).click();
+}

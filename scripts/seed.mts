@@ -14,7 +14,7 @@ import postgres from "postgres";
 import * as schema from "../src/db/schema";
 import { localIsoDate } from "../src/lib/dates";
 import { newTileId } from "../src/lib/ids";
-import { SAMPLE_FILMS, sampleTiles } from "../src/lib/puzzle/sample-puzzle";
+import { SAMPLE_FILMS, SAMPLE_WARMUP, SAMPLE_WARMUP_FILMS, sampleTiles } from "../src/lib/puzzle/sample-puzzle";
 import { getMovie } from "../src/lib/tmdb/api";
 
 const url = process.env.DATABASE_URL;
@@ -31,30 +31,56 @@ if (reset) {
   if (!new URL(url).pathname.endsWith("_test")) {
     throw new Error("--reset wipes every puzzle, so it only runs against a database whose name ends in _test.");
   }
-  await db.execute(sql`truncate ${schema.tiles}, ${schema.puzzleFilms}, ${schema.puzzles}, ${schema.films}`);
+  await db.execute(
+    sql`truncate ${schema.warmupEntries}, ${schema.tiles}, ${schema.puzzleFilms}, ${schema.puzzles}, ${schema.films}`,
+  );
   console.log("Removed all puzzles.");
 }
 
-for (const film of SAMPLE_FILMS) {
-  let { title, year, posterPath } = film;
+for (const film of [...SAMPLE_FILMS, ...SAMPLE_WARMUP_FILMS]) {
+  let details = {
+    title: film.title,
+    originalTitle: null as string | null,
+    year: film.year,
+    posterPath: null as string | null,
+  };
   if (process.env.TMDB_READ_ACCESS_TOKEN) {
     try {
-      ({ title, year, posterPath } = await getMovie(film.tmdbId));
+      const movie = await getMovie(film.tmdbId);
+      details = {
+        title: movie.title,
+        originalTitle: movie.originalTitle,
+        year: movie.year,
+        posterPath: movie.posterPath,
+      };
     } catch (error) {
-      console.warn(`Using built-in details for ${title}: ${(error as Error).message}`);
+      console.warn(`Using built-in details for ${film.title}: ${(error as Error).message}`);
     }
   }
   await db
     .insert(schema.films)
-    .values({ tmdbId: film.tmdbId, title, year, posterPath })
-    .onConflictDoUpdate({ target: schema.films.tmdbId, set: { title, year, posterPath, syncedAt: new Date() } });
+    .values({ tmdbId: film.tmdbId, ...details })
+    .onConflictDoUpdate({ target: schema.films.tmdbId, set: { ...details, syncedAt: new Date() } });
+}
+
+/** Gives a puzzle the sample warm-up, unless it already has one. */
+async function addSampleWarmup(tx: Pick<typeof db, "select" | "insert">, puzzleId: string) {
+  const existing = await tx
+    .select({ id: schema.warmupEntries.id })
+    .from(schema.warmupEntries)
+    .where(eq(schema.warmupEntries.puzzleId, puzzleId));
+  if (existing.length > 0) return;
+  await tx
+    .insert(schema.warmupEntries)
+    .values(SAMPLE_WARMUP.map((entry, i) => ({ ...entry, id: newTileId(), position: i + 1, puzzleId })));
 }
 
 for (const offset of offsets) {
   const date = localIsoDate(new Date(Date.now() + offset * 86_400_000));
   const [taken] = await db.select({ id: schema.puzzles.id }).from(schema.puzzles).where(eq(schema.puzzles.date, date));
   if (taken) {
-    console.log(`${date} already has a puzzle; skipped.`);
+    await addSampleWarmup(db, taken.id);
+    console.log(`${date} already has a puzzle; kept it.`);
     continue;
   }
   await db.transaction(async (tx) => {
@@ -63,6 +89,7 @@ for (const offset of offsets) {
       .insert(schema.puzzleFilms)
       .values(SAMPLE_FILMS.map((f) => ({ puzzleId: puzzle.id, filmId: f.tmdbId, tier: f.tier })));
     await tx.insert(schema.tiles).values(sampleTiles(newTileId).map((t) => ({ ...t, puzzleId: puzzle.id })));
+    await addSampleWarmup(tx, puzzle.id);
   });
   console.log(`Scheduled the sample puzzle for ${date}.`);
 }

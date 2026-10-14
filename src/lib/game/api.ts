@@ -1,4 +1,4 @@
-import type { GuessResult, PublicPuzzle, SolvedGroup } from "@/lib/puzzle/types";
+import type { GuessResult, PublicPuzzle, SolvedGroup, WarmupAnswer, WarmupGuessResult } from "@/lib/puzzle/types";
 
 export class ApiError extends Error {
   constructor(
@@ -38,4 +38,22 @@ export function revealLabel(base: string, tileId: string): Promise<{ tileId: str
 
 export function fetchSolution(base: string): Promise<{ groups: SolvedGroup[] }> {
   return request(`${base}/solution`);
+}
+
+export function guessWarmup(base: string, cardId: string, guess: string, tmdbId?: number): Promise<WarmupGuessResult> {
+  return request(`${base}/warmup/guess`, { method: "POST", body: JSON.stringify({ cardId, guess, tmdbId }) });
+}
+
+export function fetchWarmupSolution(base: string): Promise<{ answers: WarmupAnswer[] }> {
+  return request(`${base}/warmup/solution`);
+}
+
+export interface FilmSuggestion {
+  tmdbId: number;
+  title: string;
+  year: number | null;
+}
+
+export function suggestFilms(query: string, signal: AbortSignal): Promise<{ results: FilmSuggestion[] }> {
+  return request(`/api/films/search?q=${encodeURIComponent(query)}`, { signal });
 }

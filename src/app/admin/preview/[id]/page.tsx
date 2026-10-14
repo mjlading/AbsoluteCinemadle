@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { GameFrame } from "@/components/game/GameFrame";
 import { SiteFooter } from "@/components/game/SiteFooter";
-import { GridRound } from "@/components/grid/GridRound";
+import { Rounds } from "@/components/game/Rounds";
 import { requireAdmin } from "@/lib/admin/auth";
 import { utcIsoDate } from "@/lib/dates";
 import { checkGrid, toPublicPuzzle } from "@/lib/puzzle/grid";
@@ -47,7 +47,7 @@ async function Preview({ params }: { params: PageProps<"/admin/preview/[id]">["p
         {errors.length > 0 ? (
           <p className="mt-10">The grid is not complete yet: {errors.join(" ")}</p>
         ) : (
-          <GridRound puzzle={toPublicPuzzle(puzzle, apiBase, date)} apiBase={apiBase} />
+          <Rounds puzzle={toPublicPuzzle(puzzle, apiBase, date)} apiBase={apiBase} />
         )}
       </GameFrame>
       <SiteFooter />

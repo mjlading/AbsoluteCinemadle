@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 
 import { Board } from "@/components/grid/Board";
-import { GridRound } from "@/components/grid/GridRound";
 import { RULES } from "@/config/rules";
 import { ApiError, fetchPuzzle, puzzleApiBase } from "@/lib/game/api";
 import { localIsoDate } from "@/lib/dates";
@@ -11,6 +10,7 @@ import type { PublicPuzzle } from "@/lib/puzzle/types";
 import { GameFrame } from "./GameFrame";
 import { LightTableSwitchOn } from "./LightTableSwitchOn";
 import { ReelSpinner } from "./ReelSpinner";
+import { Rounds } from "./Rounds";
 
 /** Loads the puzzle for the player's local date; the server can't know that date during prerendering. */
 export function Game() {
@@ -43,7 +43,7 @@ export function Game() {
       {puzzle ? (
         <>
           <LightTableSwitchOn date={puzzle.date} />
-          <GridRound key={puzzle.date} puzzle={puzzle} apiBase={puzzleApiBase(puzzle.date)} />
+          <Rounds key={puzzle.date} puzzle={puzzle} apiBase={puzzleApiBase(puzzle.date)} />
         </>
       ) : error ? (
         <div className="mt-10 text-center">

@@ -42,6 +42,19 @@ Each entry says what was decided and why, so it can be revisited.
 - Tier colors follow the dyes of color film plus white film-can tape: 1 cyan, 2 yellow, 3 magenta, 4 white.
 - A perfect grid means no mistakes; revealed labels do not spoil it.
 
+## Warm-up
+
+- The 60-second clock starts after the 3, 2, 1 film leader; players can also end the round early.
+- Skipping sends a card to the back of the queue, so players see every card before returning to skipped ones.
+  Cards still unanswered when the round ends are revealed then.
+- Guesses are unlimited within the minute and wrong ones cost nothing.
+- An answer counts if it is the film picked from the suggestions, or a typed English or original title.
+  Typed titles ignore case, accents, punctuation and a leading "The", "A" or "An", allow one typo from 8 characters and two from 14, and must have the same sequel number.
+- Suggestions come from a public, cached TMDB title search; they only echo what the player typed.
+- Cards show the language and country as English names ("Spanish, Mexico").
+- A puzzle with no warm-up starts at the grid; only an admin preview can hit that, since scheduling needs 5 cards.
+- The warm-up answers route follows the same trust model as the grid solution route.
+
 ## Admin editor
 
 - There is one admin, signed in with `ADMIN_PASSWORD`; the session is a signed cookie valid for 30 days.
@@ -51,6 +64,10 @@ Each entry says what was decided and why, so it can be revisited.
 - The same picture and crop twice blocks scheduling; two different crops of one picture and identical type mixes in every film are warnings only.
 - Puzzles can be scheduled on any date, including past ones, and live puzzles can be edited, with a warning.
 - The red-herring helper compares the top 20 billed cast and the directors of the chosen films, and lists the three best-known other films (by TMDB vote count) of each film's directors and top 3 cast.
+- Warm-up titles come from TMDB translations (which carry a language) and alternative titles (country only, so the admin sets the language).
+  Alternative titles from English-speaking countries are skipped.
+- Literal-translation suggestions are only made when the admin asks for them, and the admin always picks or edits the final text.
+  Each call reserves its worst-case cost before running; a failed call keeps its reservation, since it may have been billed.
 - Film details are re-fetched from TMDB whenever a film is added to a puzzle.
   A periodic refresh of `films` rows older than about 5 months is still needed before launch, to honour TMDB's 6-month limit.
 

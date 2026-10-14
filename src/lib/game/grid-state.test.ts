@@ -14,6 +14,7 @@ import {
 const ids = Array.from({ length: 16 }, (_, i) => `t${i + 1}`);
 const puzzle: PublicPuzzle = {
   date: "2026-10-14",
+  warmup: [],
   tiles: ids.map((id, i) => ({ id, number: i + 1, type: "still", imageUrl: `/img/${id}` })),
 };
 const group = (n: number, tier: SolvedGroup["tier"] = 1): SolvedGroup => ({

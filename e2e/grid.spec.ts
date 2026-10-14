@@ -1,20 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import type { PublicPuzzle, SolvedGroup } from "../src/lib/puzzle/types";
+import { localDate, skipToGrid } from "./support/game";
 
-/** The player's local date, read from the browser the same way the game does. */
-async function localDate(page: Page): Promise<string> {
-  return page.evaluate(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  });
-}
-
-/** Opens the game and fetches the answers out of band, so tests can play deliberately. */
+/** Opens the game on the grid and fetches the answers out of band, so tests can play deliberately. */
 async function openGame(page: Page): Promise<SolvedGroup[]> {
-  await page.goto("/");
-  // Generous: the first visit to a freshly started server also warms its caches.
-  await expect(page.getByRole("list", { name: "Tiles" }).getByRole("listitem")).toHaveCount(16, { timeout: 15_000 });
+  await skipToGrid(page);
   const response = await page.request.get(`/api/puzzles/${await localDate(page)}/solution`);
   return ((await response.json()) as { groups: SolvedGroup[] }).groups;
 }
@@ -167,6 +158,10 @@ test("the puzzle payload carries no answers", async ({ page }) => {
   const puzzle = JSON.parse(body) as PublicPuzzle;
   expect(puzzle.tiles).toHaveLength(16);
   for (const group of groups) expect(body).not.toContain(group.title);
-  expect(body).not.toMatch(/film|tmdb|tier|label/i);
+  const warmup = await page.request.get(`/api/puzzles/${await localDate(page)}/warmup/solution`);
+  for (const answer of ((await warmup.json()) as { answers: { title: string }[] }).answers) {
+    expect(body).not.toContain(answer.title);
+  }
+  expect(body).not.toMatch(/film|tmdb|tier|label|answer/i);
   await expect(page.locator("img[alt]").first()).toHaveAttribute("alt", /^Tile \d+, /);
 });

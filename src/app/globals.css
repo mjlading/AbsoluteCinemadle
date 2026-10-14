@@ -300,6 +300,71 @@ body {
   }
 }
 
+/* Academy leader: warm grey film, rings, a crosshair and a sweeping hand. */
+@property --sweep {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.film-leader {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(15rem, 70vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #d9d3c7;
+  color: #2a2722;
+}
+
+.film-leader-sweep {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(rgb(42 39 34 / 0.38) var(--sweep), transparent var(--sweep));
+  animation: leader-sweep 1s linear infinite;
+}
+
+@keyframes leader-sweep {
+  from {
+    --sweep: 0deg;
+  }
+  to {
+    --sweep: 360deg;
+  }
+}
+
+.film-leader-number {
+  position: relative;
+  font-family: var(--font-sans);
+  font-size: min(7.5rem, 34vw);
+  font-weight: 800;
+  line-height: 1;
+  animation: leader-number 1s steps(1, end);
+}
+
+@keyframes leader-number {
+  0% {
+    opacity: 0.55;
+  }
+  8% {
+    opacity: 1;
+  }
+}
+
+/* A new warm-up card slides into the gate. */
+.warmup-card {
+  animation: card-in 260ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+
 dialog::backdrop {
   background: rgb(10 12 16 / 0.6);
   animation: backdrop-in 200ms ease-out;

@@ -4,9 +4,9 @@ import { and, asc, count, desc, eq, gte, inArray, isNull, lte, type SQL } from "
 
 import { RULES } from "@/config/rules";
 import { db } from "@/db/client";
-import { films, puzzleFilms, puzzles, tiles } from "@/db/schema";
+import { films, puzzleFilms, puzzles, tiles, warmupEntries } from "@/db/schema";
 import { newTileId } from "@/lib/ids";
-import { checkGrid } from "@/lib/puzzle/grid";
+import { checkPuzzle } from "@/lib/puzzle/check";
 import { loadPuzzle } from "@/lib/puzzle/repository";
 import type { Tier, TileImage, TileType } from "@/lib/puzzle/types";
 import { getMovie } from "@/lib/tmdb/cached";
@@ -69,19 +69,35 @@ export async function deletePuzzle(id: string): Promise<void> {
 
 const touch = (puzzleId: string) => db().update(puzzles).set({ updatedAt: new Date() }).where(eq(puzzles.id, puzzleId));
 
-/** Adds a film to a tier, refreshing its TMDB details (TMDB data may be kept for 6 months at most). */
+/** Stores a film's current TMDB details (TMDB data may be kept for 6 months at most). */
+async function syncFilm(tmdbId: number): Promise<void> {
+  const movie = await getMovie(tmdbId);
+  const details = {
+    title: movie.title,
+    originalTitle: movie.originalTitle,
+    year: movie.year,
+    posterPath: movie.posterPath,
+    syncedAt: new Date(),
+  };
+  await db()
+    .insert(films)
+    .values({ tmdbId, ...details })
+    .onConflictDoUpdate({ target: films.tmdbId, set: details });
+}
+
+/** Adds a film to a tier, refreshing its TMDB details. */
 export async function addFilm(puzzleId: string, tmdbId: number, tier: Tier): Promise<void> {
   const current = await db().select().from(puzzleFilms).where(eq(puzzleFilms.puzzleId, puzzleId));
   if (current.some((f) => f.filmId === tmdbId)) throw new AdminError("That film is already in this puzzle.");
   if (current.some((f) => f.tier === tier)) throw new AdminError(`Tier ${tier} already has a film.`);
   if (current.length >= RULES.grid.groupCount) throw new AdminError("This puzzle already has 4 films.");
+  const [inWarmup] = await db()
+    .select({ id: warmupEntries.id })
+    .from(warmupEntries)
+    .where(and(eq(warmupEntries.puzzleId, puzzleId), eq(warmupEntries.filmId, tmdbId)));
+  if (inWarmup) throw new AdminError("That film is in the warm-up. A film can't be in both rounds.");
 
-  const movie = await getMovie(tmdbId);
-  const details = { title: movie.title, year: movie.year, posterPath: movie.posterPath, syncedAt: new Date() };
-  await db()
-    .insert(films)
-    .values({ tmdbId, ...details })
-    .onConflictDoUpdate({ target: films.tmdbId, set: details });
+  await syncFilm(tmdbId);
   await db().insert(puzzleFilms).values({ puzzleId, filmId: tmdbId, tier });
   await touch(puzzleId);
 }
@@ -154,7 +170,7 @@ export async function deleteTile(puzzleId: string, tileId: string): Promise<void
 export async function schedule(puzzleId: string, date: string): Promise<void> {
   const puzzle = await loadPuzzle(puzzleId);
   if (!puzzle) throw new AdminError("That puzzle no longer exists.");
-  const { errors } = checkGrid(puzzle);
+  const { errors } = checkPuzzle(puzzle);
   if (errors.length > 0) throw new AdminError("Fix the problems listed above before scheduling.");
 
   const [taken] = await db().select({ id: puzzles.id }).from(puzzles).where(eq(puzzles.date, date));
@@ -164,4 +180,48 @@ export async function schedule(puzzleId: string, date: string): Promise<void> {
 
 export async function unschedule(puzzleId: string): Promise<void> {
   await db().update(puzzles).set({ date: null, updatedAt: new Date() }).where(eq(puzzles.id, puzzleId));
+}
+
+export interface NewWarmupEntry {
+  filmId: number;
+  foreignTitle: string;
+  language: string;
+  country: string | null;
+  literalTranslation: string;
+}
+
+/** Adds a warm-up card in the first free position. Its film may not be one of the grid films. */
+export async function addWarmupEntry(puzzleId: string, entry: NewWarmupEntry): Promise<void> {
+  const [inGrid] = await db()
+    .select({ filmId: puzzleFilms.filmId })
+    .from(puzzleFilms)
+    .where(and(eq(puzzleFilms.puzzleId, puzzleId), eq(puzzleFilms.filmId, entry.filmId)));
+  if (inGrid) throw new AdminError("That film is in the grid. Warm-up films must be different.");
+
+  const existing = await db().select().from(warmupEntries).where(eq(warmupEntries.puzzleId, puzzleId));
+  if (existing.some((e) => e.filmId === entry.filmId)) throw new AdminError("That film is already in the warm-up.");
+  const taken = new Set(existing.map((e) => e.position));
+  const position = Array.from({ length: RULES.warmup.titleCount }, (_, i) => i + 1).find((p) => !taken.has(p));
+  if (!position) throw new AdminError(`The warm-up already has ${RULES.warmup.titleCount} titles.`);
+
+  await syncFilm(entry.filmId);
+  await db()
+    .insert(warmupEntries)
+    .values({ id: newTileId(), puzzleId, position, ...entry });
+  await touch(puzzleId);
+}
+
+export async function updateWarmupTranslation(puzzleId: string, entryId: string, literalTranslation: string) {
+  await db()
+    .update(warmupEntries)
+    .set({ literalTranslation })
+    .where(and(eq(warmupEntries.puzzleId, puzzleId), eq(warmupEntries.id, entryId)));
+  await touch(puzzleId);
+}
+
+export async function removeWarmupEntry(puzzleId: string, entryId: string): Promise<void> {
+  await db()
+    .delete(warmupEntries)
+    .where(and(eq(warmupEntries.puzzleId, puzzleId), eq(warmupEntries.id, entryId)));
+  await touch(puzzleId);
 }

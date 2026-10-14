@@ -1,5 +1,6 @@
 import { RULES } from "@/config/rules";
 import { posterUrl } from "@/lib/tmdb/images";
+import { countryName, languageName } from "@/lib/warmup/names";
 import type { GuessResult, PublicPuzzle, Puzzle, SolvedGroup, TileImage } from "./types";
 
 /**
@@ -9,6 +10,14 @@ import type { GuessResult, PublicPuzzle, Puzzle, SolvedGroup, TileImage } from "
 export function toPublicPuzzle(puzzle: Puzzle, apiBase: string, date: string): PublicPuzzle {
   return {
     date,
+    warmup: puzzle.warmup.map((entry) => ({
+      id: entry.id,
+      foreignTitle: entry.foreignTitle,
+      language: entry.language,
+      languageName: languageName(entry.language),
+      countryName: entry.country ? countryName(entry.country) : null,
+      literalTranslation: entry.literalTranslation,
+    })),
     tiles: puzzle.tiles.map((tile, index) => ({
       id: tile.id,
       number: index + 1,

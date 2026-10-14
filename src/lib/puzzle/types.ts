@@ -39,6 +39,21 @@ export interface PuzzleTile {
   image: TileImage;
 }
 
+/** A warm-up card: a film under a foreign release title. Its answer is the film. */
+export interface WarmupEntry {
+  /** Opaque id; must not hint at the film. */
+  id: string;
+  position: number;
+  filmId: number;
+  foreignTitle: string;
+  /** ISO 639-1 language code. */
+  language: string;
+  /** ISO 3166-1 country code, when known. */
+  country: string | null;
+  literalTranslation: string;
+  answer: { title: string; originalTitle: string | null; year: number | null; posterPath: string | null };
+}
+
 /**
  * A puzzle as the server holds it, answers included.
  * Never send this to the client; use toPublicPuzzle.
@@ -50,6 +65,8 @@ export interface Puzzle {
   films: PuzzleFilm[];
   /** In display order. */
   tiles: PuzzleTile[];
+  /** In play order. */
+  warmup: WarmupEntry[];
 }
 
 // Shapes below are safe to send to the client.
@@ -62,11 +79,32 @@ export interface PublicTile {
   imageUrl: string;
 }
 
+export interface PublicWarmupCard {
+  id: string;
+  foreignTitle: string;
+  /** ISO 639-1 code, so the title can be marked up in its own language. */
+  language: string;
+  /** Language and country as English names, e.g. "Spanish" and "Mexico". */
+  languageName: string;
+  countryName: string | null;
+  literalTranslation: string;
+}
+
 export interface PublicPuzzle {
   /** The day being played; for an admin preview, the scheduled date or today. */
   date: string;
+  warmup: PublicWarmupCard[];
   tiles: PublicTile[];
 }
+
+export interface WarmupAnswer {
+  cardId: string;
+  title: string;
+  year: number | null;
+  posterUrl: string | null;
+}
+
+export type WarmupGuessResult = { correct: true; answer: WarmupAnswer } | { correct: false };
 
 export interface SolvedGroup {
   filmId: number;

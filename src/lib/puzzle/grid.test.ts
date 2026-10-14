@@ -13,6 +13,7 @@ const puzzle: Puzzle = {
   date: "2026-10-14",
   films: SAMPLE_FILMS,
   tiles: sampleTiles(() => `tile${++nextId}`),
+  warmup: [],
 };
 const tilesOf = (filmId: number) => puzzle.tiles.filter((t) => t.filmId === filmId).map((t) => t.id);
 

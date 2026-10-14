@@ -39,7 +39,19 @@ function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
         </h2>
         <CloseButton onClick={onClose} />
       </div>
-      <ul className="mt-4 list-disc space-y-2 pl-5 leading-snug text-pretty">
+      <h3 className="mt-5 font-semibold">1. Warm-up</h3>
+      <ul className="mt-2 list-disc space-y-2 pl-5 leading-snug text-pretty">
+        <li>
+          {RULES.warmup.titleCount} films under foreign release titles, translated back into English word for word.
+        </li>
+        <li>
+          Type each film&apos;s English title within {RULES.warmup.timeLimitSeconds} seconds. Small spelling slips are
+          fine.
+        </li>
+        <li>Skip a card to come back to it once you&apos;ve seen the rest.</li>
+      </ul>
+      <h3 className="mt-5 font-semibold">2. Grid</h3>
+      <ul className="mt-2 list-disc space-y-2 pl-5 leading-snug text-pretty">
         <li>
           The grid hides {groupCount} films, each with {groupSize} frames: actors, stills, empty sets and prop
           close-ups.
