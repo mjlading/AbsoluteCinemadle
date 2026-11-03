@@ -8,7 +8,7 @@ import * as schema from "./schema";
 function createDb() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set. See .env.example.");
-  // `prepare: false` keeps this compatible with Supabase's transaction-mode pooler.
+  // `prepare: false` keeps this compatible with transaction-mode poolers, like Neon's pooled DATABASE_URL.
   const client = postgres(url, { prepare: false, max: 5 });
   return drizzle(client, { schema });
 }

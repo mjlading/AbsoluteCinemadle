@@ -7,14 +7,17 @@ Decisions taken where the spec is ambiguous live in [ASSUMPTIONS.md](ASSUMPTIONS
 ## Status
 
 All five build phases are done (grid; database, TMDB and admin editor at `/admin`; warm-up with LLM back-translations; barcode bonus round; hints, scoring, results, streaks and saved progress).
-Before launch: production hosting (Supabase, Vercel, DNS for absolutecinemadle.fun), a refresh job for `films` rows older than about 5 months, and real puzzles.
+Hosting is Vercel (Hobby) with a Neon (free) database at absolutecinemadle.fun; see "Deploy" in README.md.
+Before launch: a refresh job for `films` rows older than about 5 months, and real puzzles.
 Update this section as that work lands.
 Phases are listed in SPEC.md under "Build phases"; owner additions (posters, review hint, animations) are listed there too.
 
 ## Stack
 
 Next.js 16 App Router (Cache Components on) + React 19 + TypeScript + Tailwind v4, npm, Node 24.
-Postgres via Drizzle (local Docker Postgres for dev, Supabase for prod).
+Postgres via Drizzle (local Docker Postgres for dev, Neon for production and previews).
+The repo is public: Vercel's Hobby plan only deploys other people's commits from public repos, so nothing secret may ever be committed.
+Pushes to `main` deploy to production; every other branch gets a preview deployment with its own Neon database branch, and `vercel.json` runs migrations before each build.
 Player progress lives in localStorage; there are no player accounts.
 Commands: see `package.json` scripts; first-time setup is in README.md.
 `test:e2e` migrates and seeds the `cinemadle_test` database, builds the app and serves it on port 3200.
@@ -35,6 +38,7 @@ On networks that intercept TLS (the owner's work laptop), Node needs `NODE_USE_S
 - LLM use: model `claude-haiku-5-5` only, server-side, admin-triggered only.
   Every call goes through the spend guard, which records cost in the DB and refuses calls once the USD 10 lifetime cap would be exceeded.
   Do not add an LLM call site that bypasses it, and do not change the model or cap without the owner's approval.
+  On Vercel the Anthropic key is set for Production only: each preview's Neon branch keeps its own spend ledger, so a key there would let total spend pass the cap.
 - Ask the owner before adding any new paid or keyed third-party API.
 - Show the TMDB attribution in the footer; TMDB use is licensed for non-commercial use only.
 - TMDB data may be kept for at most 6 months: `films.synced_at` records when it was fetched, and stale rows must be refreshed, not kept.

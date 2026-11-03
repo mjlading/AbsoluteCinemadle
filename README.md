@@ -31,5 +31,15 @@ npm test            # unit tests (Vitest)
 npm run test:e2e    # browser tests (Playwright); first run: npx playwright install chromium
 ```
 
+## Deploy
+
+The site runs on Vercel with a Neon Postgres database, connected through Neon's Vercel integration.
+
+- Pushing to `main` deploys https://absolutecinemadle.fun.
+- Every other branch gets a preview deployment with its own copy of the database (a Neon branch, deleted with the Git branch).
+- Each build runs `npm run db:migrate` first (see `vercel.json`), against the direct connection in `DATABASE_URL_UNPOOLED`.
+- Secrets live in the Vercel project's environment variables, never in the repo.
+  `ANTHROPIC_API_KEY` is set for Production only, so previews can't spend LLM budget outside the production ledger.
+
 Film data and images come from [TMDB](https://www.themoviedb.org/).
 This product uses the TMDB API but is not endorsed or certified by TMDB.
