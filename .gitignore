@@ -43,3 +43,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# git worktrees made by Claude Code sessions (full copies of the repo)
+.claude/worktrees/
