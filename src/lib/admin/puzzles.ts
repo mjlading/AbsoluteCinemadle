@@ -81,19 +81,22 @@ const touch = (puzzleId: string) => db().update(puzzles).set({ updatedAt: new Da
 
 /**
  * Stores a film's current TMDB details (TMDB data may be kept for 6 months at
- * most), generating its barcode the first time.
+ * most). Grid films also get their barcode the first time; warm-up films never
+ * show one, so they skip downloading the stills it is built from.
  */
-async function syncFilm(tmdbId: number): Promise<void> {
+async function syncFilm(tmdbId: number, { barcode }: { barcode: boolean }): Promise<void> {
   const movie = await getMovie(tmdbId);
-  const [existing] = await db().select({ palette: films.palette }).from(films).where(eq(films.tmdbId, tmdbId));
-  const details = {
+  const details: Omit<typeof films.$inferInsert, "tmdbId"> = {
     title: movie.title,
     originalTitle: movie.originalTitle,
     year: movie.year,
     posterPath: movie.posterPath,
-    palette: existing?.palette?.length ? existing.palette : await generatePalette(movie.backdrops),
     syncedAt: new Date(),
   };
+  if (barcode) {
+    const [existing] = await db().select({ palette: films.palette }).from(films).where(eq(films.tmdbId, tmdbId));
+    if (!existing?.palette?.length) details.palette = await generatePalette(movie.backdrops);
+  }
   await db()
     .insert(films)
     .values({ tmdbId, ...details })
@@ -112,7 +115,7 @@ export async function addFilm(puzzleId: string, tmdbId: number, tier: Tier): Pro
     .where(and(eq(warmupEntries.puzzleId, puzzleId), eq(warmupEntries.filmId, tmdbId)));
   if (inWarmup) throw new AdminError("That film is in the warm-up. A film can't be in both rounds.");
 
-  await syncFilm(tmdbId);
+  await syncFilm(tmdbId, { barcode: true });
   await db().insert(puzzleFilms).values({ puzzleId, filmId: tmdbId, tier });
   await touch(puzzleId);
 }
@@ -219,7 +222,7 @@ export async function addWarmupEntry(puzzleId: string, entry: NewWarmupEntry): P
   const position = Array.from({ length: RULES.warmup.titleCount }, (_, i) => i + 1).find((p) => !taken.has(p));
   if (!position) throw new AdminError(`The warm-up already has ${RULES.warmup.titleCount} titles.`);
 
-  await syncFilm(entry.filmId);
+  await syncFilm(entry.filmId, { barcode: false });
   await db()
     .insert(warmupEntries)
     .values({ id: newTileId(), puzzleId, position, ...entry });

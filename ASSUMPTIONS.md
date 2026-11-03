@@ -66,7 +66,8 @@ Each entry says what was decided and why, so it can be revisited.
 - A palette strip has one band per backdrop, up to 30, each the largest colour cluster (k-means) of a small thumbnail.
   Near-black and blown-out pixels are ignored unless they fill most of the frame, and clusters closer than a small distance are merged.
   Bands are sorted with near-greys first (dark to light), then by hue in 30-degree slices, dark to light within each.
-- Palettes belong to the film and are generated once, when it is first added; uploads belong to one puzzle and replace the strip there.
+- Palettes belong to the film and are generated once, when it is first added to a grid; uploads belong to one puzzle and replace the strip there.
+  Warm-up films never show a barcode, so adding one to the warm-up does not build a palette.
 - Uploaded barcodes are re-encoded as WebP, at most 1600 by 400 pixels; players' browsers may cache one for a day after an admin replaces it.
 
 ## Hints
