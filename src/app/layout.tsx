@@ -8,7 +8,7 @@ const sofiaExtraCondensed = Sofia_Sans_Extra_Condensed({ variable: "--font-sofia
 
 export const metadata: Metadata = {
   title: "Absolute Cinemadle",
-  description: "A daily movie puzzle: sort sixteen frames into four films.",
+  description: "Movie and series puzzles from Absolute Cinemadle.",
 };
 
 export const viewport: Viewport = {

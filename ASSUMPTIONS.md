@@ -13,6 +13,13 @@ Each entry says what was decided and why, so it can be revisited.
 - Drizzle is the ORM: typed schema in TypeScript, plain SQL migrations, works with any Postgres including Supabase.
 - Local development uses Postgres in Docker; production uses a Supabase Postgres connection string.
 
+## Game modes
+
+- The home page is a gallery of game modes; the existing three-round daily puzzle lives at `/daily` and keeps its existing saved-progress keys.
+  Shared daily results link directly to that game.
+- Keyword collage is an unplayable preview until image sourcing and puzzle content are decided.
+  Its example keyword and illustrations are not real clues, and no answer data or image-sourcing backend is included.
+
 ## Puzzle day and answer protection
 
 - A puzzle day is the player's local calendar date (`YYYY-MM-DD`), sent by the client.

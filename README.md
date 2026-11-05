@@ -1,6 +1,7 @@
 # Absolute Cinemadle
 
-A daily movie puzzle: sort sixteen frames into the four films they come from.
+A collection of movie and series games, starting with a daily movie puzzle.
+Keyword collage is a preview while its image clues are being planned; its design is in [docs/KEYWORD-COLLAGE.md](docs/KEYWORD-COLLAGE.md).
 The product spec is in [docs/SPEC.md](docs/SPEC.md) and decisions taken along the way are in [ASSUMPTIONS.md](ASSUMPTIONS.md).
 
 ## Set up
@@ -16,7 +17,7 @@ npm run db:seed              # schedule the sample puzzle for today
 npm run dev
 ```
 
-The game runs at http://localhost:3000 and the puzzle editor at http://localhost:3000/admin.
+The game gallery runs at http://localhost:3000, the daily puzzle at http://localhost:3000/daily, and the puzzle editor at http://localhost:3000/admin.
 
 On a network that inspects TLS traffic (common on work laptops), Node cannot reach TMDB until it trusts the system's certificates.
 Set `NODE_USE_SYSTEM_CA=1` in your environment (on Windows: `setx NODE_USE_SYSTEM_CA 1`, then open a new terminal).
