@@ -1,0 +1,6 @@
+# TMDB images and everything derived from them stay local; never commit them.
+.venv/
+images/
+detections/
+*.jpg
+counts.json
