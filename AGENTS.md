@@ -43,6 +43,17 @@ On networks that intercept TLS (the owner's work laptop), Node needs `NODE_USE_S
 - Show the TMDB attribution in the footer; TMDB use is licensed for non-commercial use only.
 - TMDB data may be kept for at most 6 months: `films.synced_at` records when it was fetched, and stale rows must be refreshed, not kept.
 
+## Neon skills
+
+`.claude/skills/neon` and `.claude/skills/neon-postgres` are Neon's own agent skills, pinned in `skills-lock.json`; don't edit them.
+Use them for Postgres connections, migrations, branching and diagnostics; where they disagree with this file, this file wins:
+
+- Keep the existing `postgres` driver and Drizzle setup.
+- Don't adopt other Neon products (Auth, Functions, Object Storage, AI Gateway, Realtime, Data API) or Upstash without the owner's approval; LLM calls stay on the spend guard above.
+- Local development uses Docker Postgres. Don't create Neon projects, claimable projects or branches yourself: the Vercel integration makes preview branches, and the free plan allows only 10.
+- Update the skills (`npx neon skills update`) only when the owner asks, not at the start of every session.
+- Never send `neon feedback` or any other report to Neon without asking the owner first.
+
 ## Verifying work
 
 - Pure game logic (grid state, scoring, fuzzy matching, validation, palette extraction) gets Vitest unit tests.

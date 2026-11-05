@@ -2,3 +2,7 @@ drizzle/meta
 package-lock.json
 public
 .next
+# Third-party agent skills, installed and updated by `npx neon skills` (see skills-lock.json)
+.claude/skills/neon
+.claude/skills/neon-postgres
+skills-lock.json
