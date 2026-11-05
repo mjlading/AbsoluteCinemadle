@@ -38,6 +38,7 @@ The site runs on Vercel with a Neon Postgres database, connected through Neon's 
 - Pushing to `main` deploys https://absolutecinemadle.fun.
 - Every other branch gets a preview deployment with its own copy of the database (a Neon branch, deleted with the Git branch).
 - Each build runs `npm run db:migrate` first (see `vercel.json`), against the direct connection in `DATABASE_URL_UNPOOLED`.
+- Functions run in Frankfurt (`fra1` in `vercel.json`), next to the Neon database (`aws-eu-central-1`).
 - Secrets live in the Vercel project's environment variables, never in the repo.
   `ANTHROPIC_API_KEY` is set for Production only, so previews can't spend LLM budget outside the production ledger.
 

@@ -46,3 +46,6 @@ next-env.d.ts
 
 # git worktrees made by Claude Code sessions (full copies of the repo)
 .claude/worktrees/
+
+# neon link: the local Neon org, project and branch ids
+.neon
