@@ -19,8 +19,6 @@ npm run dev
 
 In `.env.local`, the TMDB token is the "API Read Access Token" from your own free TMDB account (Settings → API).
 The admin password and session secret can be anything locally, and `ANTHROPIC_API_KEY` can stay empty unless you use the admin LLM helpers.
-For keyword collage puzzles, run `npm run db:import-collage -- e2e/fixtures/keyword-collage.json` (placeholder images) or pass a file exported by the collage lab.
-
 The game gallery runs at http://localhost:3000, the daily puzzle at http://localhost:3000/daily, and the puzzle editor at http://localhost:3000/admin.
 
 On a network that inspects TLS traffic (common on work laptops), Node cannot reach TMDB until it trusts the system's certificates.
