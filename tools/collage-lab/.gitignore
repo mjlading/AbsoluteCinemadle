@@ -2,5 +2,8 @@
 .venv/
 images/
 detections/
+models/
 *.jpg
 counts.json
+review/
+review-ab/

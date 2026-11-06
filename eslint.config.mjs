@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Git worktrees made by Claude Code sessions are full copies of the repo.
     ".claude/worktrees/**",
+    // The collage lab's Python virtualenv, which bundles third-party JavaScript (torch).
+    "**/.venv/**",
   ]),
 ]);
 

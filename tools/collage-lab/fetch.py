@@ -1,4 +1,6 @@
-"""Download textless TMDB backdrops for some films and drop near-duplicates.
+"""Download textless TMDB backdrops at full size for some films and drop exact duplicates.
+
+Originals are mostly 1920-3840 px wide; small props are only usable as tiles at that size.
 
 usage: python fetch.py <tmdb_movie_id>=<slug> [...]
 """
@@ -26,7 +28,7 @@ for film_id, slug in FILMS.items():
     textless = [b for b in backdrops if b["iso_639_1"] is None]
     kept, hashes, dupes = [], [], 0
     for i, b in enumerate(textless):
-        data = requests.get(f"https://image.tmdb.org/t/p/w1280{b['file_path']}", timeout=60).content
+        data = requests.get(f"https://image.tmdb.org/t/p/original{b['file_path']}", timeout=120).content
         img = Image.open(io.BytesIO(data)).convert("RGB")
         h = dhash(img)
         if any(bin(h ^ o).count("1") <= 6 for o in hashes):
@@ -37,5 +39,10 @@ for film_id, slug in FILMS.items():
         img.save(out / name, quality=92)
         kept.append({"file": name, "tmdb": b["file_path"], "w": img.width, "h": img.height})
     (out / "index.json").write_text(json.dumps(kept, indent=1))
+    film = requests.get(f"https://api.themoviedb.org/3/movie/{film_id}?append_to_response=credits", headers=H, timeout=30).json()
+    # Names that must not appear as text in a crop: director, the top 10 cast and their characters.
+    names = [c["name"] for c in film["credits"]["crew"] if c["job"] == "Director"]
+    names += [n for c in film["credits"]["cast"][:10] for n in (c["name"], c["character"])]
+    (out / "meta.json").write_text(json.dumps({"tmdb_id": film_id, "title": film["title"], "names": names}))
     print(f"{slug}: {len(textless)} textless, {dupes} near-duplicates dropped, {len(kept)} kept")
 

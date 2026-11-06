@@ -4,4 +4,5 @@ torchvision
 transformers
 accelerate
 pillow
+opencv-python
 requests
