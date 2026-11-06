@@ -8,6 +8,8 @@ import type { NodeStage } from "@/lib/soundbytes/state";
 import type { PublicSoundNode } from "@/lib/soundbytes/types";
 import { DisguiseObject, type DisguiseMode } from "./DisguiseObject";
 import { CategoryIcon, HandIcon, PriceChip } from "./icons";
+import { ClapperHead } from "./ClapperHead";
+import { FeltPuppet } from "./FeltPuppet";
 import { FULL_RING_SECONDS, boardTop, type Slot } from "./layout";
 import { useHold, type HoldVerdict } from "./use-hold";
 
@@ -39,9 +41,11 @@ export interface AudioNodeProps {
 }
 
 /**
- * One audio node: a record pinned to the board, its label on a strip of tape,
- * a ring showing the clip's length and playback, and the disguise it wears.
- * Tap plays; hold spends (buys a locked node, removes a disguise).
+ * One audio node: score is a record pinned to the board, with a ring showing
+ * the clip's length and playback; dialogue is a felt puppet and sound effects
+ * a clapperboard, both of which talk while their clip plays. Each has its
+ * label on a strip of tape and wears its disguise. Tap plays; hold spends
+ * (buys a locked node, removes a disguise).
  */
 export function AudioNode({
   node,
@@ -106,6 +110,7 @@ export function AudioNode({
       data-effect={effect?.kind}
       data-raised={raised || undefined}
       data-large={node.slot === 0 || undefined}
+      data-figure={node.category === "score" ? undefined : ""}
       aria-label={label}
       tabIndex={inactive ? -1 : undefined}
       {...hold.handlers}
@@ -123,15 +128,21 @@ export function AudioNode({
         {stage === "locked" && <circle className="sb-ring-hold" cx="50" cy="50" r={RING_RADIUS} pathLength={1} />}
       </svg>
 
-      <span className="sb-disc">
-        <span className="sb-disc-label">
-          {node.art ? (
-            <Image src={node.art} alt="" fill unoptimized className="object-cover" draggable={false} />
-          ) : (
-            <CategoryIcon category={node.category} className="sb-disc-icon" />
-          )}
+      {node.category === "dialogue" ? (
+        <FeltPuppet slot={node.slot} uid={node.id} />
+      ) : node.category === "sfx" ? (
+        <ClapperHead slot={node.slot} uid={node.id} />
+      ) : (
+        <span className="sb-disc">
+          <span className="sb-disc-label">
+            {node.art ? (
+              <Image src={node.art} alt="" fill unoptimized className="object-cover" draggable={false} />
+            ) : (
+              <CategoryIcon category={node.category} className="sb-disc-icon" />
+            )}
+          </span>
         </span>
-      </span>
+      )}
 
       {disguiseMode && (
         <DisguiseObject

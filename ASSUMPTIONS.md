@@ -58,6 +58,8 @@ Each entry says what was decided and why, so it can be revisited.
 - Progress is saved per board in localStorage under `soundbytes:<id>`.
 - The game-over card is the collage's: the film, its poster and the numbers, then the board stays up with every node playing its real clip.
   The collage has no share text, so neither does Soundbytes yet.
+- The characters move to the playing clip's loudness, measured by routing the audio through Web Audio; Safari 17+ is told the page plays media, so the iPhone's silent switch does not mute it.
+  Where Web Audio is unavailable the clip still plays and the characters follow a made-up speech rhythm.
 - Placeholder clips are generated tones in `public/audio/mock/`, made by `scripts/soundbytes-placeholder-audio.mts`: a buzzy melody for score, a warbling vowel for dialogue and a noise burst for effects, each with a disguised 2-second and a real 6-second version.
   They are WAV files because nothing on the build machine encodes MP3, and every browser plays WAV.
 

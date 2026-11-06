@@ -27,7 +27,6 @@ const node = (id: string, slot: number, free = false): PublicSoundNode => ({
 const board: PublicSoundbytesBoard = {
   id: "b",
   name: "Test",
-  background: "corkboard",
   nodes: [node("free", 0, true), node("n1", 1), node("n2", 2)],
 };
 const reducer = soundbytesReducer(board);

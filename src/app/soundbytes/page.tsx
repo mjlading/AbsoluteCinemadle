@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { SoundbytesArtwork } from "@/components/game-modes/SoundbytesArtwork";
+import { SPEAKER_CLOTH, SoundbytesArtwork } from "@/components/game-modes/SoundbytesArtwork";
 import { SiteFooter } from "@/components/game/SiteFooter";
 import { BoardList } from "@/components/soundbytes/BoardList";
 
@@ -32,7 +32,7 @@ export default function SoundbytesPage() {
         </header>
 
         <div className="mt-8 grid gap-8 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] md:items-start">
-          <div className="rounded-lg bg-[#b27e4c] p-6">
+          <div className="rounded-lg p-6" style={SPEAKER_CLOTH}>
             <SoundbytesArtwork className="mx-auto w-full max-w-64" />
           </div>
           <section aria-labelledby="boards-heading">

@@ -39,7 +39,6 @@ export const MOCK_BOARDS: SoundbytesBoard[] = [
   {
     id: "demo-1",
     name: "Demo 1",
-    background: "corkboard",
     answer: {
       tmdbId: 329,
       title: "Jurassic Park",
@@ -68,7 +67,6 @@ export const MOCK_BOARDS: SoundbytesBoard[] = [
   {
     id: "demo-2",
     name: "Demo 2",
-    background: "sand",
     answer: {
       tmdbId: 11,
       title: "Star Wars",
@@ -97,7 +95,6 @@ export const MOCK_BOARDS: SoundbytesBoard[] = [
   {
     id: "demo-3",
     name: "Demo 3",
-    background: "asphalt",
     answer: {
       tmdbId: 438631,
       title: "Dune",
@@ -126,7 +123,6 @@ export const MOCK_BOARDS: SoundbytesBoard[] = [
   {
     id: "demo-4",
     name: "Demo 4",
-    background: "starfield",
     answer: {
       tmdbId: 155,
       title: "The Dark Knight",

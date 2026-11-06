@@ -1,24 +1,21 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
 
-import type { BoardSurface } from "@/lib/soundbytes/types";
 import { DisguiseDefs } from "./DisguiseObject";
 import { HeadphonesIcon, PersonIcon } from "./icons";
 import { BOARD_HEIGHT, TAG_SPOTS, boardTop } from "./layout";
 
 /**
- * The pinned evidence board: a framed surface (cork, sand, stars or wet
- * asphalt) with the nodes on it. Decoration is texture only, so nothing on the
- * board looks tappable except the nodes. Before the game starts, a headphones
+ * The evidence board: the woven cloth of a vintage hi-fi speaker in a walnut
+ * frame, the same for every film, with the nodes pinned to it. Decoration is
+ * texture only, so nothing on the board looks tappable except the nodes. Before the game starts, a headphones
  * cover dims everything but the free node.
  */
 export function EvidenceBoard({
-  surface,
   tags,
   covered,
   progressRef,
   children,
 }: {
-  surface: BoardSurface;
   /** Correct actors, pinned as name tags in the order found. */
   tags: string[];
   covered: boolean;
@@ -26,7 +23,7 @@ export function EvidenceBoard({
   children: ReactNode;
 }) {
   return (
-    <div className="sb-frame" data-surface={surface}>
+    <div className="sb-frame">
       <div
         ref={progressRef}
         className="sb-board"

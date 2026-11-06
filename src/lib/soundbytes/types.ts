@@ -6,10 +6,6 @@ export type SoundCategory = (typeof SOUND_CATEGORIES)[number];
 export const DISGUISES = ["helium", "kazoo", "muffle"] as const;
 export type Disguise = (typeof DISGUISES)[number];
 
-/** The surface the board's nodes are pinned to. */
-export const BOARD_SURFACES = ["corkboard", "sand", "starfield", "asphalt"] as const;
-export type BoardSurface = (typeof BOARD_SURFACES)[number];
-
 export interface Clip {
   url: string;
   /** Length in seconds, so the ring can show it before the clip has loaded. */
@@ -45,7 +41,6 @@ export interface SoundbytesBoard {
   id: string;
   /** Spoiler-free name shown in the board list, e.g. "Demo 1". */
   name: string;
-  background: BoardSurface;
   answer: {
     tmdbId: number;
     title: string;
@@ -68,7 +63,6 @@ export interface PublicSoundNode extends SoundNode {
 export interface PublicSoundbytesBoard {
   id: string;
   name: string;
-  background: BoardSurface;
   nodes: PublicSoundNode[];
 }
 

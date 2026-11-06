@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { KeywordCollageArtwork } from "@/components/game-modes/KeywordCollageArtwork";
-import { SoundbytesArtwork } from "@/components/game-modes/SoundbytesArtwork";
+import { SPEAKER_CLOTH, SoundbytesArtwork } from "@/components/game-modes/SoundbytesArtwork";
 import { SiteFooter } from "@/components/game/SiteFooter";
 import { RULES } from "@/config/rules";
 import { SITE } from "@/config/site";
@@ -133,8 +133,12 @@ export default function Home() {
                 href={SITE.games.soundbytes}
                 className="group flex h-full flex-col overflow-hidden rounded-lg border border-ink/15 bg-surface transition-transform hover:-translate-y-1 motion-reduce:transform-none"
               >
-                <div aria-hidden="true" className="flex min-h-52 items-center justify-center bg-[#b27e4c] px-5 py-6">
-                  <SoundbytesArtwork className="w-44 sm:w-48" />
+                <div
+                  aria-hidden="true"
+                  className="flex min-h-52 items-center justify-center px-5 py-6"
+                  style={SPEAKER_CLOTH}
+                >
+                  <SoundbytesArtwork className="w-48 sm:w-52" />
                 </div>
                 <div className="flex flex-1 flex-col p-5 sm:p-6">
                   <span className="w-fit rounded-sm bg-[var(--tier-2)] px-2 py-1 text-xs font-bold uppercase tracking-wide text-on-tape">

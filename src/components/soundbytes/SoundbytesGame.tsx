@@ -207,7 +207,6 @@ function SoundbytesPlay({ board }: { board: PublicSoundbytesBoard }) {
 
       <div className="mt-3">
         <EvidenceBoard
-          surface={board.background}
           tags={correctActors(state).map((g) => g.name)}
           covered={playing && !state.started}
           progressRef={player.progressTarget}

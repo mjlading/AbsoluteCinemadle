@@ -32,17 +32,21 @@ If the real clip ends up being a visible YouTube player, the revealed state chan
 
 - The board is a hand-pinned detective evidence board, not a grid: 6 fixed slots, the same every day, each with a small fixed offset and tilt.
 - No connecting lines, and no decoration that looks tappable; texture only (paper, tape, pins).
-- The board's surface comes from the board data: corkboard by default, also sand, starfield and wet asphalt.
-  It sets a mood, not the setting: sand for a desert film is a giveaway, just like a revealing label.
+- Every board has the same surface: the woven cloth of a vintage hi-fi speaker, in a walnut frame.
+  A surface per film was tried and dropped: it could give the film away, and the livelier ones (vibrating sand, pegboard) distracted from the clips.
 - The main screen has almost no text: node labels, the points count and the guess box.
   Everything else is an icon with an accessible name: coin and number for points, 3 dots for guesses, a white flag to give up, coin chips for prices.
 
 ## Nodes and interaction
 
+- Score nodes are records pinned to the board.
+  Dialogue nodes are felt hand puppets, and sound-effect nodes are clapperboards.
+  Both characters talk while their clip plays, with two pieces moving like a hand puppet's mouth: the puppet's head lifts off its jaw, and the clapstick (carrying the eyes) flaps open over the slate.
+  The same characters play every role, in three colours or personalities and never with skin tones, so they can't resemble the real cast.
 - Locked: greyed out, label fully readable, price chip on the node.
 - Bought: full color, with the disguise object attached and the removal price on it: a balloon on a string (helium), a kazoo sticking out (kazoo) or a little door in front (muffle).
 - Revealed: the object is gone.
-- A ring around the node shows the clip's length (a short arc for the disguised clip, the full ring for the real one) and fills as it plays.
+- A ring around a record shows the clip's length (a short arc for the disguised clip, the full ring for the real one) and fills as it plays; characters show no ring.
 - Tap plays and taps again to stop; only one clip plays at a time.
 - Hold (about 700 ms) spends: on a locked node it buys, on a bought node it removes the disguise.
   The hold animation is the effect: the balloon inflates until it pops, the kazoo slides out and flies off, the door creaks open.
@@ -54,3 +58,8 @@ If the real clip ends up being a visible YouTube player, the revealed state chan
 
 - Connecting lines between nodes, and 3D scenes.
 - The audio pipeline (clip extraction, disguises, labels and node art) and an admin editor.
+
+## Later
+
+- The characters' talking follows the playing clip's loudness today.
+  Later it should be driven by the clip's own audio track, ideally lip sync from the real dialogue, so the mouth and head move with the actual words.

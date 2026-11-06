@@ -20,7 +20,6 @@ export function toPublicBoard(board: SoundbytesBoard): PublicSoundbytesBoard {
   return {
     id: board.id,
     name: board.name,
-    background: board.background,
     nodes: [...board.nodes]
       .sort((a, b) => a.slot - b.slot)
       .map((n) => ({
