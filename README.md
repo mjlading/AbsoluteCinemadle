@@ -1,8 +1,7 @@
 # Absolute Cinemadle
 
 A collection of movie and series games, starting with a daily movie puzzle.
-Keyword collage is a preview while its image clues are being planned; its design is in [docs/KEYWORD-COLLAGE.md](docs/KEYWORD-COLLAGE.md).
-Soundbytes, a guess-by-ear game, is playable on mock boards with placeholder sounds; its design is in [docs/SOUNDBYTES.md](docs/SOUNDBYTES.md).
+Each game in development has its design notes in [docs/](docs/).
 The product spec is in [docs/SPEC.md](docs/SPEC.md) and decisions taken along the way are in [ASSUMPTIONS.md](ASSUMPTIONS.md).
 
 ## Set up
@@ -18,6 +17,10 @@ npm run db:seed              # schedule the sample puzzle for today
 npm run dev
 ```
 
+In `.env.local`, the TMDB token is the "API Read Access Token" from your own free TMDB account (Settings → API).
+The admin password and session secret can be anything locally, and `ANTHROPIC_API_KEY` can stay empty unless you use the admin LLM helpers.
+For keyword collage puzzles, run `npm run db:import-collage -- e2e/fixtures/keyword-collage.json` (placeholder images) or pass a file exported by the collage lab.
+
 The game gallery runs at http://localhost:3000, the daily puzzle at http://localhost:3000/daily, and the puzzle editor at http://localhost:3000/admin.
 
 On a network that inspects TLS traffic (common on work laptops), Node cannot reach TMDB until it trusts the system's certificates.
@@ -32,6 +35,13 @@ npm run format:check
 npm test            # unit tests (Vitest)
 npm run test:e2e    # browser tests (Playwright); first run: npx playwright install chromium
 ```
+
+## Working together
+
+- Work on a branch and open a pull request into `main`; each game keeps to its own folders (`src/app/<game>`, `src/components/<game>`, `src/lib/<game>`, `docs/<GAME>.md`).
+- Merge with "Create a merge commit", not squash: on Vercel's Hobby plan only commits authored by the account owner deploy.
+- Schema changes are Drizzle migrations (`npm run db:generate`). If `main` gained a migration since you branched, merge `main` in and regenerate yours so the numbers don't clash.
+- Delete branches once merged: each preview holds a Neon branch, and the free plan allows only 10.
 
 ## Deploy
 
