@@ -11,4 +11,13 @@ export const RULES = {
     titleCount: 5,
     timeLimitSeconds: 60,
   },
+  keywordCollage: {
+    /** Close-ups in one keyword's collage, shown as a 2x2 grid. */
+    tilesPerCollage: 4,
+    /** The game is lost on this many wrong guesses. */
+    maxGuesses: 6,
+    /** "Enhance" widens one tile's crop per game, by this factor. */
+    enhancesPerGame: 1,
+    enhanceFactor: 1.5,
+  },
 } as const;

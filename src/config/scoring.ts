@@ -16,4 +16,14 @@ export const POINTS = {
   barcode: {
     perCorrectMatch: 10,
   },
+  keywordCollage: {
+    /** Points a game starts with; unlocking keywords and wrong guesses spend them. */
+    start: 1000,
+    perWrongGuess: -50,
+    /**
+     * Cost of unlocking a keyword, by how much its close-ups give away:
+     * hard (atmospheric: hands, doors, chairs) is cheap, easy (mouths, hair, signs) is dear.
+     */
+    unlock: { hard: -100, medium: -200, easy: -350 },
+  },
 } as const;

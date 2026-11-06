@@ -76,7 +76,7 @@ describe("shareText", () => {
         "⬜⬜⬜⬜",
         "Bonus 🟩🟩🟥🟩",
         "Hints 🔊🏷️",
-        "absolutecinemadle.fun",
+        "absolutecinemadle.fun/daily",
       ].join("\n"),
     );
   });

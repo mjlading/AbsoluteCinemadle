@@ -33,6 +33,6 @@ export function shareText(input: ShareInput): string {
   if (input.bonus.length > 0) lines.push(`Bonus ${input.bonus.map((m) => (m ? "🟩" : "🟥")).join("")}`);
   const hints = "🔊".repeat(input.hints.sound) + "💬".repeat(input.hints.review) + "🏷️".repeat(input.hints.flips);
   if (hints) lines.push(`Hints ${hints}`);
-  lines.push(SITE.url.replace(/^https:\/\//, ""));
+  lines.push(`${SITE.url}${SITE.games.daily}`.replace(/^https:\/\//, ""));
   return lines.join("\n");
 }

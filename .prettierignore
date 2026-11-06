@@ -6,3 +6,11 @@ public
 .claude/skills/neon
 .claude/skills/neon-postgres
 skills-lock.json
+# The collage lab's Python virtualenv and its local, gitignored output
+**/.venv
+tools/collage-lab/review
+tools/collage-lab/review-ab
+tools/collage-lab/images
+tools/collage-lab/detections
+tools/collage-lab/models
+.data

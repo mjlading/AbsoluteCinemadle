@@ -17,6 +17,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import type { CollageKeyword, CollagePuzzle } from "@/lib/collage/types";
 import { TILE_TYPES, type TileImage } from "@/lib/puzzle/types";
 
 export const tileType = pgEnum("tile_type", TILE_TYPES);
@@ -151,6 +152,24 @@ export const barcodeUploads = pgTable(
     }).onDelete("cascade"),
   ],
 );
+
+/**
+ * Keyword collage puzzles, curated in the collage lab and loaded with `npm run db:import-collage`.
+ * A puzzle's keywords and tiles are one JSON document, validated on the way in and out
+ * (src/lib/collage/puzzle-schema.ts). The answer and TMDB paths never leave the server.
+ * They are TMDB data, so `synced_at` dates them for the 6-month limit like `films`.
+ */
+export const collagePuzzles = pgTable("collage_puzzles", {
+  /** Opaque id, used in the puzzle's URL. */
+  id: text("id").primaryKey(),
+  /** Spoiler-free name for the puzzle list, e.g. "Demo 1". */
+  name: text("name").notNull(),
+  /** Order in the puzzle list. */
+  position: smallint("position").notNull(),
+  answer: jsonb("answer").$type<CollagePuzzle["answer"]>().notNull(),
+  keywords: jsonb("keywords").$type<CollageKeyword[]>().notNull(),
+  syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 /** A short clip from an official trailer or scene on YouTube, played as a sound hint. Never downloaded or rehosted. */
 export const soundHints = pgTable(

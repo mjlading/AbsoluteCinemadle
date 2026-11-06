@@ -6,6 +6,18 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "collage-review",
+      "runtimeExecutable": "tools/collage-lab/.venv/Scripts/python",
+      "runtimeArgs": ["tools/collage-lab/review.py"],
+      "port": 8765
+    },
+    {
+      "name": "collage-ab",
+      "runtimeExecutable": "tools/collage-lab/.venv/Scripts/python",
+      "runtimeArgs": ["tools/collage-lab/ab.py"],
+      "port": 8766
     }
   ]
 }

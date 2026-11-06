@@ -16,7 +16,7 @@ export async function localDate(page: Page): Promise<string> {
  */
 export async function startWarmup(page: Page): Promise<void> {
   await page.clock.install();
-  await page.goto("/");
+  await page.goto("/daily");
   // Generous: the first visit to a freshly started server also warms its caches.
   await page.getByRole("button", { name: "Start the clock" }).click({ timeout: 15_000 });
   await expect(page.getByRole("timer", { name: /^Starting in/ })).toBeVisible();
@@ -27,7 +27,7 @@ export async function startWarmup(page: Page): Promise<void> {
 /** Plays straight through the warm-up without answering, ending on the grid. */
 export async function skipToGrid(page: Page): Promise<void> {
   await page.clock.install();
-  await page.goto("/");
+  await page.goto("/daily");
   await expect(page.getByRole("button", { name: "Start the clock" })).toBeVisible({ timeout: 15_000 });
   await endWarmupAndOpenGrid(page);
   await expect(page.getByRole("list", { name: "Tiles" }).getByRole("listitem")).toHaveCount(16);
