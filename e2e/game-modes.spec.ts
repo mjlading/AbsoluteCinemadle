@@ -18,7 +18,7 @@ test("the gallery links to the existing daily puzzle and back", async ({ page })
   await expect(daily).toBeVisible();
 });
 
-test("the collage preview is reachable by keyboard and does not pretend to be playable", async ({ page }) => {
+test("the collage page is reachable by keyboard and lists its puzzles", async ({ page }) => {
   await page.goto("/");
   const daily = page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Daily film puzzle" }) });
   const collage = page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Keyword collage" }) });
@@ -32,8 +32,8 @@ test("the collage preview is reachable by keyboard and does not pretend to be pl
   await expect(page).toHaveURL(/\/keyword-collage$/);
   await expect(page.getByRole("heading", { name: "Keyword collage" })).toBeVisible();
   await expect(page.getByText("These are illustrations, not film or series images.")).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Movie or series" })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Guess" })).toBeDisabled();
+  // The E2E server reads the fixture puzzle file; without one the page says it is a preview.
+  await expect(page.getByRole("link", { name: /Test puzzle/ })).toBeVisible();
 });
 
 test("daily progress survives a trip through the gallery", async ({ page }) => {

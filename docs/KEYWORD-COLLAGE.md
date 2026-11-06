@@ -1,7 +1,8 @@
 # Keyword collage
 
 Design notes for the keyword collage game, agreed with the owner before implementation.
-The game is still an unplayable preview at `/keyword-collage`.
+The game is playable at `/keyword-collage`, with puzzles curated in the collage lab and imported into the `collage_puzzles` table.
+Rules decided where this file is silent are in [ASSUMPTIONS.md](../ASSUMPTIONS.md) under "Keyword collage".
 
 ## Game
 
@@ -11,7 +12,9 @@ The game is still an unplayable preview at `/keyword-collage`.
 - The player starts with one free collage and picks which locked keyword to open next, each with a point cost.
 - The first, free keyword always comes from a curated list of everyday objects, so it never gives the title away on its own.
 - Point costs are set by the admin per keyword, based on how revealing the images are, not on the word alone.
-- After the game ends, the crops can zoom out to their full frames.
+- Keyword tiers set the cost: hard (atmospheric: hands, doors, chairs, lamps), medium (contextual: vehicles, guns, food, hats, jewelry), easy (character-adjacent: mouths, hair, signs).
+- One "Enhance" per game widens one close-up by about 50%.
+- After the game ends, the crops zoom out to their full frames.
 
 ## Content pipeline
 

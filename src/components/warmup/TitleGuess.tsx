@@ -7,16 +7,31 @@ import { suggestFilms, type FilmSuggestion } from "@/lib/game/api";
 interface TitleGuessProps {
   disabled: boolean;
   onGuess: (guess: string, tmdbId?: number) => void;
-  onSkip: () => void;
+  /** Shows a "Skip for now" button; the warm-up uses it, the keyword collage does not. */
+  onSkip?: () => void;
   /** False when this is the only card left, so skipping would change nothing. */
-  canSkip: boolean;
+  canSkip?: boolean;
+  /** Also the box's accessible name. */
+  placeholder?: string;
+  /** Focus the box on mount; off where the box is below the fold, so phones don't jump to it. */
+  autoFocus?: boolean;
+  /** Empty the box after each guess, for games where guesses stay on one question. */
+  clearOnGuess?: boolean;
 }
 
 /**
  * The guess box: free text, with TMDB title suggestions as a combobox.
  * Picking a suggestion submits it straight away, since the clock is running.
  */
-export function TitleGuess({ disabled, onGuess, onSkip, canSkip }: TitleGuessProps) {
+export function TitleGuess({
+  disabled,
+  onGuess,
+  onSkip,
+  canSkip = true,
+  placeholder = "Which film is this?",
+  autoFocus = true,
+  clearOnGuess = false,
+}: TitleGuessProps) {
   const inputId = useId();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -27,8 +42,8 @@ export function TitleGuess({ disabled, onGuess, onSkip, canSkip }: TitleGuessPro
   const query = value.trim();
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    if (autoFocus) inputRef.current?.focus();
+  }, [autoFocus]);
 
   useEffect(() => {
     if (query.length < 2) return;
@@ -52,6 +67,7 @@ export function TitleGuess({ disabled, onGuess, onSkip, canSkip }: TitleGuessPro
   const submit = (guess: string, tmdbId?: number) => {
     if (!guess.trim() || disabled) return;
     onGuess(guess, tmdbId);
+    if (clearOnGuess) setValue("");
     setOpen(false);
     setActive(-1);
   };
@@ -83,7 +99,7 @@ export function TitleGuess({ disabled, onGuess, onSkip, canSkip }: TitleGuessPro
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3">
       <label htmlFor={inputId} className="sr-only">
-        Which film is this?
+        {placeholder}
       </label>
       {/* Guess sits beside the box, so the suggestion list never covers it. */}
       <div className="flex gap-2">
@@ -99,7 +115,7 @@ export function TitleGuess({ disabled, onGuess, onSkip, canSkip }: TitleGuessPro
             autoComplete="off"
             autoCapitalize="words"
             spellCheck={false}
-            placeholder="Which film is this?"
+            placeholder={placeholder}
             value={value}
             disabled={disabled}
             onChange={(event) => {
@@ -147,17 +163,19 @@ export function TitleGuess({ disabled, onGuess, onSkip, canSkip }: TitleGuessPro
           Guess
         </button>
       </div>
-      <button
-        type="button"
-        onClick={() => {
-          setValue("");
-          onSkip();
-        }}
-        disabled={disabled || !canSkip}
-        className="min-h-11 self-center rounded-full border-[1.5px] border-ink px-6 font-semibold disabled:opacity-35"
-      >
-        Skip for now
-      </button>
+      {onSkip && (
+        <button
+          type="button"
+          onClick={() => {
+            setValue("");
+            onSkip();
+          }}
+          disabled={disabled || !canSkip}
+          className="min-h-11 self-center rounded-full border-[1.5px] border-ink px-6 font-semibold disabled:opacity-35"
+        >
+          Skip for now
+        </button>
+      )}
     </form>
   );
 }

@@ -49,3 +49,6 @@ next-env.d.ts
 
 # neon link: the local Neon org, project and branch ids
 .neon
+
+# keyword collage puzzles exported by the collage lab: answers and TMDB paths, server-side only
+/.data/

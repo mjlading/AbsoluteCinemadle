@@ -17,8 +17,27 @@ Each entry says what was decided and why, so it can be revisited.
 
 - The home page is a gallery of game modes; the existing three-round daily puzzle lives at `/daily` and keeps its existing saved-progress keys.
   Shared daily results link directly to that game.
-- Keyword collage is an unplayable preview until image sourcing and puzzle content are decided.
-  Its example keyword and illustrations are not real clues, and no answer data or image-sourcing backend is included.
+- Keyword collage puzzles live in the `collage_puzzles` table, one row per puzzle with its keywords and tiles as a validated JSON document.
+  They are curated in `tools/collage-lab`, exported to a gitignored file and loaded with `npm run db:import-collage`, which replaces them all; there is no admin editor for them yet.
+  With no puzzles in the table the page stays a preview.
+  The export holds answers and TMDB paths, so it never goes into the public repo.
+
+## Keyword collage
+
+- A game starts with 1000 points and one free keyword; every other keyword is shown by name on a clue board with its cost, since which keywords exist is itself a light clue.
+- A keyword's cost comes from its tier in the scoring config (hard 100, medium 200, easy 350), not a per-keyword number, so every point value stays in `scoring.ts`; a per-keyword override can come with the admin editor.
+- A keyword can only be unlocked with enough points left, so the score never goes negative; wrong guesses at zero points cost nothing more.
+- Wrong guesses cost 50 points each and the game is lost on the 6th; a lost or abandoned game scores 0.
+  All of these numbers live in `scoring.ts` and `rules.ts`.
+  Repeating a guess (ignoring case, accents and punctuation) is turned away for free.
+- Guesses match like the warm-up: a film picked from the suggestions, or a typed English or original title with the same typo tolerance.
+- "Enhance" is free and once per game: it widens one close-up by 50%, rendered on the server like every crop.
+- At the end every keyword's collage is shown, the unopened ones too, and each close-up zooms out to its full frame (letterboxed in its square).
+  Full frames come from the solution route, which, like the daily one, only spoils the caller's own game.
+- Collage tiles are rendered from TMDB on each request and cached by the browser for 30 days, like grid tiles; a new export makes new tile ids.
+- Collage puzzles are TMDB data: `collage_puzzles.synced_at` dates them, and they must be re-exported or deleted within 6 months, like `films` rows.
+- Progress is saved per puzzle in localStorage under `collage:<id>`.
+- Pages showing collages carry the line "Film stills belong to their copyright holders."
 
 ## Puzzle day and answer protection
 

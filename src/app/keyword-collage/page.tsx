@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { PuzzleList } from "@/components/collage/PuzzleList";
 import { KeywordCollageArtwork } from "@/components/game-modes/KeywordCollageArtwork";
 import { SiteFooter } from "@/components/game/SiteFooter";
 
@@ -49,29 +50,13 @@ export default function KeywordCollagePage() {
             </p>
           </section>
 
-          <section aria-labelledby="guess-heading" className="md:pt-1">
-            <h2 id="guess-heading" className="font-display text-4xl font-[850] leading-none">
-              Guess the title
+          <section aria-labelledby="play-heading" className="md:pt-1">
+            <h2 id="play-heading" className="font-display text-4xl font-[850] leading-none">
+              Play
             </h2>
-            <p className="mt-3 leading-snug text-ink-soft">
-              This game is a preview. Image clues and guessing are not available yet.
-            </p>
-            <fieldset disabled className="mt-5">
-              <label htmlFor="collage-guess" className="block font-semibold">
-                Movie or series
-              </label>
-              <div className="mt-2 flex gap-2">
-                <input
-                  id="collage-guess"
-                  type="text"
-                  placeholder="Movie or series title"
-                  className="min-h-11 min-w-0 flex-1 rounded-md border border-ink/20 bg-surface px-3 text-ink placeholder:text-ink-soft"
-                />
-                <button type="button" className="min-h-11 rounded-md bg-ink/15 px-5 font-semibold text-ink-soft">
-                  Guess
-                </button>
-              </div>
-            </fieldset>
+            <div className="mt-3">
+              <PuzzleList />
+            </div>
           </section>
         </div>
       </main>

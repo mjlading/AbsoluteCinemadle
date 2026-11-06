@@ -28,7 +28,7 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
   ],
   webServer: {
-    command: `npm run db:migrate && npm run db:seed -- --reset --days=-1,0,1 && npm run build && npm run start -- --port ${PORT}`,
+    command: `npm run db:migrate && npm run db:seed -- --reset --days=-1,0,1 && npm run db:import-collage -- e2e/fixtures/keyword-collage.json && npm run build && npm run start -- --port ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: false,
     timeout: 240_000,

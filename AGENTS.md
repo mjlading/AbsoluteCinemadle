@@ -9,6 +9,7 @@ Decisions taken where the spec is ambiguous live in [ASSUMPTIONS.md](ASSUMPTIONS
 All five build phases are done (grid; database, TMDB and admin editor at `/admin`; warm-up with LLM back-translations; barcode bonus round; hints, scoring, results, streaks and saved progress).
 Hosting is Vercel (Hobby) with a Neon (free) database at absolutecinemadle.fun; see "Deploy" in README.md.
 Before launch: a refresh job for `films` rows older than about 5 months, and real puzzles.
+Keyword collage is live with demo puzzles from the `collage_puzzles` table, curated in `tools/collage-lab` and loaded with `npm run db:import-collage`; it has no admin editor yet.
 Update this section as that work lands.
 Phases are listed in SPEC.md under "Build phases"; owner additions (posters, review hint, animations) are listed there too.
 
