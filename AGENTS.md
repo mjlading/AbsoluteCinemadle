@@ -10,6 +10,7 @@ All five build phases are done (grid; database, TMDB and admin editor at `/admin
 Hosting is Vercel (Hobby) with a Neon (free) database at absolutecinemadle.fun; see "Deploy" in README.md.
 Before launch: a refresh job for `films` rows older than about 5 months, and real puzzles.
 Keyword collage is live with demo puzzles from the `collage_puzzles` table, curated in `tools/collage-lab` and loaded with `npm run db:import-collage`; it has no admin editor yet.
+Soundbytes (`/soundbytes`) has its UI on mock boards in `src/lib/soundbytes/mock-boards.ts` with generated placeholder clips; its audio pipeline is not built, and whether film audio may be hosted at all is still the owner's call (see docs/SOUNDBYTES.md).
 Update this section as that work lands.
 Phases are listed in SPEC.md under "Build phases"; owner additions (posters, review hint, animations) are listed there too.
 

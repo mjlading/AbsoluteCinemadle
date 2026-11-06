@@ -20,4 +20,10 @@ export const RULES = {
     enhancesPerGame: 1,
     enhanceFactor: 1.5,
   },
+  soundbytes: {
+    /** Film or actor guesses per board; only the right film wins. */
+    maxGuesses: 3,
+    /** How long a press must last to buy a node or remove a disguise. */
+    holdMs: 700,
+  },
 } as const;

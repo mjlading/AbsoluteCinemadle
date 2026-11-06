@@ -26,4 +26,14 @@ export const POINTS = {
      */
     unlock: { hard: -100, medium: -200, easy: -350 },
   },
+  soundbytes: {
+    /** Points a board starts with; buying nodes and removing disguises spend them. */
+    start: 1000,
+    /** Buying a locked node opens its disguised clip. */
+    buy: -100,
+    /** Removing a node's disguise opens its real clip. */
+    reveal: -100,
+    /** Naming an actor from the film's cast; it uses a guess but does not end the game. */
+    perCorrectActor: 150,
+  },
 } as const;
