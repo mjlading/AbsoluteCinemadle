@@ -1,0 +1,1146 @@
+/*
+ * Soundbytes: an evidence board of speaker cloth with the nodes pinned to it.
+ * Score is a small record whose center label takes the score's film-dye
+ * colour; dialogue is a felt puppet and sound effects a clapperboard, which
+ * talk while their clip plays. Every node is labelled with a strip of white
+ * film-can tape. Sizes are in cqi of the board (see layout.ts), so the board
+ * scales as one piece.
+ */
+
+/* --- Frame and surface: the woven grille of a vintage hi-fi speaker, in a walnut cabinet --- */
+
+.sb-frame {
+  --frame: #4a3220;
+  position: relative;
+  padding: 7px;
+  border-radius: 10px;
+  background:
+    linear-gradient(100deg, rgb(255 255 255 / 0.07), transparent 30%, rgb(0 0 0 / 0.12) 70%, rgb(255 255 255 / 0.05)),
+    var(--frame);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.1),
+    0 12px 26px -14px rgb(0 0 0 / 0.55);
+}
+
+.sb-board {
+  position: relative;
+  width: 100%;
+  container-type: inline-size;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 0.3),
+    inset 0 2px 10px rgb(0 0 0 / 0.35);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.sb-board {
+  background-color: #a8927a;
+  background-image:
+    repeating-linear-gradient(0deg, rgb(60 42 26 / 0.13) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgb(60 42 26 / 0.11) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, transparent 0 37px, rgb(255 240 220 / 0.05) 37px 41px, transparent 41px 83px),
+    radial-gradient(ellipse at 50% 35%, rgb(255 238 214 / 0.16), transparent 70%),
+    linear-gradient(rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.12));
+}
+
+/* --- Nodes --- */
+
+.sb-node {
+  --r: calc(var(--d) * 0.5cqi);
+  --cat: var(--tier-1);
+  position: absolute;
+  z-index: 1;
+  width: calc(var(--d) * 1cqi);
+  height: calc(var(--d) * 1cqi);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  translate: -50% -50%;
+  rotate: var(--tilt);
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.sb-node[data-category="score"] {
+  --cat: var(--tier-2);
+}
+
+.sb-node[data-category="sfx"] {
+  --cat: var(--tier-3);
+}
+
+.sb-node:focus-visible {
+  outline: none;
+}
+
+/* Focus ring: white with dark edges, so it shows on every surface. */
+.sb-node::after {
+  content: "";
+  position: absolute;
+  inset: calc(var(--d) * -0.2cqi);
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px #181b21,
+    inset 0 0 0 2px #181b21;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sb-node:focus-visible::after {
+  opacity: 1;
+}
+
+.sb-node[data-holding],
+.sb-node[data-effect] {
+  z-index: 5;
+}
+
+.sb-node[data-raised] {
+  z-index: 7;
+}
+
+/* The record. */
+.sb-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      from 20deg,
+      rgb(255 255 255 / 0.12),
+      transparent 12%,
+      transparent 38%,
+      rgb(255 255 255 / 0.09) 50%,
+      transparent 62%,
+      transparent 88%,
+      rgb(255 255 255 / 0.12)
+    ),
+    repeating-radial-gradient(circle, #1a1c22 0 1.1%, #262931 1.1% 2.2%);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.45),
+    calc(var(--d) * 0.04cqi) calc(var(--d) * 0.1cqi) calc(var(--d) * 0.22cqi) rgb(0 0 0 / 0.42);
+  transition: filter 220ms ease-out;
+}
+
+.sb-disc-label {
+  position: absolute;
+  inset: 27%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--cat);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25);
+}
+
+.sb-disc-icon {
+  --sb-icon-hole: var(--cat);
+  width: 58%;
+  height: 58%;
+  color: #181b21;
+}
+
+.sb-node[data-stage="locked"] .sb-disc {
+  filter: grayscale(1) brightness(0.72) contrast(0.92);
+}
+
+.sb-node[data-stage="locked"][data-holding] .sb-disc {
+  filter: none;
+  transition: filter 600ms linear 100ms;
+}
+
+/* A playing record spins. */
+.sb-node[data-playing] .sb-disc {
+  animation: sb-spin 1.8s linear infinite;
+}
+
+@keyframes sb-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+.sb-node[data-effect="bought"] .sb-disc {
+  animation: sb-color-pop 460ms ease-out;
+}
+
+@keyframes sb-color-pop {
+  0% {
+    scale: 1.1;
+    filter: brightness(1.45);
+  }
+}
+
+/* The ring: its track is as long as the clip, and it fills as the clip plays. */
+.sb-ring {
+  position: absolute;
+  inset: -12%;
+  width: 124%;
+  height: 124%;
+  overflow: visible;
+  rotate: -90deg;
+  pointer-events: none;
+}
+
+.sb-ring circle {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.sb-ring-track {
+  stroke: rgb(0 0 0 / 0.34);
+}
+
+.sb-node[data-stage="locked"] .sb-ring-track {
+  stroke: rgb(0 0 0 / 0.2);
+}
+
+.sb-ring-progress {
+  stroke: #fff;
+  filter: drop-shadow(0 0 1.5px rgb(0 0 0 / 0.55));
+}
+
+.sb-node[data-playing] .sb-ring-progress {
+  stroke-dashoffset: calc(var(--arc) * (1 - var(--sb-progress, 0)) * 1px);
+}
+
+/* Holding a locked node: a gold sweep runs round the ring until it is bought. */
+.sb-ring-hold {
+  stroke: #f2c641;
+  stroke-width: 6;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  filter: drop-shadow(0 0 1.5px rgb(0 0 0 / 0.5));
+  opacity: 0;
+  transition:
+    stroke-dashoffset 160ms ease-out,
+    opacity 160ms ease-out;
+}
+
+.sb-node[data-holding] .sb-ring-hold {
+  stroke-dashoffset: 0;
+  opacity: 1;
+  transition: stroke-dashoffset 600ms linear 100ms;
+}
+
+/* Push pin and label tape. */
+.sb-pin {
+  position: absolute;
+  top: -1.4cqi;
+  left: 50%;
+  z-index: 4;
+  width: 3.4cqi;
+  height: 3.4cqi;
+  border-radius: 50%;
+  translate: -50% 0;
+  background: radial-gradient(circle at 35% 30%, #ff9aa4 0 16%, #d92b3f 46%, #84111e 100%);
+  box-shadow: 0.5cqi 0.9cqi 0.8cqi rgb(0 0 0 / 0.42);
+}
+
+.sb-tape {
+  position: absolute;
+  top: calc(100% - 2.4cqi);
+  left: 50%;
+  z-index: 3;
+  width: max-content;
+  max-width: 31cqi;
+  padding: 0.7cqi 2.4cqi 0.8cqi;
+  translate: -50% 0;
+  rotate: var(--tape-tilt);
+  background: linear-gradient(rgb(255 255 255 / 0.25), transparent 40%), #edebe3;
+  color: #181b21;
+  font-family: var(--font-condensed);
+  font-size: max(11.5px, 3.8cqi);
+  font-weight: 700;
+  line-height: 1.05;
+  text-align: center;
+  text-wrap: balance;
+  clip-path: polygon(
+    0 10%,
+    3% 0,
+    97% 0,
+    100% 12%,
+    98% 32%,
+    100% 52%,
+    97.5% 74%,
+    100% 92%,
+    96% 100%,
+    4% 100%,
+    0 90%,
+    2.5% 70%,
+    0 50%,
+    3% 28%
+  );
+}
+
+.sb-node[data-large] .sb-tape {
+  max-width: 40cqi;
+  font-size: max(13px, 4.6cqi);
+}
+
+/* Price chips: a coin and a number. */
+.sb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22em;
+  padding: 0.16em 0.5em 0.16em 0.2em;
+  border-radius: 999px;
+  background: #fff;
+  color: #181b21;
+  font-family: var(--font-condensed);
+  font-size: max(11px, 3.5cqi);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.12),
+    0 1px 3px rgb(0 0 0 / 0.4);
+  transition:
+    background 150ms,
+    color 150ms;
+}
+
+.sb-chip-coin {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.sb-node-chip {
+  position: absolute;
+  right: -18%;
+  bottom: 24%;
+  z-index: 4;
+  rotate: calc(var(--tilt) * -1);
+}
+
+.sb-node[data-effect="refused"] {
+  animation: sb-shake 420ms ease-in-out;
+}
+
+.sb-node[data-effect="refused"] .sb-chip {
+  background: #d92b3f;
+  color: #fff;
+}
+
+@keyframes sb-shake {
+  15%,
+  55% {
+    transform: translateX(-1.4cqi);
+  }
+  35%,
+  75% {
+    transform: translateX(1.4cqi);
+  }
+}
+
+.sb-node[data-effect="nudged"] .sb-node-chip {
+  animation: sb-hop 420ms ease-out;
+}
+
+@keyframes sb-hop {
+  35% {
+    transform: translateY(-1.6cqi) scale(1.12);
+  }
+}
+
+/* --- Disguises: balloon and kazoo sit on an arm turned toward open board. --- */
+
+.sb-attach {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 4;
+  width: 0;
+  height: 0;
+  rotate: var(--attach);
+}
+
+.sb-object-chip {
+  position: relative;
+  z-index: 1;
+  font-size: max(10px, 3.1cqi);
+}
+
+/* Helium: a balloon on a string, tied at the rim. */
+.sb-string {
+  position: absolute;
+  bottom: calc(var(--r) * 0.86);
+  left: -0.15cqi;
+  width: 0.3cqi;
+  height: 6.4cqi;
+  border-radius: 1px;
+  background: rgb(250 250 250 / 0.92);
+  box-shadow: 0.3cqi 0.4cqi 0.4cqi rgb(0 0 0 / 0.3);
+  transform-origin: bottom;
+}
+
+.sb-balloon {
+  position: absolute;
+  bottom: calc(var(--r) * 0.86 + 6.1cqi);
+  left: 0;
+  width: 13cqi;
+  height: 16.9cqi;
+  translate: -50% 0;
+  rotate: calc(var(--attach) * -0.65);
+  transform-origin: 50% 100%;
+}
+
+.sb-balloon-body {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding-bottom: 4.6cqi;
+  transform-origin: 50% 94%;
+  transition: scale 180ms ease-out;
+  animation: sb-bob 3.4s ease-in-out infinite;
+}
+
+.sb-balloon-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0.6cqi 1cqi 0.8cqi rgb(0 0 0 / 0.35));
+}
+
+@keyframes sb-bob {
+  50% {
+    transform: translateY(-0.7cqi) rotate(2deg);
+  }
+}
+
+.sb-node[data-holding] .sb-balloon-body {
+  scale: 1.75;
+  transition: scale 600ms cubic-bezier(0.45, 0, 0.9, 0.55) 100ms;
+  animation: sb-strain 110ms linear infinite 380ms;
+}
+
+@keyframes sb-strain {
+  50% {
+    transform: rotate(-2.5deg);
+  }
+}
+
+.sb-attach[data-mode="enter"] .sb-balloon-body {
+  animation: sb-inflate 460ms cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.sb-attach[data-mode="enter"] .sb-string {
+  animation: sb-grow 260ms ease-out;
+}
+
+@keyframes sb-inflate {
+  from {
+    scale: 0.15;
+  }
+}
+
+@keyframes sb-grow {
+  from {
+    scale: 1 0;
+  }
+}
+
+.sb-attach[data-mode="exit"] .sb-balloon-body {
+  animation: sb-burst 140ms ease-out forwards;
+}
+
+.sb-attach[data-mode="exit"] .sb-string {
+  animation: sb-string-drop 520ms ease-in forwards;
+}
+
+@keyframes sb-burst {
+  from {
+    scale: 1.75;
+  }
+  to {
+    scale: 2.2;
+    opacity: 0;
+  }
+}
+
+@keyframes sb-string-drop {
+  to {
+    scale: 1 0.25;
+    opacity: 0;
+  }
+}
+
+.sb-pop {
+  position: absolute;
+  bottom: calc(var(--r) * 0.86 + 15cqi);
+  left: 0;
+  width: 0;
+  height: 0;
+}
+
+.sb-pop span {
+  position: absolute;
+  width: 1.7cqi;
+  height: 2.6cqi;
+  margin: -1.3cqi 0 0 -0.85cqi;
+  border-radius: 35%;
+  background: #e23b4b;
+  rotate: calc(var(--i) * 45deg + 10deg);
+  animation: sb-shred 560ms cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
+}
+
+@keyframes sb-shred {
+  from {
+    transform: translateY(0) scale(1);
+  }
+  to {
+    transform: translateY(-10cqi) rotate(160deg) scale(0.4);
+    opacity: 0;
+  }
+}
+
+/* Kazoo: stuck into the record, pointing out. */
+.sb-kazoo {
+  position: absolute;
+  bottom: calc(var(--r) * 0.55);
+  left: 0;
+  width: 8.2cqi;
+  height: 17.5cqi;
+  translate: -38% 0;
+}
+
+.sb-kazoo-body {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: start center;
+  transition: translate 180ms ease-out;
+}
+
+.sb-kazoo-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0.6cqi 0.9cqi 0.7cqi rgb(0 0 0 / 0.4));
+}
+
+/* The price sits just past the kazoo's tip, upright, so the kazoo itself stays in view. */
+.sb-kazoo .sb-object-chip {
+  translate: 0 -105%;
+  rotate: calc(var(--attach) * -1 - var(--tilt));
+}
+
+.sb-node[data-holding] .sb-kazoo-body {
+  translate: 0 -6.5cqi;
+  transition: translate 600ms cubic-bezier(0.5, 0, 0.9, 0.6) 100ms;
+  animation: sb-rattle 90ms linear infinite 260ms;
+}
+
+@keyframes sb-rattle {
+  50% {
+    transform: translateX(0.35cqi) rotate(1.5deg);
+  }
+}
+
+.sb-attach[data-mode="enter"] .sb-kazoo-body {
+  animation: sb-kazoo-in 420ms cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+@keyframes sb-kazoo-in {
+  from {
+    translate: 0 -12cqi;
+    opacity: 0;
+  }
+}
+
+.sb-attach[data-mode="exit"] .sb-kazoo-body {
+  animation: sb-fly 560ms cubic-bezier(0.3, 0.3, 0.6, 1) forwards;
+}
+
+@keyframes sb-fly {
+  from {
+    translate: 0 -6.5cqi;
+  }
+  to {
+    translate: 5cqi -70cqi;
+    rotate: 420deg;
+    opacity: 0;
+  }
+}
+
+/* Muffle: a little door in front of the record, hinged on its left. */
+.sb-door-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  width: 56%;
+  height: 64%;
+  translate: -50% -44%;
+  perspective: 40cqi;
+}
+
+.sb-door {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding-top: 18%;
+  transform-origin: 0 50%;
+  transition: rotate 180ms ease-out;
+}
+
+.sb-door-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0.5cqi 0.7cqi 0.6cqi rgb(0 0 0 / 0.45));
+}
+
+.sb-node[data-holding] .sb-door {
+  rotate: y -74deg;
+  transition: rotate 600ms cubic-bezier(0.6, 0, 0.8, 0.5) 100ms;
+  animation: sb-creak 150ms steps(2, end) infinite 220ms;
+}
+
+@keyframes sb-creak {
+  50% {
+    transform: translateY(-0.25cqi);
+  }
+}
+
+.sb-door-frame[data-mode="enter"] .sb-door {
+  animation: sb-slam 460ms cubic-bezier(0.5, 1.8, 0.6, 1);
+}
+
+@keyframes sb-slam {
+  from {
+    rotate: y -100deg;
+  }
+}
+
+.sb-door-frame[data-mode="exit"] .sb-door {
+  animation: sb-door-off 560ms ease-in forwards;
+}
+
+@keyframes sb-door-off {
+  from {
+    rotate: y -74deg;
+  }
+  to {
+    rotate: y -112deg;
+    translate: -2cqi 14cqi;
+    opacity: 0;
+  }
+}
+
+/* --- First-visit hint: a pointing hand, tapping or pressing and holding. --- */
+
+.sb-hint {
+  position: absolute;
+  top: 56%;
+  left: 60%;
+  z-index: 8;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.sb-hint[data-on-object] {
+  top: 50%;
+  left: 50%;
+  rotate: var(--attach);
+}
+
+.sb-hint > * {
+  position: absolute;
+}
+
+.sb-hint[data-on-object] > * {
+  translate: 0 calc(var(--r) * -0.86 - 10cqi);
+  rotate: calc(var(--attach) * -1 - var(--tilt));
+}
+
+.sb-hint-hand {
+  top: 0;
+  left: -1.2cqi;
+  width: 10cqi;
+  height: 11.2cqi;
+  filter: drop-shadow(0 0.8cqi 0.8cqi rgb(0 0 0 / 0.45));
+  transform-origin: 15% 5%;
+  animation: sb-tap 1.4s ease-in-out infinite;
+}
+
+.sb-hint-ripple {
+  top: -3.5cqi;
+  left: -3.5cqi;
+  width: 7cqi;
+  height: 7cqi;
+  border: 0.6cqi solid #fff;
+  border-radius: 50%;
+  opacity: 0;
+  animation: sb-ripple 1.4s ease-out infinite;
+}
+
+@keyframes sb-tap {
+  0%,
+  100% {
+    transform: translate(2cqi, 2.4cqi);
+  }
+  38%,
+  52% {
+    transform: translate(0, 0) scale(0.92);
+  }
+}
+
+@keyframes sb-ripple {
+  38% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  45% {
+    opacity: 1;
+  }
+  90%,
+  100% {
+    opacity: 0;
+    scale: 1.5;
+  }
+}
+
+.sb-hint[data-kind="hold"] .sb-hint-hand {
+  animation: sb-press-hold 2.2s ease-in-out infinite;
+}
+
+.sb-hint[data-kind="hold"] .sb-hint-ripple {
+  animation: sb-hold-ripple 2.2s linear infinite;
+}
+
+@keyframes sb-press-hold {
+  0%,
+  100% {
+    transform: translate(2cqi, 2.4cqi);
+  }
+  18%,
+  78% {
+    transform: translate(0, 0) scale(0.92);
+  }
+}
+
+@keyframes sb-hold-ripple {
+  0%,
+  18% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  22% {
+    opacity: 1;
+    scale: 0.5;
+  }
+  76% {
+    opacity: 1;
+    scale: 1.3;
+  }
+  84%,
+  100% {
+    opacity: 0;
+    scale: 1.4;
+  }
+}
+
+/* --- Headphones cover, before the first tap. --- */
+
+.sb-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  justify-content: center;
+  padding-top: 9cqi;
+  border-radius: 4px;
+  background: rgb(10 12 16 / 0.64);
+  animation: sb-cover-in 300ms ease-out;
+}
+
+.sb-cover-icon {
+  width: 19cqi;
+  height: 19cqi;
+  color: #fff;
+  filter: drop-shadow(0 0.6cqi 1.2cqi rgb(0 0 0 / 0.5));
+  animation: sb-listen 1.8s ease-in-out infinite;
+}
+
+@keyframes sb-cover-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sb-listen {
+  50% {
+    scale: 1.07;
+  }
+}
+
+/* --- Correct actors, pinned up as name tags. --- */
+
+.sb-tag {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1cqi;
+  max-width: 30cqi;
+  padding: 1.9cqi 2.2cqi 1.3cqi 1.6cqi;
+  translate: -50% -50%;
+  rotate: var(--tilt);
+  border-radius: 1px;
+  background: #fff;
+  color: #181b21;
+  font-family: var(--font-condensed);
+  font-size: max(11px, 3.6cqi);
+  font-weight: 700;
+  line-height: 1.05;
+  box-shadow: 0 0.6cqi 1.2cqi rgb(0 0 0 / 0.38);
+  animation: sb-tag-in 460ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.sb-tag .sb-pin {
+  top: -2.3cqi;
+  width: 3cqi;
+  height: 3cqi;
+}
+
+.sb-tag-icon {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  color: #2a8ea1;
+}
+
+@keyframes sb-tag-in {
+  from {
+    opacity: 0;
+    scale: 1.25;
+    transform: translateY(-3cqi);
+  }
+}
+
+/* --- Controls around the board. --- */
+
+.sb-flag[data-holding] .sb-flag-cloth {
+  animation: sb-wave 260ms ease-in-out infinite;
+}
+
+.sb-flag-ring {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 3;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  rotate: -90deg;
+  transform-origin: center;
+  opacity: 0;
+  transition:
+    stroke-dashoffset 160ms ease-out,
+    opacity 160ms ease-out;
+}
+
+.sb-flag[data-holding] .sb-flag-ring {
+  stroke-dashoffset: 0;
+  opacity: 1;
+  transition: stroke-dashoffset 600ms linear 100ms;
+}
+
+@keyframes sb-wave {
+  50% {
+    transform: skewY(-6deg) scaleX(0.94);
+  }
+}
+
+.sb-shake {
+  animation: sb-shake 420ms ease-in-out;
+}
+
+.sb-delta {
+  animation: sb-delta 900ms ease-out forwards;
+}
+
+@keyframes sb-delta {
+  0% {
+    opacity: 0;
+    translate: 0 6px;
+  }
+  20% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 -14px;
+  }
+}
+
+/* --- Talking characters (dialogue and sound effects) --- */
+
+.sb-figure-art {
+  position: absolute;
+  top: -16%;
+  left: -4%;
+  width: 108%;
+  height: 121%;
+  overflow: visible;
+  filter: drop-shadow(calc(var(--d) * 0.04cqi) calc(var(--d) * 0.09cqi) calc(var(--d) * 0.08cqi) rgb(0 0 0 / 0.4));
+  transition: filter 220ms ease-out;
+}
+
+.sb-figure-art g {
+  transform-box: view-box;
+}
+
+/* Characters show no clip-length ring and need no pin; the gold sweep still shows a hold on a locked one. */
+.sb-node[data-figure] .sb-ring-track,
+.sb-node[data-figure] .sb-ring-progress,
+.sb-node[data-figure] .sb-pin {
+  display: none;
+}
+
+.sb-node[data-figure] .sb-tape {
+  top: calc(100% + 1.4cqi);
+}
+
+/* A balloon ties on above the head; prices sit clear of the face. */
+.sb-node[data-figure] .sb-string {
+  bottom: calc(var(--r) * 1.22);
+  height: 4cqi;
+}
+
+.sb-node[data-figure] .sb-balloon {
+  bottom: calc(var(--r) * 1.22 + 3.7cqi);
+}
+
+.sb-node[data-figure] .sb-pop {
+  bottom: calc(var(--r) * 1.22 + 12.5cqi);
+}
+
+.sb-node[data-figure] .sb-node-chip {
+  right: -30%;
+  bottom: 18%;
+}
+
+.sb-node[data-figure][data-stage="locked"] .sb-figure-art {
+  filter: grayscale(1) brightness(0.75) contrast(0.92);
+}
+
+.sb-node[data-figure][data-stage="locked"][data-holding] .sb-figure-art {
+  filter: none;
+  transition: filter 600ms linear 100ms;
+}
+
+.sb-node[data-figure][data-effect="bought"] .sb-figure-art {
+  animation: sb-color-pop 460ms ease-out;
+}
+
+/* --- Clapperboard: the clapstick (with the eyes) is the upper jaw, the slate the lower one. --- */
+
+.cb-character {
+  transform-origin: 50px 101px;
+  animation: cb-idle 3.8s ease-in-out infinite;
+}
+
+/* Both jaw pieces turn on the hinge at the clapstick's left end; at rest it is shut. */
+.sb-clapper .cb-jaw {
+  transform-origin: 13px 39px;
+  rotate: 0deg;
+  transition: rotate 110ms cubic-bezier(0.5, 0, 0.9, 0.4);
+}
+
+.cb-eye {
+  transform-origin: var(--eye-x) var(--eye-y);
+}
+
+.cb-brow-l {
+  transform-origin: 34px 6px;
+}
+
+.cb-brow-r {
+  transform-origin: 62px 5px;
+}
+
+.sb-clapper .cb-blink {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: sb-blink 5.2s infinite;
+}
+
+.sb-clapper[data-eyes="sleepy"] .cb-blink {
+  animation-duration: 3.4s;
+}
+
+@keyframes cb-idle {
+  50% {
+    translate: 0 -0.7px;
+    rotate: -1.5deg;
+  }
+}
+
+@keyframes sb-blink {
+  0%,
+  93%,
+  100% {
+    scale: 1 1;
+  }
+  96% {
+    scale: 1 0.08;
+  }
+}
+
+/*
+ * Talking: the jaw claps open and shut with the words (--sb-level is the
+ * clip's loudness, 0 to 1), the slate squashes and hops, and the eyes and
+ * brows ride along, each at its own rhythm.
+ */
+.sb-node[data-playing] .cb-character {
+  animation: none;
+  translate: 0 calc((sin(var(--sb-time, 0) * 12.2) - 1) * 2.2px * var(--sb-level, 0));
+  rotate: calc(sin(var(--sb-time, 0) * 3.7) * 5deg * var(--sb-level, 0));
+  scale: calc(1 + sin(var(--sb-time, 0) * 12.2) * 0.04 * var(--sb-level, 0))
+    calc(1 - sin(var(--sb-time, 0) * 12.2) * 0.05 * var(--sb-level, 0));
+}
+
+.sb-node[data-playing] .sb-clapper .cb-jaw {
+  transition: none;
+  rotate: calc(
+    -1 * max(0deg, (20deg + sin(var(--sb-time, 0) * 15.5) * 17deg + sin(var(--sb-time, 0) * 6.1) * 6deg)) *
+      var(--sb-level, 0)
+  );
+}
+
+.sb-node[data-playing] .cb-eye-l {
+  scale: calc(1 + 0.14 * var(--sb-level, 0) * (0.6 + 0.4 * sin(var(--sb-time, 0) * 4.1)));
+}
+
+.sb-node[data-playing] .cb-eye-r {
+  scale: calc(1 + 0.2 * var(--sb-level, 0) * (0.5 + 0.5 * sin(var(--sb-time, 0) * 3.3 + 1)));
+}
+
+.sb-node[data-playing] .cb-pupil {
+  translate: calc(sin(var(--sb-time, 0) * 18) * 1.7px * var(--sb-level, 0))
+    calc(cos(var(--sb-time, 0) * 14) * 1.5px * var(--sb-level, 0));
+}
+
+.sb-node[data-playing] .cb-brow-l {
+  translate: 0 calc(-3px * var(--sb-level, 0) * (0.6 + 0.4 * sin(var(--sb-time, 0) * 6.3)));
+  rotate: calc(sin(var(--sb-time, 0) * 4.4) * -12deg * var(--sb-level, 0));
+}
+
+.sb-node[data-playing] .cb-brow-r {
+  translate: 0 calc(-2.6px * var(--sb-level, 0) * (0.6 + 0.4 * sin(var(--sb-time, 0) * 5.1 + 2)));
+  rotate: calc(sin(var(--sb-time, 0) * 4.8) * 14deg * var(--sb-level, 0));
+}
+
+.sb-node[data-playing] .cb-feet {
+  translate: 0 calc((sin(var(--sb-time, 0) * 12.2) - 1) * 0.8px * var(--sb-level, 0));
+}
+
+/*
+ * --- Felt puppet: moves like a hand puppet ---
+ * When the mouth opens, the top of the head lifts and tips back while the jaw
+ * drops; the head tilts and leans in on loud words; idle, it glances around.
+ * --open is how far the mouth is open (0 to 1).
+ */
+
+.pp {
+  --open: 0;
+}
+
+.pp-head {
+  transform-origin: 50px var(--mouth-y);
+  animation: pp-look 6.5s ease-in-out infinite;
+}
+
+.pp-upper,
+.pp-jaw {
+  transform-origin: 50px var(--mouth-y);
+  transition:
+    translate 120ms ease-out,
+    rotate 120ms ease-out;
+}
+
+.pp-pupil {
+  animation: pp-glance 6.5s ease-in-out infinite;
+}
+
+.pp .pp-blink {
+  transform-origin: var(--eye-x) var(--eye-y);
+  animation: sb-blink 5.4s infinite;
+}
+
+@keyframes pp-look {
+  0%,
+  100% {
+    rotate: 0deg;
+    translate: 0 0;
+  }
+  22%,
+  42% {
+    rotate: -5deg;
+    translate: -1.5px 0;
+  }
+  58%,
+  78% {
+    rotate: 4deg;
+    translate: 1.5px -0.5px;
+  }
+}
+
+@keyframes pp-glance {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  22%,
+  42% {
+    translate: -2.4px 0.4px;
+  }
+  58%,
+  78% {
+    translate: 2.4px -0.6px;
+  }
+}
+
+.sb-node[data-playing] .pp {
+  --open: max(0, var(--sb-level, 0) * (0.55 + 0.45 * sin(var(--sb-time, 0) * 15.5)));
+}
+
+.sb-node[data-playing] .pp-head {
+  animation: none;
+  rotate: calc((sin(var(--sb-time, 0) * 2.3) * 7deg + sin(var(--sb-time, 0) * 6.7) * 2.5deg) * var(--sb-level, 0));
+  translate: calc(sin(var(--sb-time, 0) * 1.5) * 2px * var(--sb-level, 0)) calc(var(--open) * 1.5px);
+  scale: calc(1 + 0.05 * var(--sb-level, 0));
+}
+
+.sb-node[data-playing] .pp-upper {
+  transition: none;
+  translate: 0 calc(var(--open) * -11px);
+  rotate: calc(var(--open) * -8deg);
+}
+
+.sb-node[data-playing] .pp-jaw {
+  transition: none;
+  translate: 0 calc(var(--open) * 9px);
+}
+
+.sb-node[data-playing] .pp-pupil {
+  animation: none;
+  translate: calc(sin(var(--sb-time, 0) * 17) * 1.2px * var(--sb-level, 0)) calc(-0.8px * var(--sb-level, 0));
+}

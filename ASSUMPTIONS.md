@@ -39,6 +39,30 @@ Each entry says what was decided and why, so it can be revisited.
 - Progress is saved per puzzle in localStorage under `collage:<id>`.
 - Pages showing collages carry the line "Film stills belong to their copyright holders."
 
+## Soundbytes
+
+- Soundbytes is built like the keyword collage: a card on the home page, a list of boards at `/soundbytes` and one board per page at `/soundbytes/<id>`, rather than one board per date.
+  Until the audio pipeline exists, the boards are mock fixtures in `src/lib/soundbytes/mock-boards.ts`, using real films so the search and actor checks are real.
+- Every price is the same on every board and lives in `scoring.ts`: 1000 points to start, 100 to buy a node, 100 to remove a disguise, 150 for a correct actor.
+  The guess count and hold time are in `rules.ts`.
+- A wrong guess costs only the guess, not points, since there are only 3; repeating a guess is turned away for free.
+- A lost or abandoned game scores 0, as in the collage; a buy or removal needs enough points left, so the score never goes negative.
+- Guesses only count when picked from the suggestions, so the server always knows whether it is a film or a person.
+  Suggestions come from TMDB's film and person searches, people limited to actors.
+- An actor counts if they are among the film's top-billed cast in the board's answer.
+  The answer and cast stay on the server; a guess comes back as right or wrong, with the actor's name for a right one.
+- Holding anywhere on a node spends, not just on its disguise object, so the door in front never blocks a tap and small objects are not hard to hit.
+  On a keyboard, Enter or Space plays and holding either key spends.
+- Giving up is a hold on the white flag too, so it can't happen by accident.
+- The headphones cover is remembered per board once dismissed; the first-visit hand hint is remembered once for the whole site.
+- Progress is saved per board in localStorage under `soundbytes:<id>`.
+- The game-over card is the collage's: the film, its poster and the numbers, then the board stays up with every node playing its real clip.
+  The collage has no share text, so neither does Soundbytes yet.
+- The characters move to the playing clip's loudness, measured by routing the audio through Web Audio; Safari 17+ is told the page plays media, so the iPhone's silent switch does not mute it.
+  Where Web Audio is unavailable the clip still plays and the characters follow a made-up speech rhythm.
+- Placeholder clips are generated tones in `public/audio/mock/`, made by `scripts/soundbytes-placeholder-audio.mts`: a buzzy melody for score, a warbling vowel for dialogue and a noise burst for effects, each with a disguised 2-second and a real 6-second version.
+  They are WAV files because nothing on the build machine encodes MP3, and every browser plays WAV.
+
 ## Puzzle day and answer protection
 
 - A puzzle day is the player's local calendar date (`YYYY-MM-DD`), sent by the client.

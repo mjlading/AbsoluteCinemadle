@@ -67,6 +67,27 @@ export async function searchMovies(query: string): Promise<MovieSummary[]> {
   return results;
 }
 
+export interface PersonSummary {
+  tmdbId: number;
+  name: string;
+  /** TMDB's main department for the person, e.g. "Acting" or "Directing". */
+  department: string | null;
+}
+
+const PersonSummarySchema = z
+  .object({ id: z.number(), name: z.string(), known_for_department: nullableString })
+  .transform((p): PersonSummary => ({ tmdbId: p.id, name: p.name, department: p.known_for_department }));
+
+/** People matching a name, most popular first, as TMDB ranks them. */
+export async function searchPeople(query: string): Promise<PersonSummary[]> {
+  const { results } = await tmdb("/search/person", z.object({ results: z.array(PersonSummarySchema) }), {
+    query,
+    include_adult: "false",
+    language: "en-US",
+  });
+  return results;
+}
+
 export interface ImageInfo {
   path: string;
   width: number;

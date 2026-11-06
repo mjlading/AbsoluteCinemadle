@@ -2,6 +2,7 @@
 
 A collection of movie and series games, starting with a daily movie puzzle.
 Keyword collage is a preview while its image clues are being planned; its design is in [docs/KEYWORD-COLLAGE.md](docs/KEYWORD-COLLAGE.md).
+Soundbytes, a guess-by-ear game, is playable on mock boards with placeholder sounds; its design is in [docs/SOUNDBYTES.md](docs/SOUNDBYTES.md).
 The product spec is in [docs/SPEC.md](docs/SPEC.md) and decisions taken along the way are in [ASSUMPTIONS.md](ASSUMPTIONS.md).
 
 ## Set up
