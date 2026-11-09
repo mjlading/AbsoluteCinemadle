@@ -70,14 +70,17 @@ export function SoundbytesIcon({ className = "" }: { className?: string }) {
 /** One raised open hand, the meme's gesture, thumb on the left; `mirror` puts the thumb on the right. */
 export function RaisedHand({ className = "", mirror = false }: { className?: string; mirror?: boolean }) {
   return (
-    <svg viewBox="0 0 44 56" className={className} aria-hidden="true" focusable="false">
-      <g transform={mirror ? "translate(44 0) scale(-1 1)" : undefined} fill="currentColor">
-        <rect x="11" y="5" width="6" height="26" rx="3" />
-        <rect x="18" y="2" width="6" height="28" rx="3" />
-        <rect x="25" y="4" width="6" height="27" rx="3" />
-        <rect x="32" y="9" width="5.5" height="23" rx="2.75" />
-        <rect x="2" y="24" width="6" height="18" rx="3" transform="rotate(-38 5 33)" />
-        <path d="M10 24h28v13c0 9-6 15-14 15h-1c-7 0-13-5-13-13Z" />
+    <svg viewBox="0 0 60 70" className={className} aria-hidden="true" focusable="false">
+      <g transform={mirror ? "translate(60 0) scale(-1 1)" : undefined}>
+        {/* Fingers and thumb are round-ended strokes fanning out of the palm, so it all reads as one hand. */}
+        <g stroke="currentColor" strokeLinecap="round" fill="none">
+          <path d="M21 32 13 8" strokeWidth="7" />
+          <path d="M28 30 25.5 4" strokeWidth="7" />
+          <path d="M35 30 39.5 6" strokeWidth="7" />
+          <path d="M41 34 51 15" strokeWidth="6.2" />
+          <path d="M19 46 4 36.5" strokeWidth="7.5" />
+        </g>
+        <path d="M17 31c0-3 2-5 5-5h18c3 0 5 2 5 5v15c0 10-5 17-14 17h-1c-9 0-13-7-13-17Z" fill="currentColor" />
       </g>
     </svg>
   );
