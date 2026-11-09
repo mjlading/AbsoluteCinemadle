@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { RULES } from "@/config/rules";
 import { COLLAGE_TIERS } from "./types";
 
 /*
@@ -49,7 +50,7 @@ export const CollageKeywordsSchema = z
         .min(1),
     }),
   )
-  .min(1)
+  .min(RULES.closeUps.keywordsPerPuzzle)
   .refine((keywords) => keywords.filter((k) => k.free).length === 1, "A puzzle needs exactly one free keyword.");
 
 export const CollagePuzzleSchema = z.object({

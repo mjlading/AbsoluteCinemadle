@@ -17,6 +17,10 @@ describe("collage puzzle schema", () => {
     expect(CollagePuzzleSchema.safeParse({ ...puzzle, keywords }).success).toBe(false);
   });
 
+  it("refuses a puzzle with fewer than 5 keywords", () => {
+    expect(CollagePuzzleSchema.safeParse({ ...puzzle, keywords: puzzle.keywords.slice(0, 4) }).success).toBe(false);
+  });
+
   it("refuses a TMDB path that is not a plain file name", () => {
     const tile = {
       id: "badtile1",
