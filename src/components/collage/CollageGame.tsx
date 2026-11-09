@@ -19,10 +19,10 @@ import type { CollageSolution, PublicCollagePuzzle } from "@/lib/collage/types";
 import { ApiError } from "@/lib/game/api";
 import { readJson, usePersistentReducer, writeJson } from "@/lib/game/storage";
 import { normalizeTitle } from "@/lib/warmup/match";
-import { CollageGrid, EnhanceBadge, type FrameInfo } from "./CollageTiles";
+import { CollageGrid, ENHANCE_ID, EnhanceBadge, type FrameInfo } from "./CollageTiles";
 import { GuessHistory } from "./GuessHistory";
 import { HelpDialog } from "./HelpDialog";
-import { KeywordStrip } from "./KeywordStrip";
+import { KeywordStrip, PANEL_ID } from "./KeywordStrip";
 import { ResultPanel } from "./ResultPanel";
 
 const HELP_SEEN_KEY = "close-ups:help-seen";
@@ -223,9 +223,18 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
   }
 
   function togglePicking() {
-    const on = !picking;
-    setPicking(on);
-    if (on) announce("Pick a close-up to widen.");
+    if (picking) return stopPicking();
+    setPicking(true);
+    announce("Pick a close-up to widen.");
+  }
+
+  /** Leaves picking mode without enhancing; a focused tile button goes with it, so focus returns to the badge. */
+  function stopPicking() {
+    setPicking(false);
+    const focused = document.activeElement;
+    if (!focused || focused === document.body || document.getElementById(PANEL_ID)?.contains(focused)) {
+      document.getElementById(ENHANCE_ID)?.focus();
+    }
   }
 
   function enhanceTile(tileId: string) {
@@ -234,7 +243,7 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
     setFreshEnhance(true);
     announce("Close-up widened.");
     // The tile buttons go with picking mode, so focus goes to the collage itself.
-    document.getElementById("closeups-panel")?.focus({ preventScroll: true });
+    document.getElementById(PANEL_ID)?.focus({ preventScroll: true });
   }
 
   function showKeyword(index: number) {
@@ -263,7 +272,7 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
           onKeyDown={(event) => {
             if (event.key === "Escape" && picking) {
               event.stopPropagation();
-              setPicking(false);
+              stopPicking();
             }
           }}
         >

@@ -19,7 +19,8 @@ async function openPuzzle(page: Page, { help = false } = {}) {
   if (!help) await page.addInitScript(() => window.localStorage.setItem("close-ups:help-seen", "1"));
   await page.goto("/close-ups");
   await page.getByRole("link", { name: /Test puzzle/ }).click();
-  await expect(tab(page, "Hands")).toBeVisible();
+  // Generous: the first visits to a freshly started server also warm its caches.
+  await expect(tab(page, "Hands")).toBeVisible({ timeout: 15_000 });
 }
 
 async function guess(page: Page, title: string) {
@@ -92,6 +93,9 @@ test("a game: a miss, Enter on an empty box, a skip, enhance, then the right gue
   await expect(history(page).getByRole("listitem")).toHaveText(["Jaws", "Skipped"]);
   await expect(page.getByRole("button", { name: "Skip" })).toBeFocused();
 
+  // No how-to text on screen: what Enhance does is told to screen readers only.
+  await expect(enhance(page)).not.toHaveAttribute("title");
+  await expect(enhance(page)).toHaveAccessibleDescription("Widens one close-up, once per game.");
   await enhance(page).click();
   await expect(enhance(page)).toHaveAttribute("aria-pressed", "true");
   await expect(live(page)).toHaveText("Pick a close-up to widen.");
@@ -285,7 +289,16 @@ test("playable by keyboard alone", async ({ page, isMobile }) => {
   await expect(tab(page, "Doors")).toBeFocused();
   await expect(closeUps(page, "Doors")).toHaveCount(4);
 
+  // Escape leaves picking mode from a tile and puts focus back on the badge.
   await tabTo(page, enhance(page));
+  await page.keyboard.press("Enter");
+  await expect(enhance(page)).toHaveAttribute("aria-pressed", "true");
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Doors, close-up 1 of 4" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(enhance(page)).toHaveAttribute("aria-pressed", "false");
+  await expect(enhance(page)).toBeFocused();
+
   await page.keyboard.press("Enter");
   await expect(enhance(page)).toHaveAttribute("aria-pressed", "true");
   await page.keyboard.press("Tab");

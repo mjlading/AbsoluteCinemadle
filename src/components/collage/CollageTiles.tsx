@@ -137,36 +137,47 @@ export function CollageGrid({
   );
 }
 
-/** The round magnifier where the four close-ups meet: once per game, it widens one of them. */
+export const ENHANCE_ID = "closeups-enhance";
+
+/**
+ * The round magnifier where the four close-ups meet: once per game, it widens one of them.
+ * What it does is told to screen readers only; on screen the game explains itself.
+ */
 export function EnhanceBadge({ pressed, used, onPress }: { pressed: boolean; used: boolean; onPress: () => void }) {
   return (
-    <button
-      type="button"
-      aria-label="Enhance"
-      aria-pressed={pressed}
-      title="Enhance: widen one close-up, once per game"
-      onClick={onPress}
-      tabIndex={used ? -1 : undefined}
-      data-gone={used || undefined}
-      className={`closeups-badge absolute left-1/2 top-1/2 z-10 grid size-[46px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border backdrop-blur-md hover:scale-106 focus-visible:outline-white ${
-        pressed
-          ? "border-white bg-white text-sheet"
-          : "border-white/30 bg-[rgb(16_18_22/0.55)] text-white hover:bg-[rgb(16_18_22/0.75)]"
-      }`}
-    >
-      <svg
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-        className="size-[22px]"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
+    <>
+      <span id={`${ENHANCE_ID}-hint`} className="sr-only">
+        Widens one close-up, once per game.
+      </span>
+      <button
+        id={ENHANCE_ID}
+        type="button"
+        aria-label="Enhance"
+        aria-describedby={`${ENHANCE_ID}-hint`}
+        aria-pressed={pressed}
+        onClick={onPress}
+        tabIndex={used ? -1 : undefined}
+        data-gone={used || undefined}
+        className={`closeups-badge absolute left-1/2 top-1/2 z-10 grid size-[46px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border backdrop-blur-md hover:scale-106 focus-visible:outline-white ${
+          pressed
+            ? "border-white bg-white text-sheet"
+            : "border-white/30 bg-[rgb(16_18_22/0.55)] text-white hover:bg-[rgb(16_18_22/0.75)]"
+        }`}
       >
-        <circle cx="10.5" cy="10.5" r="6.5" />
-        <path d="M15.5 15.5 21 21M8 10.5h5M10.5 8v5" />
-      </svg>
-    </button>
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          className="size-[22px]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        >
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <path d="M15.5 15.5 21 21M8 10.5h5M10.5 8v5" />
+        </svg>
+      </button>
+    </>
   );
 }
 
