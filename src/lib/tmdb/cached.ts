@@ -27,6 +27,18 @@ export async function getMovie(tmdbId: number) {
   return api.getMovie(tmdbId);
 }
 
+export async function getMovieWithCast(tmdbId: number) {
+  "use cache";
+  cacheLife("days");
+  return api.getMovieWithCast(tmdbId);
+}
+
+export async function getPerson(personId: number) {
+  "use cache";
+  cacheLife("days");
+  return api.getPerson(personId);
+}
+
 export async function getPersonProfiles(personId: number) {
   "use cache";
   cacheLife("days");

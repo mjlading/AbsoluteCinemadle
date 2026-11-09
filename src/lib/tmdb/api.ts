@@ -188,6 +188,56 @@ export async function getMovie(tmdbId: number): Promise<MovieDetails> {
   };
 }
 
+export interface MovieWithCast extends MovieSummary {
+  /** In billing order. */
+  cast: CastMember[];
+}
+
+const MovieWithCastSchema = MovieDetailsSchema.pick({
+  id: true,
+  title: true,
+  release_date: true,
+  poster_path: true,
+  vote_count: true,
+}).extend({ credits: MovieDetailsSchema.shape.credits.pick({ cast: true }) });
+
+/** A film's summary and cast, without the images and crew getMovie also fetches. */
+export async function getMovieWithCast(tmdbId: number): Promise<MovieWithCast> {
+  const m = await tmdb(`/movie/${tmdbId}`, MovieWithCastSchema, { append_to_response: "credits", language: "en-US" });
+  return {
+    tmdbId: m.id,
+    title: m.title,
+    year: yearOf(m.release_date),
+    posterPath: m.poster_path,
+    voteCount: m.vote_count,
+    cast: m.credits.cast
+      .map((c) => ({
+        personId: c.id,
+        name: c.name,
+        character: c.character ?? "",
+        profilePath: c.profile_path,
+        order: c.order,
+      }))
+      .sort((a, b) => a.order - b.order),
+  };
+}
+
+export interface Person {
+  tmdbId: number;
+  name: string;
+  profilePath: string | null;
+}
+
+/** A person's name and main profile photo. */
+export async function getPerson(personId: number): Promise<Person> {
+  const p = await tmdb(
+    `/person/${personId}`,
+    z.object({ id: z.number(), name: z.string(), profile_path: nullableString }),
+    { language: "en-US" },
+  );
+  return { tmdbId: p.id, name: p.name, profilePath: p.profile_path };
+}
+
 /** Every profile photo TMDB has for a person, most voted first, so the admin can match the film's era. */
 export async function getPersonProfiles(personId: number): Promise<ImageInfo[]> {
   const { profiles } = await tmdb(`/person/${personId}/images`, z.object({ profiles: z.array(ImageSchema) }));

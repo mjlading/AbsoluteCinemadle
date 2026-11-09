@@ -6,6 +6,7 @@ export const SITE = {
     daily: "/daily",
     keywordCollage: "/keyword-collage",
     soundbytes: "/soundbytes",
+    castingCall: "/casting-call",
   },
   /** Puzzle #1 is played on this date; numbers count up one per day from it. */
   launchDate: "2026-10-14",
