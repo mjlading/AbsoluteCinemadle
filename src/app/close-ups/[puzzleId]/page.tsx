@@ -7,17 +7,17 @@ import { SiteFooter } from "@/components/game/SiteFooter";
 import { SITE } from "@/config/site";
 
 export const metadata: Metadata = {
-  title: "Keyword collage | Absolute Cinemadle",
+  title: "Close-Ups | Absolute Cinemadle",
   description: "Guess the film from close-ups that share one keyword.",
 };
 
-export default function KeywordCollagePuzzlePage({ params }: PageProps<"/keyword-collage/[puzzleId]">) {
+export default function CloseUpsPuzzlePage({ params }: PageProps<"/close-ups/[puzzleId]">) {
   return (
     <>
       <main className="mx-auto w-full max-w-[34rem] px-4 pb-12 pt-4">
         <nav aria-label="Game navigation">
           <Link
-            href={SITE.games.keywordCollage}
+            href={SITE.games.closeUps}
             className="inline-flex min-h-11 items-center gap-2 font-semibold hover:underline"
           >
             <span aria-hidden="true">←</span> All puzzles
@@ -32,7 +32,7 @@ export default function KeywordCollagePuzzlePage({ params }: PageProps<"/keyword
   );
 }
 
-async function Puzzle({ params }: { params: PageProps<"/keyword-collage/[puzzleId]">["params"] }) {
+async function Puzzle({ params }: { params: PageProps<"/close-ups/[puzzleId]">["params"] }) {
   const { puzzleId } = await params;
   return <CollageGame puzzleId={puzzleId} />;
 }

@@ -118,7 +118,7 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm text-ink-soft">{puzzle.name}</p>
-          <h1 className="font-display text-[2.6rem] font-[900] leading-[0.85] tracking-[-0.01em]">Keyword collage</h1>
+          <h1 className="font-display text-[2.6rem] font-[900] leading-[0.85] tracking-[-0.01em]">Close-Ups</h1>
         </div>
         <button
           type="button"
@@ -505,7 +505,7 @@ function MorePuzzles({ currentId }: { currentId: string }) {
         {others.map((p) => (
           <li key={p.id}>
             <Link
-              href={`/keyword-collage/${p.id}`}
+              href={`/close-ups/${p.id}`}
               className="inline-flex min-h-11 items-center rounded-full border-[1.5px] border-ink px-5 font-semibold hover:bg-ink/5"
             >
               {p.name}

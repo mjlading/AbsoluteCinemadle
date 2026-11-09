@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 // The fixture puzzle (e2e/fixtures/keyword-collage.json): Hands free, then Doors (hard, 100), Food (medium, 200),
 // Mouths and Signs (easy, 350 each).
 async function openPuzzle(page: Page) {
-  await page.goto("/keyword-collage");
+  await page.goto("/close-ups");
   await page.getByRole("link", { name: /Test puzzle/ }).click();
   await expect(page.getByRole("heading", { name: "Hands" })).toBeVisible();
 }

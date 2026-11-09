@@ -6,11 +6,11 @@ import { KeywordCollageArtwork } from "@/components/game-modes/KeywordCollageArt
 import { SiteFooter } from "@/components/game/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "Keyword collage | Absolute Cinemadle",
+  title: "Close-Ups | Absolute Cinemadle",
   description: "A movie and series guessing game in development.",
 };
 
-export default function KeywordCollagePage() {
+export default function CloseUpsPage() {
   return (
     <>
       <main className="mx-auto w-full max-w-[62rem] px-4 pb-12 pt-4 sm:px-8">
@@ -24,7 +24,7 @@ export default function KeywordCollagePage() {
           <span className="inline-block rounded-sm bg-[var(--tier-2)] px-2 py-1 text-xs font-bold uppercase tracking-wide text-on-tape">
             In development
           </span>
-          <h1 className="mt-4 font-display text-6xl font-[900] leading-[0.85] sm:text-7xl">Keyword collage</h1>
+          <h1 className="mt-4 font-display text-6xl font-[900] leading-[0.85] sm:text-7xl">Close-Ups</h1>
           <p className="mt-4 max-w-xl text-lg leading-snug text-ink-soft">
             Guess the movie or series from a collage of close-ups. Every clue in a hint shares one keyword.
           </p>

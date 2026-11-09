@@ -2,38 +2,34 @@ import { expect, test } from "@playwright/test";
 
 import { startWarmup } from "./support/game";
 
-test("the gallery links to the existing daily puzzle and back", async ({ page }) => {
+test("the gallery shows Close-Ups and no daily puzzle card", async ({ page }) => {
   await page.goto("/");
 
-  const daily = page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Daily film puzzle" }) });
-  const collage = page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Keyword collage" }) });
-  await expect(daily).toContainText("Play now");
-  await expect(collage).toContainText("In development");
-
-  await daily.click();
-  await expect(page).toHaveURL(/\/daily$/);
-  await expect(page.getByRole("button", { name: "Start the clock" })).toBeVisible({ timeout: 15_000 });
-  await page.getByRole("link", { name: "All games" }).click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(daily).toBeVisible();
+  const closeUps = page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Close-Ups" }) });
+  await expect(closeUps).toContainText("In development");
+  await expect(page.getByRole("heading", { name: "Daily film puzzle" })).toHaveCount(0);
 });
 
-test("the collage page is reachable by keyboard and lists its puzzles", async ({ page }) => {
+test("the Close-Ups page is reachable by keyboard and lists its puzzles", async ({ page }) => {
   await page.goto("/");
-  const daily = page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Daily film puzzle" }) });
-  const collage = page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Keyword collage" }) });
+  const closeUps = page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Close-Ups" }) });
 
   await page.keyboard.press("Tab");
-  await expect(daily).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(collage).toBeFocused();
+  await expect(closeUps).toBeFocused();
   await page.keyboard.press("Enter");
 
-  await expect(page).toHaveURL(/\/keyword-collage$/);
-  await expect(page.getByRole("heading", { name: "Keyword collage" })).toBeVisible();
+  await expect(page).toHaveURL(/\/close-ups$/);
+  await expect(page.getByRole("heading", { name: "Close-Ups" })).toBeVisible();
   await expect(page.getByText("These are illustrations, not film or series images.")).toBeVisible();
   // The E2E server reads the fixture puzzle file; without one the page says it is a preview.
   await expect(page.getByRole("link", { name: /Test puzzle/ })).toBeVisible();
+});
+
+test("the old keyword collage addresses redirect", async ({ page }) => {
+  await page.goto("/keyword-collage/fixture1");
+  await expect(page).toHaveURL(/\/close-ups\/fixture1$/);
+  await page.goto("/keyword-collage");
+  await expect(page).toHaveURL(/\/close-ups$/);
 });
 
 test("daily progress survives a trip through the gallery", async ({ page }) => {
@@ -44,9 +40,7 @@ test("daily progress survives a trip through the gallery", async ({ page }) => {
   await expect(page.getByText("Mi pobre angelito")).toBeVisible();
 
   await page.getByRole("link", { name: "All games" }).click();
-  await page
-    .getByRole("link")
-    .filter({ has: page.getByRole("heading", { name: "Daily film puzzle" }) })
-    .click();
+  await expect(page).toHaveURL(/\/$/);
+  await page.goto("/daily");
   await expect(page.getByText("Mi pobre angelito")).toBeVisible();
 });

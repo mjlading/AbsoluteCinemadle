@@ -55,7 +55,7 @@ export function PuzzleList() {
         {puzzles.map((p) => (
           <li key={p.id}>
             <Link
-              href={`/keyword-collage/${p.id}`}
+              href={`/close-ups/${p.id}`}
               className="flex min-h-14 items-center justify-between gap-3 rounded-[6px] bg-surface px-4 ring-1 ring-ink/15 hover:ring-ink"
             >
               <span className="font-display text-2xl font-[850] leading-none">{p.name}</span>
