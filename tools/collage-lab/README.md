@@ -1,6 +1,6 @@
 # Collage lab
 
-Throwaway experiments for the keyword collage pipeline (see [docs/KEYWORD-COLLAGE.md](../../docs/KEYWORD-COLLAGE.md)).
+Throwaway experiments for the Close-Ups pipeline (see [docs/CLOSE-UPS.md](../../docs/CLOSE-UPS.md)).
 They compare open-vocabulary detectors on TMDB backdrops and render the candidate collages for judging by eye.
 Not part of the app; nothing here runs on Vercel.
 
@@ -92,8 +92,8 @@ Delete them when done: TMDB images must not be kept for more than 6 months, and 
 - Faces: OWLv2's "face" label misses most faces; YuNet at score 0.7 or more catches profiles and background faces.
   Even a face covering 1-4% of a crop identifies a lead (Fletcher behind a cymbal, Marty in his vest).
 - Text is a spoiler source of its own: the hotel's name on a book cover, "LOBBY BOY" on a hat, "OUTATIME" on a number plate.
-- Iconic props (the DeLorean, Marty's vest, Mendl's boxes) give a film away with no face or text; that is for the admin's point costs.
-- "hair" is a face in disguise: its boxes cover the whole head. The owner keeps it as an expensive keyword.
+- Iconic props (the DeLorean, Marty's vest, Mendl's boxes) give a film away with no face or text; that is for the admin's tier choice, which sets the reveal order.
+- "hair" is a face in disguise: its boxes cover the whole head. The owner keeps it as an easy-tier keyword, which opens late.
 - Owner's first ratings: hand, eye, mouth and ear are great keywords; neckwear crops often show too much head; blurry tiles are useless.
 - Whiplash is a poor benchmark on its own (instruments everywhere); The Godfather, Mad Max: Fury Road, Amélie and Parasite were added.
 - The Godfather with MM-Grounding-DINO: 16 keywords (hand 21, neckwear 16, mouth 8, ear 7, drinks 6...).

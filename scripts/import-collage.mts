@@ -1,5 +1,5 @@
 /**
- * Loads keyword collage puzzles exported by the collage lab
+ * Loads Close-Ups puzzles exported by the collage lab
  * (tools/collage-lab/export_demo.py) into the database, replacing all of them.
  *
  *   npm run db:import-collage -- .data/keyword-collage.json
@@ -34,4 +34,4 @@ await db.transaction(async (tx) => {
   }
 });
 await client.end();
-console.log(`Imported ${puzzles.length} keyword collage puzzle${puzzles.length === 1 ? "" : "s"}.`);
+console.log(`Imported ${puzzles.length} Close-Ups puzzle${puzzles.length === 1 ? "" : "s"}.`);

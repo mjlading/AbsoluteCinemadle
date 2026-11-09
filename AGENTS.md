@@ -9,7 +9,7 @@ Decisions taken where the spec is ambiguous live in [ASSUMPTIONS.md](ASSUMPTIONS
 All five build phases are done (grid; database, TMDB and admin editor at `/admin`; warm-up with LLM back-translations; barcode bonus round; hints, scoring, results, streaks and saved progress).
 Hosting is Vercel (Hobby) with a Neon (free) database at absolutecinemadle.fun; see "Deploy" in README.md.
 Before launch: a refresh job for `films` rows older than about 5 months, and real puzzles.
-Keyword collage is live with demo puzzles from the `collage_puzzles` table, curated in `tools/collage-lab` and loaded with `npm run db:import-collage`; it has no admin editor yet.
+Close-Ups (`/close-ups`, see docs/CLOSE-UPS.md) is live: 5 keywords per puzzle in a fixed order, 5 guesses, demo puzzles from the `collage_puzzles` table loaded with `npm run db:import-collage`; it has no admin editor yet and the daily schedule is still to come.
 Soundbytes (`/soundbytes`) has its UI on mock boards in `src/lib/soundbytes/mock-boards.ts` with generated placeholder clips; its audio pipeline is not built, and whether film audio may be hosted at all is still the owner's call (see docs/SOUNDBYTES.md).
 Casting call (`/casting-call`) is playable: cross out 8 named actors by naming films, within 5 guesses and before a 40-second bar runs out, on a fixed list of boards in `src/lib/casting-call/boards.ts` (see docs/CASTING-CALL.md).
 Update this section as that work lands.
