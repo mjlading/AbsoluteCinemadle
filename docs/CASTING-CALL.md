@@ -27,6 +27,7 @@ Who is on the board is the puzzle, so it follows the project's hard rules like t
 - Logic: `src/lib/casting-call/state.ts`, with unit tests.
 - Server: `src/lib/casting-call/handlers.ts`, routes under `src/app/api/casting-call/`.
 - UI: `src/components/casting-call/`, pages under `src/app/casting-call/`.
+- Player flows: `e2e/casting-call.spec.ts`, with TMDB stubbed apart from one real playthrough that needs a token.
 
 ## Difficulty
 
