@@ -44,7 +44,7 @@ export async function renderCollageImage(
     return { body: new Uint8Array(body), contentType: "image/webp" };
   }
   if (view === "enhanced" && image.kind === "tmdb") {
-    const crop = widenCrop(image.crop, tile.frame, RULES.keywordCollage.enhanceFactor);
+    const crop = widenCrop(image.crop, tile.frame, RULES.closeUps.enhanceFactor);
     return renderTileImage({ ...image, crop }, "large");
   }
   return renderTileImage(image.kind === "tmdb" ? { ...image, source: "backdrop" } : image, "large");
