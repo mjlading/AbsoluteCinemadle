@@ -18,11 +18,10 @@ const score = (page: Page) => page.getByTestId("score");
 const closeUps = (page: Page, keyword: string) =>
   page.getByRole("img", { name: new RegExp(`^${keyword}, close-up \\d of 4$`) });
 
-/** Opens the fixture puzzle from the list, with the first-visit help already seen unless a test asks for it. */
+/** Opens today's puzzle (the fixture's first), with the first-visit help already seen unless a test asks for it. */
 async function openPuzzle(page: Page, { help = false } = {}) {
   if (!help) await page.addInitScript(() => window.localStorage.setItem("close-ups:help-seen", "1"));
   await page.goto("/close-ups");
-  await page.getByRole("link", { name: /Test puzzle/ }).click();
   // Generous: the first visits to a freshly started server also warm its caches.
   await expect(tab(page, "Hands")).toBeVisible({ timeout: 15_000 });
 }
@@ -100,7 +99,7 @@ test("a game: a miss, Enter on an empty box, a skip, enhance, then the right gue
   await expect(page.getByRole("button", { name: "Skip" })).toBeFocused();
 
   // No how-to text on screen: what Enhance does is told to screen readers only.
-  await expect(enhance(page)).not.toHaveAttribute("title");
+  await expect(enhance(page)).toHaveAttribute("title", "Enhance");
   await expect(enhance(page)).toHaveAccessibleDescription("Widens one close-up, once per game.");
   await enhance(page).click();
   await expect(enhance(page)).toHaveAttribute("aria-pressed", "true");
@@ -119,7 +118,7 @@ test("a game: a miss, Enter on an empty box, a skip, enhance, then the right gue
   await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
   // Windows' clipboard turns line breaks into CRLF.
   const copied = (await page.evaluate(() => navigator.clipboard.readText())).replaceAll("\r\n", "\n");
-  expect(copied).toBe("Close-Ups Test puzzle 3/7\n🟥🟥🟩⬛⬛");
+  expect(copied).toMatch(/^Close-Ups (#\d+ )?3\/7\n🟥🟥🟩⬛⬛$/);
 
   // Every keyword is viewable now, and its close-ups pull back to the full frames.
   for (const keyword of KEYWORDS) {
@@ -140,11 +139,11 @@ test("the first clue wins 7 with the bonus", async ({ page }) => {
   await expect(page.getByText("+2 first clue")).toBeVisible();
   await expect(page.getByRole("heading", { name: ANSWER })).toBeFocused();
 
-  // The list marks it solved, and the game stays finished.
+  // The game stays finished, and the archive shows today's score.
   await page.reload();
   await expect(score(page)).toHaveText("7");
-  await page.getByRole("link", { name: "All puzzles" }).click();
-  await expect(page.getByRole("link", { name: /Test puzzle/ })).toContainText("Solved");
+  await page.getByRole("link", { name: "Previous days" }).last().click();
+  await expect(page.getByRole("listitem").first()).toContainText("7/7");
 });
 
 test("five misses lose, and giving up takes two presses", async ({ page }) => {
@@ -385,4 +384,24 @@ test("playable by keyboard alone", async ({ page, isMobile }) => {
   await page.keyboard.press("Enter");
   await expect(page.getByRole("img", { name: "Doors, close-up 1 of 4, enhanced" })).toBeVisible();
   await expect(enhance(page)).toHaveCount(0);
+});
+
+test("the archive lists earlier days, and no day ahead of the player's opens", async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem("close-ups:help-seen", "1"));
+  await page.goto("/close-ups/archive");
+  const days = page.getByRole("listitem");
+  await expect(days).toHaveCount(2);
+  await expect(days.first()).toContainText("Today");
+
+  // Yesterday's puzzle plays at its own address.
+  await days.nth(1).getByRole("link").click();
+  await expect(page).toHaveURL(/\/close-ups\/\d{4}-\d{2}-\d{2}$/);
+  await expect(tab(page, "Hands")).toBeVisible();
+
+  // A day that hasn't come yet stays closed, in the page and in the API.
+  await page.goto("/close-ups/2999-01-01");
+  await expect(page.getByText("That day hasn't come yet.")).toBeVisible();
+  expect((await page.request.get("/api/collage/day/2999-01-01")).status()).toBe(404);
+  const { days: listed } = await (await page.request.get("/api/collage")).json();
+  expect(listed).toHaveLength(2);
 });

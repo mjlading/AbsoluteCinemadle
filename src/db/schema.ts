@@ -166,6 +166,8 @@ export const collagePuzzles = pgTable("collage_puzzles", {
   name: text("name").notNull(),
   /** Order in the puzzle list. */
   position: smallint("position").notNull(),
+  /** The day this is Close-Ups' daily puzzle (YYYY-MM-DD); undated puzzles (the old demos) are never shown. */
+  date: date("date", { mode: "string" }).unique(),
   answer: jsonb("answer").$type<CollagePuzzle["answer"]>().notNull(),
   keywords: jsonb("keywords").$type<CollageKeyword[]>().notNull(),
   syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),

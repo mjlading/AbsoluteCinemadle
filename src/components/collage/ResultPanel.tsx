@@ -7,27 +7,20 @@ import { useEffect, useRef, useState } from "react";
 import { POINTS } from "@/config/scoring";
 import { SITE } from "@/config/site";
 import { collageScore, currentRound, isFirstClueWin, maxCollageScore, type CollageState } from "@/lib/collage/state";
+import { closeUpsTitle } from "@/lib/collage/day";
 import type { PublicCollagePuzzle } from "@/lib/collage/types";
 
-/** The share text: name and score, then one square per keyword (used, solved, not reached). */
+/** The share text: the day's number and score, then one square per keyword (used, solved, not reached). */
 export function collageShareText(puzzle: PublicCollagePuzzle, state: CollageState): string {
   const round = currentRound(state);
   const squares = puzzle.keywords
     .map((_, i) => (state.status !== "won" || i < round ? "🟥" : i === round ? "🟩" : "⬛"))
     .join("");
-  return `Close-Ups ${puzzle.name} ${collageScore(state)}/${maxCollageScore()}\n${squares}`;
+  return `${closeUpsTitle(puzzle.date)} ${collageScore(state)}/${maxCollageScore()}\n${squares}`;
 }
 
 /** Takes the guess row's place once the game is over: the film, the score, Share and the way on. */
-export function ResultPanel({
-  puzzle,
-  state,
-  nextPuzzleId,
-}: {
-  puzzle: PublicCollagePuzzle;
-  state: CollageState;
-  nextPuzzleId: string | null;
-}) {
+export function ResultPanel({ puzzle, state }: { puzzle: PublicCollagePuzzle; state: CollageState }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [copied, setCopied] = useState<"yes" | "failed" | null>(null);
   const { answer } = state;
@@ -109,10 +102,10 @@ export function ResultPanel({
           {copied === "yes" ? "Copied" : copied === "failed" ? "Couldn't copy" : "Share"}
         </button>
         <Link
-          href={nextPuzzleId ? `${SITE.games.closeUps}/${nextPuzzleId}` : SITE.games.closeUps}
+          href={SITE.games.closeUpsArchive}
           className="grid h-12 flex-1 place-items-center rounded-xl bg-ink/7 font-condensed text-[17px] font-extrabold tracking-[0.02em] transition-colors hover:bg-ink/12"
         >
-          {nextPuzzleId ? "Next puzzle" : "More puzzles"}
+          Previous days
         </Link>
       </div>
     </section>

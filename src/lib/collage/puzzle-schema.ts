@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { RULES } from "@/config/rules";
+import { isIsoDate } from "@/lib/dates";
 import { revealOrder } from "./order";
 import { COLLAGE_TIERS, type CollagePuzzle } from "./types";
 
@@ -57,6 +58,8 @@ export const CollageKeywordsSchema = z
 export const CollagePuzzleSchema = z.object({
   id: Id,
   name: z.string().min(1).max(60),
+  /** The day it is the daily puzzle; left out (or null) for an undated one. */
+  date: z.string().refine(isIsoDate, "Dates are YYYY-MM-DD.").nullable().default(null),
   answer: CollageAnswerSchema,
   keywords: CollageKeywordsSchema,
 });

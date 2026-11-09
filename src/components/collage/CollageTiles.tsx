@@ -141,7 +141,7 @@ export const ENHANCE_ID = "closeups-enhance";
 
 /**
  * The round magnifier where the four close-ups meet: once per game, it widens one of them.
- * What it does is told to screen readers only; on screen the game explains itself.
+ * On hover it shows only its name; what it does is told to screen readers only.
  */
 export function EnhanceBadge({ pressed, used, onPress }: { pressed: boolean; used: boolean; onPress: () => void }) {
   return (
@@ -153,6 +153,7 @@ export function EnhanceBadge({ pressed, used, onPress }: { pressed: boolean; use
         id={ENHANCE_ID}
         type="button"
         aria-label="Enhance"
+        title="Enhance"
         aria-describedby={`${ENHANCE_ID}-hint`}
         aria-pressed={pressed}
         onClick={onPress}

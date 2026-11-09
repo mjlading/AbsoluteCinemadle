@@ -156,10 +156,16 @@ body {
 .closeups-group {
   /* The strip (36px), its gap (8px) and the board's padding (8px all round), on top of the square grid. */
   --board-chrome: 44px;
-  /* Whatever sits under the board, at its tallest: the result panel (with a two-line title) and its gap. */
-  --board-below: 155px;
-  --board: max(240px, min(100cqw, 100cqh - var(--board-chrome) - var(--board-below), 600px));
+  /* What sits under the board and its gap: the guess row and history while playing (52 + 12 + 30 + 12). */
+  --board-below: 106px;
+  --board: max(240px, min(100cqw, 100cqh - var(--board-chrome) - var(--board-below), 720px));
   width: var(--board);
+  transition: width 450ms cubic-bezier(0.3, 0.8, 0.2, 1);
+}
+
+/* The result panel (with a two-line title) is taller, so a finished board eases back to make room. */
+.closeups-group[data-over] {
+  --board-below: 155px;
 }
 
 /* Labels shrink with the board, so five fit in a row down to the smallest board. */

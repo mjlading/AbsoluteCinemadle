@@ -32,7 +32,7 @@ python blur.py whiplash           # blur calibration sheet: crops sorted by seve
 python review.py                  # blind review page on http://localhost:8765; `python review.py score` for results
 python ab.py                      # blind A/B of SAM 3 vs MM-DINO, 20 pairs, on http://localhost:8766; `python ab.py score`
 python pick_demo.py 3              # picks well-known films at random as demo-1..3, without printing them
-python export_demo.py             # curated keywords (images/demo-curation.json) -> .data/keyword-collage.json (gitignored)
+python export_demo.py             # curated keywords and dates (images/demo-curation.json) -> .data/keyword-collage.json (gitignored)
 # then, from the repo root: npm run db:import-collage -- .data/keyword-collage.json
 python sheet.py whiplash          # thumbnails of all fetched frames
 node count-backdrops.mjs          # backdrop counts for a sample of films and series

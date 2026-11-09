@@ -9,7 +9,7 @@ const puzzle = fixture.puzzles[0];
 
 describe("collage puzzle schema", () => {
   it("accepts the E2E fixture", () => {
-    expect(CollageExportSchema.parse(fixture).puzzles).toHaveLength(1);
+    expect(CollageExportSchema.parse(fixture).puzzles).toHaveLength(2);
   });
 
   it("needs exactly one free keyword", () => {

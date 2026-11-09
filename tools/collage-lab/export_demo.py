@@ -4,9 +4,10 @@ Load it with `npm run db:import-collage -- .data/keyword-collage.json` from the 
 
 The curation file (images/demo-curation.json, gitignored) is what the admin decides per film:
 which report rows become keywords, their display label, their tier (which sets the point cost) and
-which one is the free starter. For example:
+which one is the free starter, and the day it is the daily Close-Ups puzzle ("date", YYYY-MM-DD;
+leave it out for an undated puzzle, which players never see). For example:
 
-  {"demo-1": {"name": "Demo 1", "keywords": [
+  {"demo-1": {"name": "Day 1", "date": "2026-11-10", "keywords": [
      {"label": "Hands", "tier": "hard", "free": true, "source": "mmdino", "row": "hand"},
      {"label": "Food", "tier": "medium", "source": "sam3", "row": "food", "skip": ["031.jpg"]}]}}
 
@@ -59,6 +60,7 @@ for slug, spec in curation.items():
     puzzles.append({
         "id": new_id(8),
         "name": spec["name"],
+        "date": spec.get("date"),
         "answer": {"tmdbId": film["id"], "title": film["title"], "originalTitle": film.get("original_title"),
                    "year": year, "posterPath": film.get("poster_path")},
         "keywords": keywords,
