@@ -217,6 +217,7 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
     if (!playing || pending.current) return;
     if (round === last && !confirmGiveUp) {
       setConfirmGiveUp(true);
+      announce("Press again to give up.");
       return;
     }
     apply({ type: "skip" });

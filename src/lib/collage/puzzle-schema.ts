@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 import { RULES } from "@/config/rules";
-import { COLLAGE_TIERS } from "./types";
+import { revealOrder } from "./order";
+import { COLLAGE_TIERS, type CollagePuzzle } from "./types";
 
 /*
  * The shape of a keyword collage puzzle, checked when the collage lab's export
@@ -59,6 +60,15 @@ export const CollagePuzzleSchema = z.object({
   answer: CollageAnswerSchema,
   keywords: CollageKeywordsSchema,
 });
+
+/**
+ * A stored puzzle as the server hands it to the game: checked, with its keywords
+ * in reveal order and cut to the number a puzzle uses.
+ */
+export function readCollagePuzzle(stored: unknown): CollagePuzzle {
+  const puzzle = CollagePuzzleSchema.parse(stored);
+  return { ...puzzle, keywords: revealOrder(puzzle.keywords) };
+}
 
 /** The file the collage lab exports (tools/collage-lab/export_demo.py). */
 export const CollageExportSchema = z.object({ puzzles: z.array(CollagePuzzleSchema) });

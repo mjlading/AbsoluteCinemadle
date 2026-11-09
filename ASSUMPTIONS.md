@@ -39,6 +39,7 @@ Each entry says what was decided and why, so it can be revisited.
 - Guards against losing a guess by accident: Enter in an empty guess box does nothing, so a Skip always takes a press of the Skip button.
   "Give up" on the last keyword needs a second press (the button reads "Give up?" for about 3 seconds).
   There is no separate give-up link; quitting early means skipping to the end.
+  While a guess is being checked the Guess button shows a spinner and ignores presses, and a Skip pressed within half a second of a guess settling is ignored, so a double tap on Guess can never become a Skip.
 - Repeating a guess (ignoring case, accents and punctuation) is turned away for free, by shaking the guess row and pulsing the matching history chip.
 - Guesses match like the warm-up: a film picked from the suggestions, or a typed English or original title with the same typo tolerance.
 - "Enhance" is free and once per game: it widens one close-up by 50%, rendered on the server like every crop.
@@ -54,6 +55,8 @@ Each entry says what was decided and why, so it can be revisited.
 - Progress is saved per puzzle in localStorage under `close-ups:<id>`.
   The saved state changed shape, so old `collage:<id>` entries are ignored.
 - Pages showing collages carry the line "Film stills belong to their copyright holders."
+- The compact footer wraps to about 3 lines at 390 px, because TMDB's attribution wording is fixed.
+  That costs nothing there, since the board on a phone is limited by its width, not the height left.
 
 ## Soundbytes
 
@@ -72,7 +75,7 @@ Each entry says what was decided and why, so it can be revisited.
 - Giving up is a hold on the white flag too, so it can't happen by accident.
 - The headphones cover is remembered per board once dismissed; the first-visit hand hint is remembered once for the whole site.
 - Progress is saved per board in localStorage under `soundbytes:<id>`.
-- The game-over card is Close-Ups' earlier one: the film, its poster and the numbers, then the board stays up with every node playing its real clip.
+- The game-over card is the one the keyword collage had before the Close-Ups redesign: the film, its poster and the numbers, then the board stays up with every node playing its real clip.
   Soundbytes has no share text yet.
 - The characters move to the playing clip's loudness, measured by routing the audio through Web Audio; Safari 17+ is told the page plays media, so the iPhone's silent switch does not mute it.
   Where Web Audio is unavailable the clip still plays and the characters follow a made-up speech rhythm.

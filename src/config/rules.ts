@@ -1,3 +1,6 @@
+/** Close-Ups gives one guess per keyword, so the two counts below must stay equal. */
+const CLOSE_UPS_KEYWORDS = 5;
+
 /** Game rules that are not point values (those live in scoring.ts). */
 export const RULES = {
   grid: {
@@ -13,9 +16,9 @@ export const RULES = {
   },
   closeUps: {
     /** Keywords in one puzzle; each miss or skip opens the next. */
-    keywordsPerPuzzle: 5,
-    /** Guesses per game; a skip uses one, and the game is lost when they run out. */
-    maxGuesses: 5,
+    keywordsPerPuzzle: CLOSE_UPS_KEYWORDS,
+    /** Guesses per game, one per keyword; a skip uses one, and the game is lost when they run out. */
+    maxGuesses: CLOSE_UPS_KEYWORDS,
     /** Close-ups in one keyword's collage, shown as a 2x2 grid. */
     tilesPerCollage: 4,
     /** "Enhance" widens one tile's crop per game, by this factor. */

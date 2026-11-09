@@ -4,10 +4,14 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 // and Signs, in that order; the film is Back to the Future.
 const ANSWER = "Back to the Future";
 const KEYWORDS = ["Hands", "Doors", "Food", "Mouths", "Signs"];
+// What the game keys its saved progress to: every tile id, in reveal order (four per keyword).
+const SIGNATURE = Array.from({ length: 20 }, (_, i) => `fixturetile${String(i + 1).padStart(2, "0")}`).join(",");
 
 const tab = (page: Page, name: string) => page.getByRole("tab", { name, exact: true });
 const guessBox = (page: Page) => page.getByRole("combobox", { name: /^Name the film/ });
 const history = (page: Page) => page.getByRole("list", { name: "Your guesses" });
+/** The one button beside the guess box: Skip while it is empty, Guess once there is text. */
+const guessButton = (page: Page) => page.locator("form").getByRole("button");
 const live = (page: Page) => page.getByRole("status");
 const enhance = (page: Page) => page.getByRole("button", { name: "Enhance", exact: true });
 const score = (page: Page) => page.getByTestId("score");
@@ -77,6 +81,8 @@ test("a game: a miss, Enter on an empty box, a skip, enhance, then the right gue
   await expectRound(page, "Hands");
   await expect(closeUps(page, "Hands")).toHaveCount(4);
   await expect(page.getByRole("button", { name: "Skip" })).toBeVisible();
+  // No empty list before the first miss.
+  await expect(history(page)).toHaveCount(0);
 
   await guess(page, "Jaws");
   await expectRound(page, "Doors");
@@ -151,6 +157,7 @@ test("five misses lose, and giving up takes two presses", async ({ page }) => {
 
   await page.getByRole("button", { name: "Give up", exact: true }).click();
   await expect(page.getByRole("button", { name: "Give up?" })).toBeVisible();
+  await expect(live(page)).toHaveText("Press again to give up.");
   await expect(tab(page, "Signs")).toHaveAttribute("data-state", "current");
   await expect(page.getByRole("heading", { name: ANSWER })).toHaveCount(0);
 
@@ -172,15 +179,24 @@ test("a repeated guess costs nothing", async ({ page }) => {
 });
 
 test("a reload mid-game resumes, and an old saved game is ignored", async ({ page }) => {
-  await page.addInitScript(() =>
-    window.localStorage.setItem(
-      "collage:fixture1",
-      JSON.stringify({
-        v: 1,
-        signature: "old",
-        state: { unlocked: ["kwhands", "kwfood"], guesses: [{ text: "Up", correct: false }], status: "lost" },
-      }),
-    ),
+  // The old key, holding a finished game in the old shape, for the very same tiles: only the new key keeps it out.
+  await page.addInitScript(
+    (signature) =>
+      window.localStorage.setItem(
+        "collage:fixture1",
+        JSON.stringify({
+          v: 1,
+          signature,
+          state: {
+            unlocked: ["kwhands", "kwfood"],
+            guesses: [{ text: "Up", correct: false }],
+            enhanced: null,
+            status: "lost",
+            answer: null,
+          },
+        }),
+      ),
+    SIGNATURE,
   );
   await openPuzzle(page);
   await expectRound(page, "Hands");
@@ -215,6 +231,69 @@ test("a double submit spends one guess", async ({ page }) => {
   await expectRound(page, "Doors");
   await expect(history(page).getByRole("listitem")).toHaveCount(1);
   expect(requests).toBe(1);
+});
+
+/** Holds every guess for a moment, so a test can press again while it is being checked. */
+async function slowGuesses(page: Page) {
+  await page.route("**/api/collage/*/guess", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    await route.continue();
+  });
+}
+
+/** One guess was spent on Jaws and nothing else: no skip slipped in. */
+async function expectOnlyJawsSpent(page: Page) {
+  await expectRound(page, "Doors");
+  await expect(history(page).getByRole("listitem")).toHaveText(["Jaws"]);
+  await expect(tab(page, "Food")).toHaveAttribute("data-state", "locked");
+}
+
+test("a double tap on Guess held across the answer is not a Skip", async ({ page }) => {
+  await openPuzzle(page);
+  await slowGuesses(page);
+  await guessBox(page).fill("Jaws");
+  await guessButton(page).click();
+  await expect(guessButton(page)).toHaveAttribute("aria-busy", "true");
+  await expect(guessButton(page)).toHaveAttribute("aria-disabled", "true");
+  await expect(guessBox(page)).toBeEnabled();
+
+  // A tap while the guess is checked does nothing.
+  await guessButton(page).click({ force: true });
+
+  // A tap that lands while checking and lifts once the button reads Skip (well past the double-tap window).
+  const box = (await guessButton(page).boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await expect(guessButton(page)).toHaveText("Skip");
+  await page.waitForTimeout(600);
+  await page.mouse.up();
+  await expectOnlyJawsSpent(page);
+});
+
+test("a second tap on Guess right as the answer comes in is not a Skip", async ({ page }) => {
+  await openPuzzle(page);
+  await slowGuesses(page);
+  await guessBox(page).fill("Jaws");
+  await guessButton(page).click();
+  await expect(guessButton(page)).toHaveAttribute("aria-busy", "true");
+  // Press the very moment the button turns into Skip, as the second half of a double tap would.
+  await guessButton(page).evaluate(
+    (button) =>
+      new Promise<void>((resolve) => {
+        new MutationObserver((_, observer) => {
+          if (button.textContent !== "Skip") return;
+          observer.disconnect();
+          (button as HTMLButtonElement).click();
+          resolve();
+        }).observe(button, { subtree: true, childList: true, characterData: true });
+      }),
+  );
+  await expectOnlyJawsSpent(page);
+
+  // Once the moment has passed, Skip works.
+  await page.waitForTimeout(600);
+  await guessButton(page).click();
+  await expectRound(page, "Food");
 });
 
 test("fits one screen", async ({ page }) => {

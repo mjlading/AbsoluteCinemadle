@@ -5,6 +5,8 @@ import type { CollageState } from "@/lib/collage/state";
  * "Skipped". Each chip carries its guess's index, so a repeat can pulse it.
  */
 export function GuessHistory({ guesses }: { guesses: CollageState["guesses"] }) {
+  // Before the first miss there is nothing to list, but the row keeps its height so the layout holds still.
+  if (!guesses.some((guess) => !guess.correct)) return <div aria-hidden="true" className="h-[30px]" />;
   return (
     <ul aria-label="Your guesses" className="flex h-[30px] items-center justify-center gap-1.5 overflow-hidden">
       {guesses.map((guess, index) =>

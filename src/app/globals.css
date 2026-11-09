@@ -156,8 +156,8 @@ body {
 .closeups-group {
   /* The strip (36px), its gap (8px) and the board's padding (8px all round), on top of the square grid. */
   --board-chrome: 44px;
-  /* Whatever sits under the board, at its tallest: the result panel with its gap. */
-  --board-below: 141px;
+  /* Whatever sits under the board, at its tallest: the result panel (with a two-line title) and its gap. */
+  --board-below: 155px;
   --board: max(240px, min(100cqw, 100cqh - var(--board-chrome) - var(--board-below), 600px));
   width: var(--board);
 }
