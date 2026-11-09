@@ -9,12 +9,12 @@ export default function Home() {
       <main className="mx-auto w-full max-w-[62rem] px-4 pb-12 pt-12 sm:px-8 sm:pt-20">
         {/* The name's meme as a logo: the caption stacked small over big, between two raised hands. */}
         <header className="flex items-center justify-center gap-3 sm:gap-6">
-          <RaisedHand mirror className="w-12 shrink-0 -rotate-12 text-ink sm:w-[4.5rem]" />
+          <RaisedHand side="left" className="w-12 shrink-0 -rotate-12 text-ink sm:w-[4.5rem]" />
           <h1 className="text-center font-display font-[900] uppercase leading-[0.8] tracking-[0.01em] text-ink">
             <span className="block text-2xl tracking-[0.18em] sm:text-4xl">Absolute</span>
             <span className="block text-6xl sm:text-8xl">Cinemadle</span>
           </h1>
-          <RaisedHand className="w-12 shrink-0 rotate-12 text-ink sm:w-[4.5rem]" />
+          <RaisedHand side="right" className="w-12 shrink-0 rotate-12 text-ink sm:w-[4.5rem]" />
         </header>
 
         <section aria-label="Games" className="mt-12 sm:mt-16">
