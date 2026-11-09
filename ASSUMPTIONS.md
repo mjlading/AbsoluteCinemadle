@@ -180,3 +180,18 @@ Each entry says what was decided and why, so it can be revisited.
 
 - E2E tests run against a production build and a separate `cinemadle_test` database that is wiped and seeded on each run.
 - Admin tests that need TMDB skip themselves when no `TMDB_READ_ACCESS_TOKEN` is available.
+
+## Casting call
+
+- The game is called "Casting call" and lives at `/casting-call`, with a list of boards and one board per page, like Soundbytes; boards are a fixed list in `src/lib/casting-call/boards.ts`.
+- Faces are blurred before Start and names are not sent at all; the names are only fetched when Start is pressed, so the clock is running once they're known. The blur is CSS only, so the picture itself is still reachable by someone digging in the browser, which only spoils their own game.
+- The 5-guess limit stayed when the 40-second bar was added; the owner's brief for the bar didn't remove it.
+- A film refills the bar if anyone from the board is in it, including actors already crossed out; a film with nobody from the board doesn't.
+- The bar keeps running across a reload, since its deadline is saved; time spent waiting for the server to check a film isn't charged.
+- Any credited role in a film counts, however small: the player named a film the actor is in.
+- Names are TMDB's spelling of the person, not the film's credit, and actors are matched by TMDB person id.
+- A guess that finds nobody new still uses a guess.
+- There are no points: the result is the number of guesses used, so nothing needs adding to `scoring.ts`.
+- Progress is saved per board in localStorage under `casting-call:<id>`, so a reload resumes; the board list shows "Solved in N".
+- Faces are 320-pixel squares cropped from the top of the TMDB profile photo, cached for a day (face ids are positions, so a board edit reuses them).
+- The "no film covers more than two or three actors" aim for boards applies to ordinary films; the 2012 collage film "Final Cut: Ladies and Gentlemen" credits up to five actors on one board, and is left as a lucky find.

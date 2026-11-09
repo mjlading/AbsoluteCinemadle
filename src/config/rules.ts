@@ -26,4 +26,12 @@ export const RULES = {
     /** How long a press must last to buy a node or remove a disguise. */
     holdMs: 700,
   },
+  castingCall: {
+    /** Actors' faces on a board. */
+    faceCount: 8,
+    /** Film guesses per board; crossing out every face within them wins. */
+    maxGuesses: 5,
+    /** The bar's length; it starts on Start and refills on any film with someone from the board. */
+    timeLimitSeconds: 40,
+  },
 } as const;
