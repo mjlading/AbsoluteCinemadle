@@ -32,8 +32,7 @@ export function initialCollageState(): CollageState {
 const missesAndSkips = (state: CollageState) => state.guesses.filter((g) => !g.correct).length;
 
 /** The 0-based index of the open keyword: one more for every miss or skip. */
-export const currentRound = (state: CollageState) =>
-  Math.min(missesAndSkips(state), RULES.closeUps.maxGuesses - 1);
+export const currentRound = (state: CollageState) => Math.min(missesAndSkips(state), RULES.closeUps.maxGuesses - 1);
 
 export const guessesLeft = (state: CollageState) => RULES.closeUps.maxGuesses - missesAndSkips(state);
 

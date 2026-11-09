@@ -16,8 +16,7 @@ import {
 } from "./state";
 
 const answer = { title: "A Film", year: 2000, posterUrl: null };
-const play = (...actions: CollageAction[]) =>
-  actions.reduce<CollageState>(collageReducer, initialCollageState());
+const play = (...actions: CollageAction[]) => actions.reduce<CollageState>(collageReducer, initialCollageState());
 const wrong = (text: string): CollageAction => ({ type: "guess", text, correct: false });
 const right: CollageAction = { type: "guess", text: "A Film", correct: true, answer };
 const skip: CollageAction = { type: "skip" };

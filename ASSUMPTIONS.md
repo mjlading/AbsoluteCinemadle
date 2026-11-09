@@ -33,7 +33,7 @@ Each entry says what was decided and why, so it can be revisited.
   Keywords past the fifth are dropped there, so their pictures are never served; the demo puzzles have 6 keywords and lose their most revealing one.
 - The player has 5 guesses, one per keyword.
   A wrong guess or a Skip uses one and opens the next keyword; the game is lost when they run out.
-- The score is `6 - n` for a win on guess *n*, plus 2 for a win on the first guess (7, 4, 3, 2, 1), and 0 for a loss.
+- The score is `6 - n` for a win on guess _n_, plus 2 for a win on the first guess (7, 4, 3, 2, 1), and 0 for a loss.
   There are no costs: no starting 1000 points, no unlock prices, no price for a wrong guess.
   The numbers live in `scoring.ts` and `rules.ts`; keyword tiers stay in the data for curation and ordering only.
 - Guards against losing a guess by accident: Enter in an empty guess box does nothing, so a Skip always takes a press of the Skip button.

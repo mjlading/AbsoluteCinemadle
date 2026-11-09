@@ -22,7 +22,7 @@ The 2026-11 redesign (rules, score, layout) is recorded in `docs/superpowers/spe
 
 ## Score
 
-- Solving on guess *n* (1 to 5) scores `6 - n`; solving on the first guess adds a bonus of 2, so the scores are 7, 4, 3, 2 and 1.
+- Solving on guess _n_ (1 to 5) scores `6 - n`; solving on the first guess adds a bonus of 2, so the scores are 7, 4, 3, 2 and 1.
 - A loss scores 0.
 - The numbers live in `src/config/scoring.ts` (`closeUps`) and `src/config/rules.ts` (`closeUps`).
 - The share text is the puzzle name, the score out of 7 and one square per keyword: red for a used keyword, green for the one solved on, black for one never reached.
