@@ -1,7 +1,7 @@
 import type { Crop, TileImage } from "@/lib/puzzle/types";
 
 /**
- * How much a keyword's close-ups give the film away, which sets its unlock cost:
+ * How much a keyword's close-ups give the film away, which sets where it falls in the reveal order:
  * hard keywords are atmospheric (hands, doors, chairs), medium ones contextual
  * (vehicles, food, guns), easy ones close to the characters (mouths, hair, signs).
  */
@@ -43,7 +43,7 @@ export interface CollagePuzzle {
     year: number | null;
     posterPath: string | null;
   };
-  /** In clue-board order; the free keyword comes first. */
+  /** In reveal order (see order.ts), exactly keywordsPerPuzzle of them. */
   keywords: CollageKeyword[];
 }
 
@@ -61,10 +61,6 @@ export interface PublicCollageTile {
 export interface PublicCollageKeyword {
   id: string;
   label: string;
-  tier: CollageTier;
-  /** Points it costs to unlock (0 for the free one), from the scoring config. */
-  cost: number;
-  free: boolean;
   tiles: PublicCollageTile[];
 }
 

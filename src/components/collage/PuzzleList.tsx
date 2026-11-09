@@ -21,7 +21,7 @@ export function PuzzleList() {
         const marks: Record<string, string> = {};
         for (const p of puzzles) {
           try {
-            const raw = window.localStorage.getItem(`collage:${p.id}`);
+            const raw = window.localStorage.getItem(`close-ups:${p.id}`);
             const status = raw ? (JSON.parse(raw) as { state?: { status?: string } }).state?.status : undefined;
             if (status) marks[p.id] = status === "playing" ? "In progress" : status === "won" ? "Solved" : "Finished";
           } catch {
@@ -55,7 +55,7 @@ export function PuzzleList() {
         {puzzles.map((p) => (
           <li key={p.id}>
             <Link
-              href={`/keyword-collage/${p.id}`}
+              href={`/close-ups/${p.id}`}
               className="flex min-h-14 items-center justify-between gap-3 rounded-[6px] bg-surface px-4 ring-1 ring-ink/15 hover:ring-ink"
             >
               <span className="font-display text-2xl font-[850] leading-none">{p.name}</span>

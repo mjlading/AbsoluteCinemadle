@@ -4,110 +4,88 @@ import { RULES } from "@/config/rules";
 import { POINTS } from "@/config/scoring";
 import {
   alreadyGuessed,
-  canUnlock,
   collageReducer,
   collageScore,
+  currentRound,
   guessesLeft,
   initialCollageState,
-  unlockCost,
+  isFirstClueWin,
+  maxCollageScore,
   type CollageAction,
   type CollageState,
 } from "./state";
-import type { CollageTier, PublicCollagePuzzle } from "./types";
 
-const keyword = (id: string, tier: CollageTier, free = false) => ({
-  id,
-  label: id,
-  tier,
-  free,
-  cost: free ? 0 : unlockCost(tier),
-  tiles: [1, 2, 3, 4].map((n) => ({ id: `${id}-${n}`, number: n, imageUrl: "", enhancedUrl: "" })),
-});
-
-const puzzle: PublicCollagePuzzle = {
-  id: "p1",
-  name: "Demo 1",
-  keywords: [
-    keyword("hands", "hard", true),
-    keyword("doors", "hard"),
-    keyword("food", "medium"),
-    keyword("mouths", "easy"),
-  ],
-};
 const answer = { title: "A Film", year: 2000, posterUrl: null };
-const play = (...actions: CollageAction[]) =>
-  actions.reduce<CollageState>(collageReducer(puzzle), initialCollageState(puzzle));
+const play = (...actions: CollageAction[]) => actions.reduce<CollageState>(collageReducer, initialCollageState());
 const wrong = (text: string): CollageAction => ({ type: "guess", text, correct: false });
+const right: CollageAction = { type: "guess", text: "A Film", correct: true, answer };
+const skip: CollageAction = { type: "skip" };
+const misses = (n: number): CollageAction[] => Array.from({ length: n }, (_, i) => wrong(`Film ${i}`));
 
-describe("keyword collage state", () => {
-  it("starts with only the free keyword open and the full points", () => {
+describe("Close-Ups state", () => {
+  it("starts on the first keyword with 5 guesses and nothing enhanced", () => {
     const state = play();
-    expect(state.unlocked).toEqual(["hands"]);
-    expect(collageScore(puzzle, state)).toBe(POINTS.keywordCollage.start);
-    expect(guessesLeft(state)).toBe(RULES.keywordCollage.maxGuesses);
-  });
-
-  it("charges each keyword's tier cost once", () => {
-    const state = play({ type: "unlock", keywordId: "food" }, { type: "unlock", keywordId: "food" });
-    expect(state.unlocked).toEqual(["hands", "food"]);
-    expect(collageScore(puzzle, state)).toBe(POINTS.keywordCollage.start + POINTS.keywordCollage.unlock.medium);
-  });
-
-  it("charges wrong guesses and ignores a repeated one", () => {
-    const state = play(wrong("Alien"), wrong("alien!"), wrong("Heat"));
-    expect(state.guesses.map((g) => g.text)).toEqual(["Alien", "Heat"]);
-    expect(collageScore(puzzle, state)).toBe(POINTS.keywordCollage.start + 2 * POINTS.keywordCollage.perWrongGuess);
-    expect(alreadyGuessed(state, "ALIEN")).toBe(true);
-  });
-
-  it("is won by a right guess, keeping the points left", () => {
-    const state = play({ type: "unlock", keywordId: "doors" }, wrong("Heat"), {
-      type: "guess",
-      text: "A Film",
-      correct: true,
-      answer,
-    });
-    expect(state.status).toBe("won");
-    expect(state.answer).toEqual(answer);
-    expect(collageScore(puzzle, state)).toBe(
-      POINTS.keywordCollage.start + POINTS.keywordCollage.unlock.hard + POINTS.keywordCollage.perWrongGuess,
-    );
-  });
-
-  it("is lost after the last wrong guess, and a lost game scores zero", () => {
-    const guesses = Array.from({ length: RULES.keywordCollage.maxGuesses }, (_, i) => wrong(`Film ${i}`));
-    const state = play(...guesses);
-    expect(state.status).toBe("lost");
-    expect(collageScore(puzzle, state)).toBe(0);
-    expect(play(...guesses, { type: "guess", text: "A Film", correct: true, answer }).status).toBe("lost");
-  });
-
-  it("can be given up, and nothing changes after that", () => {
-    const state = play(
-      { type: "give_up" },
-      { type: "unlock", keywordId: "doors" },
-      { type: "enhance", tileId: "hands-1" },
-    );
-    expect(state.status).toBe("lost");
-    expect(state.unlocked).toEqual(["hands"]);
+    expect(currentRound(state)).toBe(0);
+    expect(guessesLeft(state)).toBe(RULES.closeUps.maxGuesses);
+    expect(state.status).toBe("playing");
     expect(state.enhanced).toBeNull();
   });
 
-  it("allows one enhance per game", () => {
-    const state = play({ type: "enhance", tileId: "hands-1" }, { type: "enhance", tileId: "hands-2" });
-    expect(state.enhanced).toBe("hands-1");
+  it("a miss or a skip opens the next keyword", () => {
+    const state = play(wrong("Jaws"), skip);
+    expect(currentRound(state)).toBe(2);
+    expect(guessesLeft(state)).toBe(RULES.closeUps.maxGuesses - 2);
+    expect(state.guesses).toEqual([
+      { text: "Jaws", correct: false },
+      { text: null, correct: false },
+    ]);
   });
 
-  it("refuses a keyword the player can no longer afford", () => {
-    const rich = { ...puzzle, keywords: [...puzzle.keywords, keyword("hair", "easy"), keyword("signs", "easy")] };
-    const reduce = collageReducer(rich);
-    let state = initialCollageState(rich);
-    for (const id of ["mouths", "hair", "food"]) state = reduce(state, { type: "unlock", keywordId: id });
-    // 1000 - 350 - 350 - 200 = 100 left: a 100-point keyword fits, a 350-point one does not.
-    expect(collageScore(rich, state)).toBe(100);
-    expect(canUnlock(rich, state, "signs")).toBe(false);
-    expect(canUnlock(rich, state, "doors")).toBe(true);
-    state = reduce(state, { type: "unlock", keywordId: "signs" });
-    expect(state.unlocked).not.toContain("signs");
+  it("scores 7 on the first clue, then 4, 3, 2, 1", () => {
+    const scores = [0, 1, 2, 3, 4].map((n) => collageScore(play(...misses(n), right)));
+    expect(scores).toEqual([7, 4, 3, 2, 1]);
+    expect([0, 1, 2, 3, 4].map((n) => isFirstClueWin(play(...misses(n), right)))).toEqual([
+      true,
+      false,
+      false,
+      false,
+      false,
+    ]);
+  });
+
+  it("is lost on the fifth miss or skip and scores 0", () => {
+    const state = play(...misses(4), skip);
+    expect(state.status).toBe("lost");
+    expect(collageScore(state)).toBe(0);
+    expect(currentRound(state)).toBe(RULES.closeUps.maxGuesses - 1);
+    expect(isFirstClueWin(state)).toBe(false);
+  });
+
+  it("ignores a repeated guess", () => {
+    const state = play(wrong("Jaws"), wrong("jaws!"));
+    expect(state.guesses).toHaveLength(1);
+    expect(alreadyGuessed(state, "JAWS")).toBe(true);
+    expect(alreadyGuessed(state, "Heat")).toBe(false);
+  });
+
+  it("ignores everything once the game is over", () => {
+    const won = play(right);
+    expect(play(right, wrong("Heat"), skip, { type: "enhance", tileId: "t1" })).toEqual(won);
+    const lost = play(...misses(5));
+    expect(play(...misses(5), right, skip)).toEqual(lost);
+  });
+
+  it("allows one enhance per game", () => {
+    const state = play({ type: "enhance", tileId: "t1" }, { type: "enhance", tileId: "t2" });
+    expect(state.enhanced).toBe("t1");
+  });
+
+  it("the score comes from the scoring config", () => {
+    expect(maxCollageScore()).toBe(POINTS.closeUps.start + POINTS.closeUps.firstClueBonus);
+    expect(collageScore(play(wrong("Heat"), right))).toBe(POINTS.closeUps.start + POINTS.closeUps.perMissOrSkip);
+  });
+
+  it("reveals the answer on a lost game", () => {
+    expect(play(...misses(5), { type: "reveal", answer }).answer).toEqual(answer);
   });
 });

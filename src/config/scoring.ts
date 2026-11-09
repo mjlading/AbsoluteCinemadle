@@ -16,15 +16,13 @@ export const POINTS = {
   barcode: {
     perCorrectMatch: 10,
   },
-  keywordCollage: {
-    /** Points a game starts with; unlocking keywords and wrong guesses spend them. */
-    start: 1000,
-    perWrongGuess: -50,
-    /**
-     * Cost of unlocking a keyword, by how much its close-ups give away:
-     * hard (atmospheric: hands, doors, chairs) is cheap, easy (mouths, hair, signs) is dear.
-     */
-    unlock: { hard: -100, medium: -200, easy: -350 },
+  closeUps: {
+    /** Points for a win on the first clue's keyword, before the bonus. */
+    start: 5,
+    /** Each earlier miss or skip costs this much. */
+    perMissOrSkip: -1,
+    /** Extra points for a win on the very first guess. */
+    firstClueBonus: 2,
   },
   soundbytes: {
     /** Points a board starts with; buying nodes and removing disguises spend them. */

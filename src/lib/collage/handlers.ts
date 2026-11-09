@@ -6,7 +6,6 @@ import { errorResponse, parseJsonBody } from "@/lib/http";
 import { posterUrl } from "@/lib/tmdb/images";
 import { titleMatches } from "@/lib/warmup/match";
 import { parseCollageView, renderCollageImage } from "./image";
-import { unlockCost } from "./state";
 import type { CollageAnswer, CollageGuessResult, CollagePuzzle, CollageSolution, PublicCollagePuzzle } from "./types";
 
 /*
@@ -29,9 +28,6 @@ export function toPublicCollage(puzzle: CollagePuzzle): PublicCollagePuzzle {
     keywords: puzzle.keywords.map((k) => ({
       id: k.id,
       label: k.label,
-      tier: k.tier,
-      cost: k.free ? 0 : unlockCost(k.tier),
-      free: k.free,
       tiles: k.tiles.map((t, i) => ({
         id: t.id,
         number: i + 1,

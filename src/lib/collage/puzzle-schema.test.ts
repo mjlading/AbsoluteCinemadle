@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { CollageExportSchema, CollagePuzzleSchema } from "./puzzle-schema";
+import { CollageExportSchema, CollagePuzzleSchema, readCollagePuzzle } from "./puzzle-schema";
 
 const fixture = JSON.parse(readFileSync("e2e/fixtures/keyword-collage.json", "utf8"));
 const puzzle = fixture.puzzles[0];
@@ -15,6 +15,10 @@ describe("collage puzzle schema", () => {
   it("needs exactly one free keyword", () => {
     const keywords = puzzle.keywords.map((k: { free: boolean }) => ({ ...k, free: true }));
     expect(CollagePuzzleSchema.safeParse({ ...puzzle, keywords }).success).toBe(false);
+  });
+
+  it("refuses a puzzle with fewer than 5 keywords", () => {
+    expect(CollagePuzzleSchema.safeParse({ ...puzzle, keywords: puzzle.keywords.slice(0, 4) }).success).toBe(false);
   });
 
   it("refuses a TMDB path that is not a plain file name", () => {
@@ -34,5 +38,26 @@ describe("collage puzzle schema", () => {
 
   it("refuses ids that are not opaque tokens", () => {
     expect(CollagePuzzleSchema.safeParse({ ...puzzle, id: "../admin" }).success).toBe(false);
+  });
+});
+
+describe("readCollagePuzzle", () => {
+  it("serves a 6-keyword puzzle as 5, dropping the 6th in reveal order with its tiles", () => {
+    const sixth = {
+      ...puzzle.keywords[4],
+      id: "kwsixth",
+      label: "Sixth",
+      tier: "easy",
+      free: false,
+      tiles: [{ ...puzzle.keywords[4].tiles[0], id: "sixthtile01" }],
+    };
+    const read = readCollagePuzzle({ ...puzzle, keywords: [...puzzle.keywords, sixth] });
+    expect(read.keywords.map((k) => k.id)).toEqual(["kwhands", "kwdoors", "kwfood", "kwmouths", "kwsigns"]);
+    expect(JSON.stringify(read)).not.toContain("sixthtile01");
+  });
+
+  it("puts the free keyword first whatever the stored order", () => {
+    const read = readCollagePuzzle({ ...puzzle, keywords: [...puzzle.keywords].reverse() });
+    expect(read.keywords[0].free).toBe(true);
   });
 });

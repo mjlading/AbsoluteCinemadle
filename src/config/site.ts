@@ -4,7 +4,7 @@ export const SITE = {
   url: "https://absolutecinemadle.fun",
   games: {
     daily: "/daily",
-    keywordCollage: "/keyword-collage",
+    closeUps: "/close-ups",
     soundbytes: "/soundbytes",
     castingCall: "/casting-call",
   },

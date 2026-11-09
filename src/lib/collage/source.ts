@@ -4,7 +4,7 @@ import { asc, eq } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { collagePuzzles } from "@/db/schema";
-import { CollagePuzzleSchema } from "./puzzle-schema";
+import { readCollagePuzzle } from "./puzzle-schema";
 import type { CollagePuzzle } from "./types";
 
 /*
@@ -14,7 +14,7 @@ import type { CollagePuzzle } from "./types";
  */
 
 const toPuzzle = (row: typeof collagePuzzles.$inferSelect): CollagePuzzle =>
-  CollagePuzzleSchema.parse({ id: row.id, name: row.name, answer: row.answer, keywords: row.keywords });
+  readCollagePuzzle({ id: row.id, name: row.name, answer: row.answer, keywords: row.keywords });
 
 /** Just the ids and names, for the puzzle list. */
 export async function listCollageNames(): Promise<{ id: string; name: string }[]> {

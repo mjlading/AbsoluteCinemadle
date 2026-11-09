@@ -17,36 +17,55 @@ Each entry says what was decided and why, so it can be revisited.
 
 - The home page is a gallery of game modes; the existing three-round daily puzzle lives at `/daily` and keeps its existing saved-progress keys.
   Shared daily results link directly to that game.
-- Keyword collage puzzles live in the `collage_puzzles` table, one row per puzzle with its keywords and tiles as a validated JSON document.
+- Close-Ups puzzles live in the `collage_puzzles` table, one row per puzzle with its keywords and tiles as a validated JSON document.
   They are curated in `tools/collage-lab`, exported to a gitignored file and loaded with `npm run db:import-collage`, which replaces them all; there is no admin editor for them yet.
   With no puzzles in the table the page stays a preview.
   The export holds answers and TMDB paths, so it never goes into the public repo.
 
-## Keyword collage
+## Close-Ups
 
-- A game starts with 1000 points and one free keyword; every other keyword is shown by name on a clue board with its cost, since which keywords exist is itself a light clue.
-- A keyword's cost comes from its tier in the scoring config (hard 100, medium 200, easy 350), not a per-keyword number, so every point value stays in `scoring.ts`; a per-keyword override can come with the admin editor.
-- A keyword can only be unlocked with enough points left, so the score never goes negative; wrong guesses at zero points cost nothing more.
-- Wrong guesses cost 50 points each and the game is lost on the 6th; a lost or abandoned game scores 0.
-  All of these numbers live in `scoring.ts` and `rules.ts`.
-  Repeating a guess (ignoring case, accents and punctuation) is turned away for free.
+- The game is called "Close-Ups" wherever a player sees it, at `/close-ups`.
+  `/keyword-collage` and `/keyword-collage/<id>` redirect there permanently (`next.config.ts`).
+  Internal names (`src/lib/collage`, `/api/collage`, the `collage_puzzles` table) stay as they were.
+- A puzzle uses exactly 5 keywords in a fixed order, so every player sees the same clues and scores are comparable.
+  Players cannot choose which keyword opens next.
+- The order is set on the server when a puzzle is read (`src/lib/collage/order.ts`), so it never depends on how a puzzle was exported: the free keyword first, then hard, medium, easy, keeping the stored order within a tier.
+  Keywords past the fifth are dropped there, so their pictures are never served; the demo puzzles have 6 keywords and lose their most revealing one.
+- The player has 5 guesses, one per keyword.
+  A wrong guess or a Skip uses one and opens the next keyword; the game is lost when they run out.
+- The score is `6 - n` for a win on guess _n_, plus 2 for a win on the first guess (7, 4, 3, 2, 1), and 0 for a loss.
+  There are no costs: no starting 1000 points, no unlock prices, no price for a wrong guess.
+  The numbers live in `scoring.ts` and `rules.ts`; keyword tiers stay in the data for curation and ordering only.
+- Guards against losing a guess by accident: Enter in an empty guess box does nothing, so a Skip always takes a press of the Skip button.
+  "Give up" on the last keyword needs a second press (the button reads "Give up?" for about 3 seconds).
+  There is no separate give-up link; quitting early means skipping to the end.
+  While a guess is being checked the Guess button shows a spinner and ignores presses, and a Skip pressed within half a second of a guess settling is ignored, so a double tap on Guess can never become a Skip.
+- Repeating a guess (ignoring case, accents and punctuation) is turned away for free, by shaking the guess row and pulsing the matching history chip.
 - Guesses match like the warm-up: a film picked from the suggestions, or a typed English or original title with the same typo tolerance.
 - "Enhance" is free and once per game: it widens one close-up by 50%, rendered on the server like every crop.
-- At the end every keyword's collage is shown, the unopened ones too, and each close-up zooms out to its full frame (letterboxed in its square).
+- There are no toasts or rules sentences on the game screen; a polite live region tells screen readers about misses, skips, repeats and Enhance.
+  The `?` dialog is the only rules text and opens by itself on a first visit (remembered under `close-ups:help-seen`).
+- At the end every keyword's collage can be viewed from the strip, the unopened ones too, and each close-up zooms out to its full frame (letterboxed in its square).
   Full frames come from the solution route, which, like the daily one, only spoils the caller's own game.
+- The share text is `Close-Ups <puzzle name> <score>/7` and one square per keyword (red used, green solved, black not reached).
+- The home page has no "Daily film puzzle" card until real puzzles exist; the `/daily` route stays.
+  The Close-Ups card keeps its "In development" badge until the daily schedule ships.
 - Collage tiles are rendered from TMDB on each request and cached by the browser for 30 days, like grid tiles; a new export makes new tile ids.
 - Collage puzzles are TMDB data: `collage_puzzles.synced_at` dates them, and they must be re-exported or deleted within 6 months, like `films` rows.
-- Progress is saved per puzzle in localStorage under `collage:<id>`.
+- Progress is saved per puzzle in localStorage under `close-ups:<id>`.
+  The saved state changed shape, so old `collage:<id>` entries are ignored.
 - Pages showing collages carry the line "Film stills belong to their copyright holders."
+- The compact footer wraps to about 3 lines at 390 px, because TMDB's attribution wording is fixed.
+  That costs nothing there, since the board on a phone is limited by its width, not the height left.
 
 ## Soundbytes
 
-- Soundbytes is built like the keyword collage: a card on the home page, a list of boards at `/soundbytes` and one board per page at `/soundbytes/<id>`, rather than one board per date.
+- Soundbytes is built like Close-Ups: a card on the home page, a list of boards at `/soundbytes` and one board per page at `/soundbytes/<id>`, rather than one board per date.
   Until the audio pipeline exists, the boards are mock fixtures in `src/lib/soundbytes/mock-boards.ts`, using real films so the search and actor checks are real.
 - Every price is the same on every board and lives in `scoring.ts`: 1000 points to start, 100 to buy a node, 100 to remove a disguise, 150 for a correct actor.
   The guess count and hold time are in `rules.ts`.
 - A wrong guess costs only the guess, not points, since there are only 3; repeating a guess is turned away for free.
-- A lost or abandoned game scores 0, as in the collage; a buy or removal needs enough points left, so the score never goes negative.
+- A lost or abandoned game scores 0, as in Close-Ups; a buy or removal needs enough points left, so the score never goes negative.
 - Guesses only count when picked from the suggestions, so the server always knows whether it is a film or a person.
   Suggestions come from TMDB's film and person searches, people limited to actors.
 - An actor counts if they are among the film's top-billed cast in the board's answer.
@@ -56,8 +75,8 @@ Each entry says what was decided and why, so it can be revisited.
 - Giving up is a hold on the white flag too, so it can't happen by accident.
 - The headphones cover is remembered per board once dismissed; the first-visit hand hint is remembered once for the whole site.
 - Progress is saved per board in localStorage under `soundbytes:<id>`.
-- The game-over card is the collage's: the film, its poster and the numbers, then the board stays up with every node playing its real clip.
-  The collage has no share text, so neither does Soundbytes yet.
+- The game-over card is the one the keyword collage had before the Close-Ups redesign: the film, its poster and the numbers, then the board stays up with every node playing its real clip.
+  Soundbytes has no share text yet.
 - The characters move to the playing clip's loudness, measured by routing the audio through Web Audio; Safari 17+ is told the page plays media, so the iPhone's silent switch does not mute it.
   Where Web Audio is unavailable the clip still plays and the characters follow a made-up speech rhythm.
 - Placeholder clips are generated tones in `public/audio/mock/`, made by `scripts/soundbytes-placeholder-audio.mts`: a buzzy melody for score, a warbling vowel for dialogue and a noise burst for effects, each with a disguised 2-second and a real 6-second version.

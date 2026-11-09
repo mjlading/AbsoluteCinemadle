@@ -1,19 +1,17 @@
 import { RULES } from "@/config/rules";
 import { POINTS } from "@/config/scoring";
 import { normalizeTitle } from "@/lib/warmup/match";
-import type { CollageAnswer, CollageTier, PublicCollagePuzzle } from "./types";
+import type { CollageAnswer } from "./types";
 
 /*
- * A keyword collage game as the player's browser keeps it. The server only
- * checks guesses and hands out the answer once it is earned; points are
- * tracked here, so a determined player can only cheat their own score.
+ * A Close-Ups game as the player's browser keeps it. The server only checks
+ * guesses and hands out the answer once it is earned; points are tracked
+ * here, so a determined player can only cheat their own score.
  */
 
 export interface CollageState {
-  /** Keywords the player has opened, in order; the free one is always first. */
-  unlocked: string[];
-  /** Every guess, in order. */
-  guesses: { text: string; correct: boolean }[];
+  /** Every guess in order; `text: null` is a skip. */
+  guesses: { text: string | null; correct: boolean }[];
   /** The tile "Enhance" was used on, if any. */
   enhanced: string | null;
   status: "playing" | "won" | "lost";
@@ -22,69 +20,55 @@ export interface CollageState {
 }
 
 export type CollageAction =
-  | { type: "unlock"; keywordId: string }
-  | { type: "enhance"; tileId: string }
   | { type: "guess"; text: string; correct: boolean; answer?: CollageAnswer }
-  | { type: "give_up" }
+  | { type: "skip" }
+  | { type: "enhance"; tileId: string }
   | { type: "reveal"; answer: CollageAnswer };
 
-export const unlockCost = (tier: CollageTier): number => -POINTS.keywordCollage.unlock[tier];
-
-export function initialCollageState(puzzle: PublicCollagePuzzle): CollageState {
-  return {
-    unlocked: puzzle.keywords.filter((k) => k.free).map((k) => k.id),
-    guesses: [],
-    enhanced: null,
-    status: "playing",
-    answer: null,
-  };
+export function initialCollageState(): CollageState {
+  return { guesses: [], enhanced: null, status: "playing", answer: null };
 }
 
-export const wrongGuesses = (state: CollageState) => state.guesses.filter((g) => !g.correct).length;
+const missesAndSkips = (state: CollageState) => state.guesses.filter((g) => !g.correct).length;
 
-export const guessesLeft = (state: CollageState) => RULES.keywordCollage.maxGuesses - wrongGuesses(state);
+/** The 0-based index of the open keyword: one more for every miss or skip. */
+export const currentRound = (state: CollageState) => Math.min(missesAndSkips(state), RULES.closeUps.maxGuesses - 1);
 
-/** Points left: the start, less every unlocked keyword and wrong guess; never below zero, and zero for a loss. */
-export function collageScore(puzzle: PublicCollagePuzzle, state: CollageState): number {
-  if (state.status === "lost") return 0;
-  const spent = state.unlocked.reduce((sum, id) => sum + (puzzle.keywords.find((k) => k.id === id)?.cost ?? 0), 0);
-  return Math.max(0, POINTS.keywordCollage.start - spent + wrongGuesses(state) * POINTS.keywordCollage.perWrongGuess);
+export const guessesLeft = (state: CollageState) => RULES.closeUps.maxGuesses - missesAndSkips(state);
+
+/** Points for the game: the start less one per earlier miss or skip, plus a bonus for a first-clue win; zero for a loss. */
+export function collageScore(state: CollageState): number {
+  if (state.status !== "won") return 0;
+  const { start, perMissOrSkip, firstClueBonus } = POINTS.closeUps;
+  const round = currentRound(state);
+  return start + perMissOrSkip * round + (round === 0 ? firstClueBonus : 0);
 }
 
-/** Whether the player can still open this keyword: the game is on, it is locked, and they can afford it. */
-export function canUnlock(puzzle: PublicCollagePuzzle, state: CollageState, keywordId: string): boolean {
-  const keyword = puzzle.keywords.find((k) => k.id === keywordId);
-  return (
-    state.status === "playing" &&
-    !!keyword &&
-    !state.unlocked.includes(keywordId) &&
-    collageScore(puzzle, state) >= keyword.cost
-  );
-}
+export const isFirstClueWin = (state: CollageState) => state.status === "won" && currentRound(state) === 0;
+
+/** The best score a game can reach, for the share text. */
+export const maxCollageScore = () => POINTS.closeUps.start + POINTS.closeUps.firstClueBonus;
 
 /** A guess the player already made (ignoring case, accents and the like) is turned away for free. */
 export const alreadyGuessed = (state: CollageState, text: string) =>
-  state.guesses.some((g) => normalizeTitle(g.text) === normalizeTitle(text));
+  state.guesses.some((g) => g.text !== null && normalizeTitle(g.text) === normalizeTitle(text));
 
-export function collageReducer(puzzle: PublicCollagePuzzle) {
-  return (state: CollageState, action: CollageAction): CollageState => {
-    switch (action.type) {
-      case "unlock":
-        return canUnlock(puzzle, state, action.keywordId)
-          ? { ...state, unlocked: [...state.unlocked, action.keywordId] }
-          : state;
-      case "enhance":
-        return state.status === "playing" && state.enhanced === null ? { ...state, enhanced: action.tileId } : state;
-      case "guess": {
-        if (state.status !== "playing" || alreadyGuessed(state, action.text)) return state;
-        const next = { ...state, guesses: [...state.guesses, { text: action.text, correct: action.correct }] };
-        if (action.correct) return { ...next, status: "won", answer: action.answer ?? null };
-        return guessesLeft(next) <= 0 ? { ...next, status: "lost" } : next;
-      }
-      case "give_up":
-        return state.status === "playing" ? { ...state, status: "lost" } : state;
-      case "reveal":
-        return { ...state, answer: action.answer };
+export function collageReducer(state: CollageState, action: CollageAction): CollageState {
+  switch (action.type) {
+    case "enhance":
+      return state.status === "playing" && state.enhanced === null ? { ...state, enhanced: action.tileId } : state;
+    case "guess": {
+      if (state.status !== "playing" || alreadyGuessed(state, action.text)) return state;
+      const next = { ...state, guesses: [...state.guesses, { text: action.text, correct: action.correct }] };
+      if (action.correct) return { ...next, status: "won", answer: action.answer ?? null };
+      return guessesLeft(next) <= 0 ? { ...next, status: "lost" } : next;
     }
-  };
+    case "skip": {
+      if (state.status !== "playing") return state;
+      const next = { ...state, guesses: [...state.guesses, { text: null, correct: false }] };
+      return guessesLeft(next) <= 0 ? { ...next, status: "lost" } : next;
+    }
+    case "reveal":
+      return { ...state, answer: action.answer };
+  }
 }

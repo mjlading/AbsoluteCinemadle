@@ -2,12 +2,25 @@
 
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 
+import { ReelSpinner } from "@/components/game/ReelSpinner";
 import { suggestFilms, type FilmSuggestion } from "@/lib/game/api";
+
+/**
+ * With `emptyAction` one button reads "Guess", then the empty action (Close-Ups'
+ * Skip) once the box clears, so the second tap of a double tap on Guess could
+ * land on Skip. A press that began while the button read Guess is dropped, and
+ * so is one this soon after a guess sent from the button settles.
+ */
+const DOUBLE_TAP_MS = 500;
 
 interface TitleGuessProps {
   disabled: boolean;
-  onGuess: (guess: string, tmdbId?: number) => void;
-  /** Shows a "Skip for now" button; the warm-up uses it, the keyword collage does not. */
+  /**
+   * With `clearOnGuess`, a promise holds the box's text until it settles, and
+   * `false` (returned or resolved) keeps it, for a guess that was turned away.
+   */
+  onGuess: (guess: string, tmdbId?: number) => void | boolean | Promise<void | boolean>;
+  /** Shows a "Skip for now" button under the box; the warm-up uses it, Close-Ups has `emptyAction` instead. */
   onSkip?: () => void;
   /** False when this is the only card left, so skipping would change nothing. */
   canSkip?: boolean;
@@ -17,6 +30,13 @@ interface TitleGuessProps {
   autoFocus?: boolean;
   /** Empty the box after each guess, for games where guesses stay on one question. */
   clearOnGuess?: boolean;
+  /** Where the suggestions open: below the box, or above it when the box sits low on the screen. */
+  listPlacement?: "below" | "above";
+  /**
+   * While the box is empty, the button beside it does this instead (Close-Ups' Skip); Enter in an empty box does nothing.
+   * The button then also shows a checking state while a guess is out, and ignores presses until it settles.
+   */
+  emptyAction?: { label: string; onPress: () => void };
 }
 
 /**
@@ -31,6 +51,8 @@ export function TitleGuess({
   placeholder = "Which film is this?",
   autoFocus = true,
   clearOnGuess = false,
+  listPlacement = "below",
+  emptyAction,
 }: TitleGuessProps) {
   const inputId = useId();
   const listId = useId();
@@ -39,6 +61,10 @@ export function TitleGuess({
   const [suggestions, setSuggestions] = useState<{ query: string; films: FilmSuggestion[] } | null>(null);
   const [active, setActive] = useState(-1);
   const [open, setOpen] = useState(false);
+  // Only with emptyAction: a guess is out; what the button read when a press on it began; the double-tap guard's end.
+  const [checking, setChecking] = useState(false);
+  const pressedAs = useRef<"guess" | "empty" | null>(null);
+  const guardUntil = useRef(0);
   const query = value.trim();
 
   useEffect(() => {
@@ -65,9 +91,26 @@ export function TitleGuess({
   const films = open && query.length >= 2 && fresh ? suggestions.films : [];
 
   const submit = (guess: string, tmdbId?: number) => {
-    if (!guess.trim() || disabled) return;
-    onGuess(guess, tmdbId);
-    if (clearOnGuess) setValue("");
+    const fromButton = pressedAs.current === "guess";
+    pressedAs.current = null;
+    if (!guess.trim() || disabled || checking) return;
+    const result = onGuess(guess, tmdbId);
+    if (emptyAction) {
+      const settle = () => {
+        if (fromButton) guardUntil.current = performance.now() + DOUBLE_TAP_MS;
+        setChecking(false);
+      };
+      if (result instanceof Promise) {
+        setChecking(true);
+        void result.then(settle, settle);
+      } else settle();
+    }
+    if (clearOnGuess) {
+      // Only the text that was guessed goes; anything typed since stays.
+      const clear = (outcome: void | boolean) => outcome !== false && setValue((v) => (v === guess ? "" : v));
+      if (result instanceof Promise) void result.then(clear, () => {});
+      else clear(result);
+    }
     setOpen(false);
     setActive(-1);
   };
@@ -94,6 +137,15 @@ export function TitleGuess({
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     submit(value);
+  };
+
+  const showEmptyAction = emptyAction && !query;
+  // Both of the button's faces below are one element to React, so a press can begin on one face and end on the other.
+  const notePress = () => {
+    if (emptyAction) pressedAs.current = showEmptyAction ? "empty" : "guess";
+  };
+  const notePressKey = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === "Enter" || event.key === " ") notePress();
   };
 
   return (
@@ -132,7 +184,9 @@ export function TitleGuess({
               id={listId}
               role="listbox"
               aria-label="Suggestions"
-              className="absolute inset-x-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-ink/15 bg-surface py-1 shadow-xl"
+              className={`absolute inset-x-0 z-20 max-h-64 overflow-y-auto rounded-lg border border-ink/15 bg-surface py-1 shadow-xl ${
+                listPlacement === "above" ? "bottom-full mb-2" : "top-full mt-1"
+              }`}
             >
               {films.map((film, index) => (
                 <li
@@ -155,13 +209,43 @@ export function TitleGuess({
             </ul>
           )}
         </div>
-        <button
-          type="submit"
-          disabled={disabled || !query}
-          className="min-h-12 shrink-0 rounded-full bg-ink px-6 font-semibold text-table disabled:opacity-35"
-        >
-          Guess
-        </button>
+        {showEmptyAction ? (
+          <button
+            type="button"
+            onPointerDown={notePress}
+            onKeyDown={notePressKey}
+            onClick={() => {
+              const startedAsGuess = pressedAs.current === "guess";
+              pressedAs.current = null;
+              if (!startedAsGuess && performance.now() >= guardUntil.current) emptyAction.onPress();
+            }}
+            disabled={disabled}
+            className="min-h-12 min-w-[6.5rem] shrink-0 rounded-full bg-ink/9 px-6 font-semibold text-ink transition-colors hover:bg-ink/15 disabled:opacity-35"
+          >
+            {emptyAction.label}
+          </button>
+        ) : (
+          <button
+            type="submit"
+            onPointerDown={notePress}
+            onKeyDown={notePressKey}
+            disabled={disabled || !query}
+            // Not disabled while checking, which would drop a focused button's focus; submit ignores the press instead.
+            aria-disabled={checking || undefined}
+            aria-busy={checking || undefined}
+            className={`relative min-h-12 shrink-0 rounded-full bg-ink px-6 font-semibold text-table disabled:opacity-35 aria-disabled:cursor-wait ${
+              emptyAction ? "min-w-[6.5rem]" : ""
+            }`}
+          >
+            {/* Presses land on the button itself, not on parts that come and go with its faces. */}
+            <span className={`pointer-events-none ${checking ? "opacity-0" : ""}`}>Guess</span>
+            {checking && (
+              <span className="pointer-events-none absolute inset-0 grid place-items-center">
+                <ReelSpinner className="size-5" />
+              </span>
+            )}
+          </button>
+        )}
       </div>
       {onSkip && (
         <button
