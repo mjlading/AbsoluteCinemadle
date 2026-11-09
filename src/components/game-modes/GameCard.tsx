@@ -40,7 +40,7 @@ export function GameCard({
         {icon}
       </div>
       <h3 className="font-display text-[2.1rem] font-[900] leading-none">{title}</h3>
-      <p className="max-w-64 flex-1 text-[15px] leading-snug text-on-tape/75">{blurb}</p>
+      <p className="max-w-72 flex-1 text-balance text-[15px] leading-snug text-on-tape/75">{blurb}</p>
       <span
         aria-hidden="true"
         className="rounded-full bg-on-tape px-7 py-2.5 font-semibold text-[#f4f1ea] transition-transform group-hover:scale-105 motion-reduce:transform-none"
