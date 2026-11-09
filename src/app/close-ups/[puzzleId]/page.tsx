@@ -1,34 +1,26 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 
 import { CollageGame } from "@/components/collage/CollageGame";
 import { SiteFooter } from "@/components/game/SiteFooter";
-import { SITE } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Close-Ups | Absolute Cinemadle",
   description: "Guess the film from close-ups that share one keyword.",
 };
 
+/**
+ * One screen, top to bottom: the top bar, the stage (board, guess row and
+ * history) and the footer line. Only very short screens (landscape phones) scroll.
+ */
 export default function CloseUpsPuzzlePage({ params }: PageProps<"/close-ups/[puzzleId]">) {
   return (
-    <>
-      <main className="mx-auto w-full max-w-[34rem] px-4 pb-12 pt-4">
-        <nav aria-label="Game navigation">
-          <Link
-            href={SITE.games.closeUps}
-            className="inline-flex min-h-11 items-center gap-2 font-semibold hover:underline"
-          >
-            <span aria-hidden="true">←</span> All puzzles
-          </Link>
-        </nav>
-        <Suspense fallback={null}>
-          <Puzzle params={params} />
-        </Suspense>
-      </main>
-      <SiteFooter />
-    </>
+    <div className="flex h-dvh min-h-[36rem] flex-col">
+      <Suspense fallback={<div className="flex-1" />}>
+        <Puzzle params={params} />
+      </Suspense>
+      <SiteFooter compact />
+    </div>
   );
 }
 

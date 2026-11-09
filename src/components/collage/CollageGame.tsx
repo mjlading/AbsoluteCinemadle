@@ -1,29 +1,49 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Confetti } from "@/components/game/Confetti";
 import { ReelSpinner } from "@/components/game/ReelSpinner";
-import { CloseButton, Dialog } from "@/components/ui/Dialog";
 import { TitleGuess } from "@/components/warmup/TitleGuess";
-import { RULES } from "@/config/rules";
-import { POINTS } from "@/config/scoring";
+import { SITE } from "@/config/site";
 import { fetchCollage, fetchCollageList, fetchCollageSolution, guessCollage } from "@/lib/collage/api";
 import {
   alreadyGuessed,
-  canUnlock,
   collageReducer,
-  collageScore,
-  guessesLeft,
+  currentRound,
   initialCollageState,
-  type CollageState,
+  type CollageAction,
 } from "@/lib/collage/state";
-import type { CollageSolution, PublicCollageKeyword, PublicCollagePuzzle } from "@/lib/collage/types";
+import type { CollageSolution, PublicCollagePuzzle } from "@/lib/collage/types";
 import { ApiError } from "@/lib/game/api";
-import { usePersistentReducer } from "@/lib/game/storage";
-import { CollageGrid, ZoomOutTile, collageAlt, useAllLoaded } from "./CollageTiles";
+import { readJson, usePersistentReducer, writeJson } from "@/lib/game/storage";
+import { normalizeTitle } from "@/lib/warmup/match";
+import { CollageGrid, EnhanceBadge, type FrameInfo } from "./CollageTiles";
+import { GuessHistory } from "./GuessHistory";
+import { HelpDialog } from "./HelpDialog";
+import { KeywordStrip } from "./KeywordStrip";
+import { ResultPanel } from "./ResultPanel";
+
+const HELP_SEEN_KEY = "close-ups:help-seen";
+const GIVE_UP_CONFIRM_MS = 3000;
+
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** A short jolt for an element, skipped for players who asked for less motion. */
+function jolt(element: Element | null | undefined, keyframes: Keyframe[], duration: number) {
+  if (element && !reducedMotion()) element.animate(keyframes, { duration, easing: "ease-in-out" });
+}
+
+const SHAKE: Keyframe[] = [
+  { transform: "translateX(0)" },
+  { transform: "translateX(-6px)" },
+  { transform: "translateX(6px)" },
+  { transform: "translateX(-4px)" },
+  { transform: "translateX(3px)" },
+  { transform: "translateX(0)" },
+];
+const PULSE: Keyframe[] = [{ transform: "scale(1)" }, { transform: "scale(1.1)" }, { transform: "scale(1)" }];
 
 /** Loads a puzzle, then plays it; progress is kept on this device. */
 export function CollageGame({ puzzleId }: { puzzleId: string }) {
@@ -47,12 +67,20 @@ export function CollageGame({ puzzleId }: { puzzleId: string }) {
     };
   }, [puzzleId]);
 
-  if (error) return <p className="mt-10 text-center">{error}</p>;
   if (!puzzle) {
     return (
-      <p className="mt-10 flex items-center justify-center gap-2 text-ink-soft">
-        <ReelSpinner className="size-5" /> Loading the puzzle&hellip;
-      </p>
+      <>
+        <TopBar />
+        <main className="flex flex-1 items-start justify-center px-4 pt-16">
+          {error ? (
+            <p className="text-center">{error}</p>
+          ) : (
+            <p className="flex items-center gap-2 text-ink-soft">
+              <ReelSpinner className="size-5" /> Loading the puzzle&hellip;
+            </p>
+          )}
+        </main>
+      </>
     );
   }
   return <CollagePlay key={puzzle.id} puzzle={puzzle} />;
@@ -60,491 +88,298 @@ export function CollageGame({ puzzleId }: { puzzleId: string }) {
 
 function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
   const signature = useMemo(() => puzzle.keywords.flatMap((k) => k.tiles.map((t) => t.id)).join(","), [puzzle]);
-  const reducer = useMemo(() => collageReducer(puzzle), [puzzle]);
   const [state, dispatch] = usePersistentReducer(
-    `collage:${puzzle.id}`,
+    `close-ups:${puzzle.id}`,
     signature,
-    reducer,
-    puzzle,
+    collageReducer,
+    undefined,
     initialCollageState,
   );
-  const [enhancing, setEnhancing] = useState(false);
-  const [pending, setPending] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
-  const [helpOpen, setHelpOpen] = useState(false);
-  // The keyword just bought; its heading takes focus as it mounts, so keyboard and screen-reader players land on it.
-  const focusOnMount = useRef<string | null>(null);
-
-  const score = collageScore(puzzle, state);
+  const round = currentRound(state);
   const playing = state.status === "playing";
-  const unlocked = state.unlocked.map((id) => puzzle.keywords.find((k) => k.id === id)).filter((k) => !!k);
-  const locked = puzzle.keywords.filter((k) => !state.unlocked.includes(k.id));
+  const last = puzzle.keywords.length - 1;
+  const labels = puzzle.keywords.map((k) => k.label);
 
-  // A loss reveals the answer; a win already carries it.
-  useEffect(() => {
-    if (state.status === "lost" && !state.answer) {
-      fetchCollageSolution(puzzle.id).then(
-        ({ answer }) => dispatch({ type: "reveal", answer }),
-        () => {},
-      );
-    }
-  }, [state.status, state.answer, puzzle.id, dispatch]);
-
-  async function guess(text: string, tmdbId?: number) {
-    if (alreadyGuessed(state, text)) {
-      setFeedback(`You already tried "${text}".`);
-      return;
-    }
-    setPending(true);
-    setFeedback(null);
-    try {
-      const result = await guessCollage(puzzle.id, text, tmdbId);
-      if (result.correct) {
-        dispatch({ type: "guess", text, correct: true, answer: result.answer });
-      } else {
-        dispatch({ type: "guess", text, correct: false });
-        const left = guessesLeft(state) - 1;
-        setFeedback(left > 0 ? `Not "${text}". ${left} ${left === 1 ? "guess" : "guesses"} left.` : `Not "${text}".`);
-      }
-    } catch {
-      setFeedback("Couldn't check that guess. Try again.");
-    } finally {
-      setPending(false);
-    }
-  }
-
-  return (
-    <div className="mt-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm text-ink-soft">{puzzle.name}</p>
-          <h1 className="font-display text-[2.6rem] font-[900] leading-[0.85] tracking-[-0.01em]">Close-Ups</h1>
-        </div>
-        <button
-          type="button"
-          onClick={() => setHelpOpen(true)}
-          className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-full border-[1.5px] border-ink font-display text-2xl font-[850] hover:bg-ink/5"
-          aria-label="How to play"
-        >
-          ?
-        </button>
-      </div>
-      <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
-
-      {playing ? (
-        <>
-          <Scoreboard score={score} state={state} />
-          <div className="mt-4 flex flex-col gap-4">
-            {unlocked.map((keyword) => (
-              <CollagePanel
-                key={keyword.id}
-                keyword={keyword}
-                headingRef={(el) => {
-                  if (el && focusOnMount.current === keyword.id) {
-                    focusOnMount.current = null;
-                    el.focus();
-                  }
-                }}
-              >
-                <CollageGrid
-                  keyword={keyword}
-                  enhancedTileId={state.enhanced}
-                  enhancing={enhancing}
-                  onEnhance={(tileId) => {
-                    dispatch({ type: "enhance", tileId });
-                    setEnhancing(false);
-                  }}
-                />
-              </CollagePanel>
-            ))}
-          </div>
-
-          <EnhanceControl
-            used={state.enhanced !== null}
-            enhancing={enhancing}
-            onToggle={() => setEnhancing((on) => !on)}
-          />
-
-          <section aria-labelledby="guess-heading" className="mt-6">
-            <h2 id="guess-heading" className="font-display text-3xl font-[850] leading-none">
-              Which film is it?
-            </h2>
-            <div className="mt-3">
-              <TitleGuess disabled={pending} onGuess={guess} placeholder="Movie title" autoFocus={false} clearOnGuess />
-            </div>
-            <p role="status" className="mt-2 min-h-6 font-semibold text-marker">
-              {feedback}
-            </p>
-            {state.guesses.length > 0 && (
-              <ul aria-label="Your guesses" className="mt-1 flex flex-wrap gap-2">
-                {state.guesses.map((g) => (
-                  <li key={g.text} className="rounded-full bg-ink/8 px-3 py-1 text-sm text-ink-soft line-through">
-                    {g.text}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <ClueBoard
-            keywords={locked}
-            canAfford={(id) => canUnlock(puzzle, state, id)}
-            onUnlock={(id) => {
-              focusOnMount.current = id;
-              dispatch({ type: "unlock", keywordId: id });
-              setEnhancing(false);
-            }}
-          />
-
-          <div className="mt-8 text-center">
-            <button
-              type="button"
-              onClick={() => dispatch({ type: "give_up" })}
-              className="min-h-11 text-sm text-ink-soft underline underline-offset-2 hover:text-ink"
-            >
-              Give up and show the film
-            </button>
-          </div>
-        </>
-      ) : (
-        <GameOver puzzle={puzzle} state={state} score={score} />
-      )}
-
-      <p className="mt-10 text-xs text-ink-soft">Film stills belong to their copyright holders.</p>
-    </div>
-  );
-}
-
-function Scoreboard({ score, state }: { score: number; state: CollageState }) {
-  const left = guessesLeft(state);
-  return (
-    <dl className="mt-4 grid grid-cols-2 gap-2">
-      <div className="rounded-[6px] bg-surface px-4 py-3 ring-1 ring-ink/10">
-        <dt className="text-sm text-ink-soft">Points</dt>
-        <dd className="font-display text-4xl font-[900] leading-none tabular-nums">{score}</dd>
-      </div>
-      <div className="rounded-[6px] bg-surface px-4 py-3 ring-1 ring-ink/10">
-        <dt className="text-sm text-ink-soft">Guesses left</dt>
-        <dd className="mt-1 flex items-center gap-1.5" aria-label={`${left} of ${RULES.keywordCollage.maxGuesses}`}>
-          {Array.from({ length: RULES.keywordCollage.maxGuesses }, (_, i) => (
-            <span key={i} aria-hidden="true" className={`size-3.5 rounded-full ${i < left ? "bg-ink" : "bg-ink/15"}`} />
-          ))}
-          <span aria-hidden="true" className="ml-1 font-display text-2xl font-[850] leading-none tabular-nums">
-            {left}
-          </span>
-        </dd>
-      </div>
-    </dl>
-  );
-}
-
-function CollagePanel({
-  keyword,
-  headingRef,
-  children,
-}: {
-  keyword: PublicCollageKeyword;
-  headingRef?: React.Ref<HTMLHeadingElement>;
-  children: React.ReactNode;
-}) {
-  return (
-    <section aria-labelledby={`kw-${keyword.id}`} className="rounded-[6px] bg-sheet p-3 text-lamp sm:p-4">
-      <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2
-          id={`kw-${keyword.id}`}
-          ref={headingRef}
-          tabIndex={-1}
-          className="font-display text-3xl font-[850] leading-none outline-offset-4"
-        >
-          {keyword.label}
-        </h2>
-        <span className="shrink-0 text-sm text-lamp/70">{keyword.free ? "Free clue" : `${keyword.cost} points`}</span>
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function EnhanceControl({ used, enhancing, onToggle }: { used: boolean; enhancing: boolean; onToggle: () => void }) {
-  if (used) return <p className="mt-3 text-sm text-ink-soft">Enhance used.</p>;
-  return (
-    <div className="mt-3 flex flex-wrap items-center gap-3">
-      <button
-        type="button"
-        aria-pressed={enhancing}
-        onClick={onToggle}
-        className={`min-h-11 rounded-full border-[1.5px] border-ink px-5 font-semibold ${enhancing ? "bg-ink text-table" : "hover:bg-ink/5"}`}
-      >
-        {enhancing ? "Cancel enhance" : "Enhance a close-up"}
-      </button>
-      <span className="text-sm text-ink-soft">
-        {enhancing
-          ? "Pick a close-up to widen."
-          : `Free, once per game: widens one close-up by ${Math.round((RULES.keywordCollage.enhanceFactor - 1) * 100)}%.`}
-      </span>
-    </div>
-  );
-}
-
-function ClueBoard({
-  keywords,
-  canAfford,
-  onUnlock,
-}: {
-  keywords: PublicCollageKeyword[];
-  canAfford: (id: string) => boolean;
-  onUnlock: (id: string) => void;
-}) {
-  if (keywords.length === 0) return null;
-  return (
-    <section aria-labelledby="clues-heading" className="mt-8">
-      <h2 id="clues-heading" className="font-display text-3xl font-[850] leading-none">
-        More clues
-      </h2>
-      <p className="mt-2 text-sm text-ink-soft">
-        Each keyword opens four more close-ups. The more it gives away, the more it costs.
-      </p>
-      <ul className="mt-3 flex flex-col gap-2">
-        {keywords.map((k) => {
-          const affordable = canAfford(k.id);
-          return (
-            <li key={k.id}>
-              <button
-                type="button"
-                disabled={!affordable}
-                onClick={() => onUnlock(k.id)}
-                className="flex min-h-14 w-full items-center justify-between gap-3 rounded-[6px] bg-surface px-4 text-left ring-1 ring-ink/15 hover:ring-ink disabled:opacity-45 disabled:hover:ring-ink/15"
-              >
-                <span className="font-display text-2xl font-[850] leading-none">{k.label}</span>
-                <span className="shrink-0 text-sm">
-                  {affordable ? (
-                    <>
-                      Unlock <span className="font-semibold">&minus;{k.cost}</span>
-                    </>
-                  ) : (
-                    `${k.cost} points: not enough left`
-                  )}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  );
-}
-
-function GameOver({ puzzle, state, score }: { puzzle: PublicCollagePuzzle; state: CollageState; score: number }) {
+  // A keyword the player chose to look at again holds until the game moves on; then the view follows it.
+  const [picked, setPicked] = useState<{ index: number; round: number; status: string } | null>(null);
+  const view = picked && picked.round === round && picked.status === state.status ? picked.index : round;
+  const [effect, setEffect] = useState<"swap" | "slip" | null>(null);
+  const [picking, setPicking] = useState(false);
+  const [freshEnhance, setFreshEnhance] = useState(false);
+  const [guessError, setGuessError] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState<{ id: number; text: string } | null>(null);
+  const [confirmGiveUp, setConfirmGiveUp] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(() => readJson(HELP_SEEN_KEY) === null);
   const [solution, setSolution] = useState<CollageSolution | null>(null);
-  const won = state.status === "won";
-  const answer = state.answer ?? solution?.answer ?? null;
-  const headingRef = useRef<HTMLHeadingElement>(null);
+  const [nextPuzzleId, setNextPuzzleId] = useState<string | null>(null);
+  const [celebrate, setCelebrate] = useState(false);
 
+  const pending = useRef(false);
+  const announcements = useRef(0);
+  const preloaded = useRef(new Set<number>());
+  const guessRow = useRef<HTMLDivElement>(null);
+  const historyRow = useRef<HTMLDivElement>(null);
+
+  const announce = (text: string) => setAnnouncement({ id: ++announcements.current, text });
+
+  // Once the game is over: the answer (on a loss), every tile's frame for the zoom-out, and the next puzzle.
   useEffect(() => {
+    if (state.status === "playing") return;
     let cancelled = false;
     fetchCollageSolution(puzzle.id).then(
-      (s) => !cancelled && setSolution(s),
+      (loaded) => {
+        if (cancelled) return;
+        setSolution(loaded);
+        // A loss shows the answer here; a win already has the same one.
+        dispatch({ type: "reveal", answer: loaded.answer });
+      },
       () => {},
     );
-    headingRef.current?.focus();
+    fetchCollageList().then(
+      ({ puzzles }) => {
+        if (cancelled) return;
+        const at = puzzles.findIndex((p) => p.id === puzzle.id);
+        setNextPuzzleId(at >= 0 ? (puzzles[at + 1]?.id ?? null) : null);
+      },
+      () => {},
+    );
     return () => {
       cancelled = true;
     };
-  }, [puzzle.id]);
+  }, [state.status, puzzle.id, dispatch]);
 
-  const opened = state.unlocked.length;
+  // "Give up" asks again for a few seconds, then goes back to asking once.
+  useEffect(() => {
+    if (!confirmGiveUp) return;
+    const timer = window.setTimeout(() => setConfirmGiveUp(false), GIVE_UP_CONFIRM_MS);
+    return () => window.clearTimeout(timer);
+  }, [confirmGiveUp]);
+
+  const frames = useMemo(
+    () => (solution ? new Map<string, FrameInfo>(solution.frames.map((f) => [f.tileId, f])) : null),
+    [solution],
+  );
+
+  /** Plays a miss, skip or win, and moves the view along with the game. */
+  function apply(action: CollageAction) {
+    const next = collageReducer(state, action);
+    if (next === state) return;
+    dispatch(action);
+    setPicked(null);
+    setPicking(false);
+    setGuessError(null);
+    setConfirmGiveUp(false);
+    const nextRound = currentRound(next);
+    if (next.status === "won") {
+      setCelebrate(true);
+      return;
+    }
+    const missed = action.type === "guess" ? `Not ${action.text}.` : "Skipped.";
+    if (next.status === "lost") {
+      announce(missed);
+      return;
+    }
+    setEffect(action.type === "guess" ? "slip" : "swap");
+    if (action.type === "guess") jolt(guessRow.current, SHAKE, 320);
+    announce(`${missed} ${labels[nextRound]} is open.`);
+  }
+
+  async function guess(text: string, tmdbId?: number): Promise<boolean> {
+    if (!playing || pending.current) return false;
+    if (alreadyGuessed(state, text)) {
+      const earlier = state.guesses.findIndex(
+        (g) => g.text !== null && normalizeTitle(g.text) === normalizeTitle(text),
+      );
+      jolt(guessRow.current, SHAKE, 320);
+      jolt(historyRow.current?.querySelector(`[data-guess="${earlier}"]`), PULSE, 360);
+      announce(`Already guessed ${state.guesses[earlier]?.text ?? text}.`);
+      return false;
+    }
+    pending.current = true;
+    setGuessError(null);
+    try {
+      const result = await guessCollage(puzzle.id, text, tmdbId);
+      apply(
+        result.correct
+          ? { type: "guess", text, correct: true, answer: result.answer }
+          : { type: "guess", text, correct: false },
+      );
+      return true;
+    } catch {
+      setGuessError("Couldn't check that guess. Try again.");
+      return false;
+    } finally {
+      pending.current = false;
+    }
+  }
+
+  function skip() {
+    if (!playing || pending.current) return;
+    if (round === last && !confirmGiveUp) {
+      setConfirmGiveUp(true);
+      return;
+    }
+    apply({ type: "skip" });
+  }
+
+  function togglePicking() {
+    const on = !picking;
+    setPicking(on);
+    if (on) announce("Pick a close-up to widen.");
+  }
+
+  function enhanceTile(tileId: string) {
+    dispatch({ type: "enhance", tileId });
+    setPicking(false);
+    setFreshEnhance(true);
+    announce("Close-up widened.");
+    // The tile buttons go with picking mode, so focus goes to the collage itself.
+    document.getElementById("closeups-panel")?.focus({ preventScroll: true });
+  }
+
+  function showKeyword(index: number) {
+    if (index === view) return;
+    setPicked({ index, round, status: state.status });
+    setEffect("swap");
+    setFreshEnhance(false);
+  }
+
+  // The next keyword's close-ups load in the background once the open ones are in.
+  function preloadNext() {
+    const next = round + 1;
+    if (!playing || view !== round || next > last || preloaded.current.has(next)) return;
+    preloaded.current.add(next);
+    for (const tile of puzzle.keywords[next].tiles) new Image().src = tile.imageUrl;
+  }
+
+  const giveUpLabel = confirmGiveUp ? "Give up?" : "Give up";
+
   return (
     <>
-      {won && <Confetti />}
-      <section
-        aria-labelledby="result-heading"
-        className="mt-5 overflow-hidden rounded-[6px] bg-sheet px-5 py-6 text-white"
-      >
-        <p className="text-sm text-white/65">
-          {won ? "You got it" : wrongOut(state) ? "Out of guesses" : "You gave up"}
-        </p>
-        <div className="mt-2 flex items-center gap-4">
-          {answer?.posterUrl && (
-            <Image
-              src={answer.posterUrl}
-              alt=""
-              width={74}
-              height={111}
-              unoptimized
-              className="h-[111px] w-[74px] shrink-0 rounded-[3px] object-cover"
+      <TopBar name={puzzle.name} onHelp={() => setHelpOpen(true)} />
+      <main className="closeups-stage flex min-h-0 flex-1 flex-col items-center px-4 pb-4 pt-1 min-[700px]:justify-center min-[700px]:py-4">
+        <div
+          className="closeups-group flex flex-col gap-3"
+          onKeyDown={(event) => {
+            if (event.key === "Escape" && picking) {
+              event.stopPropagation();
+              setPicking(false);
+            }
+          }}
+        >
+          <section
+            aria-label="Clues"
+            className="relative rounded-2xl bg-sheet p-2 text-lamp shadow-[inset_0_1px_0_rgb(255_255_255/0.04),0_18px_40px_-18px_rgb(0_0_0/0.6)]"
+          >
+            <KeywordStrip
+              labels={labels}
+              round={round}
+              status={state.status}
+              view={view}
+              onView={showKeyword}
+              onLockedPress={() => jolt(guessRow.current?.querySelector("button"), PULSE, 300)}
             />
-          )}
-          <div className="min-w-0">
-            <h2
-              id="result-heading"
-              ref={headingRef}
-              tabIndex={-1}
-              className="font-display text-[2.4rem] font-[900] leading-[0.9] text-balance outline-none"
-            >
-              {answer ? answer.title : "…"}
-            </h2>
-            {answer?.year && <p className="mt-1 text-white/65">{answer.year}</p>}
+            <div className="relative mt-2">
+              {playing && <EnhanceBadge pressed={picking} used={state.enhanced !== null} onPress={togglePicking} />}
+              <CollageGrid
+                key={view}
+                keyword={puzzle.keywords[view]}
+                index={view}
+                enhancedTileId={state.enhanced}
+                freshEnhance={freshEnhance}
+                picking={picking && playing}
+                onPick={enhanceTile}
+                frames={playing ? null : frames}
+                effect={effect}
+                onLoaded={preloadNext}
+              />
+            </div>
+          </section>
+
+          {/* Always as tall as the result panel, so the board stays put when the game ends. */}
+          <div className="closeups-below flex flex-col gap-3">
+            {playing ? (
+              <>
+                <div ref={guessRow}>
+                  <TitleGuess
+                    disabled={false}
+                    onGuess={guess}
+                    placeholder="Name the film…"
+                    autoFocus={false}
+                    clearOnGuess
+                    listPlacement="above"
+                    emptyAction={{ label: round === last ? giveUpLabel : "Skip", onPress: skip }}
+                  />
+                </div>
+                <div ref={historyRow}>
+                  {guessError ? (
+                    <p
+                      role="alert"
+                      className="flex h-[30px] items-center justify-center text-sm font-semibold text-marker"
+                    >
+                      {guessError}
+                    </p>
+                  ) : (
+                    <GuessHistory guesses={state.guesses} />
+                  )}
+                </div>
+              </>
+            ) : (
+              <ResultPanel puzzle={puzzle} state={state} nextPuzzleId={nextPuzzleId} />
+            )}
           </div>
         </div>
-        <dl className="mt-5 grid grid-cols-3 gap-2 text-center">
-          {(
-            [
-              ["Points", score],
-              ["Keywords", `${opened} of ${puzzle.keywords.length}`],
-              ["Guesses", state.guesses.length],
-            ] as const
-          ).map(([name, value]) => (
-            <div key={name} className="rounded-[4px] bg-white/8 px-2 py-2.5">
-              <dt className="text-xs text-white/65">{name}</dt>
-              <dd className="font-display text-2xl font-[850] leading-tight tabular-nums">{value}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      {solution && <ZoomOutReveal puzzle={puzzle} solution={solution} unlocked={state.unlocked} />}
-      <MorePuzzles currentId={puzzle.id} />
+        <p role="status" className="sr-only">
+          {announcement && <span key={announcement.id}>{announcement.text}</span>}
+        </p>
+      </main>
+      {celebrate && <Confetti />}
+      <HelpDialog
+        open={helpOpen}
+        onClose={() => {
+          setHelpOpen(false);
+          writeJson(HELP_SEEN_KEY, true);
+        }}
+      />
     </>
   );
 }
 
-const wrongOut = (state: CollageState) => guessesLeft(state) <= 0;
-
-/** Every keyword's collage, the ones never opened included, pulling back to the full frames. */
-function ZoomOutReveal({
-  puzzle,
-  solution,
-  unlocked,
-}: {
-  puzzle: PublicCollagePuzzle;
-  solution: CollageSolution;
-  unlocked: string[];
-}) {
-  const frames = useMemo(() => new Map(solution.frames.map((f) => [f.tileId, f])), [solution]);
-  const tileCount = puzzle.keywords.reduce((n, k) => n + k.tiles.length, 0);
-  const { ready, onLoad } = useAllLoaded(tileCount);
-  // Each replay is a new run: its tiles mount at the close-up, then pull back two frames later, once that has painted.
-  const [run, setRun] = useState(0);
-  const [zoomedRun, setZoomedRun] = useState(-1);
-  const zoomed = ready && zoomedRun === run;
-
-  useEffect(() => {
-    if (!ready) return;
-    let second = 0;
-    const first = requestAnimationFrame(() => {
-      second = requestAnimationFrame(() => setZoomedRun(run));
-    });
-    return () => {
-      cancelAnimationFrame(first);
-      cancelAnimationFrame(second);
-    };
-  }, [ready, run]);
-
-  const ordered = [...puzzle.keywords].sort(
-    (a, b) => Number(!unlocked.includes(a.id)) - Number(!unlocked.includes(b.id)),
-  );
+function TopBar({ name, onHelp }: { name?: string; onHelp?: () => void }) {
   return (
-    <section aria-labelledby="frames-heading" className="mt-8">
-      <div className="flex items-end justify-between gap-3">
-        <h2 id="frames-heading" className="font-display text-3xl font-[850] leading-none">
-          The full frames
-        </h2>
+    <header className="flex h-14 shrink-0 items-center gap-1 px-2">
+      <Link
+        href={SITE.games.closeUps}
+        aria-label="All puzzles"
+        className="grid size-11 place-items-center rounded-full hover:bg-ink/8"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          className="size-[22px]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M15 5l-7 7 7 7" />
+        </svg>
+      </Link>
+      <div className="flex min-w-0 flex-1 items-baseline gap-2">
+        <h1 className="font-display text-[30px] font-[900] leading-none tracking-[-0.005em]">Close-Ups</h1>
+        {name && <span className="truncate font-condensed text-[15px] font-bold text-ink-soft">{name}</span>}
+      </div>
+      {onHelp && (
         <button
           type="button"
-          onClick={() => setRun((n) => n + 1)}
-          className="min-h-11 rounded-full border-[1.5px] border-ink px-4 text-sm font-semibold hover:bg-ink/5"
+          onClick={onHelp}
+          aria-label="How to play"
+          className="mr-1.5 grid size-[34px] shrink-0 place-items-center rounded-full border-[1.5px] border-ink font-display text-xl font-[900] leading-none hover:bg-ink/8"
         >
-          Zoom out again
+          ?
         </button>
-      </div>
-      <div className="mt-4 flex flex-col gap-4">
-        {ordered.map((keyword, k) => (
-          <section key={keyword.id} aria-label={keyword.label} className="rounded-[6px] bg-sheet p-3 text-lamp sm:p-4">
-            <div className="mb-3 flex items-baseline justify-between gap-3">
-              <h3 className="font-display text-2xl font-[850] leading-none">{keyword.label}</h3>
-              <span className="text-sm text-lamp/70">{unlocked.includes(keyword.id) ? "Opened" : "Never opened"}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-1.5">
-              {keyword.tiles.map((tile, i) => {
-                const frame = frames.get(tile.id);
-                if (!frame) return null;
-                return (
-                  <ZoomOutTile
-                    key={`${tile.id}-${run}`}
-                    frameUrl={frame.frameUrl}
-                    crop={frame.crop}
-                    aspect={frame.aspect}
-                    zoomed={zoomed}
-                    delayMs={k * 220 + i * 90}
-                    alt={`${collageAlt(keyword, tile.number)}, full frame`}
-                    onLoad={onLoad}
-                  />
-                );
-              })}
-            </div>
-          </section>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function MorePuzzles({ currentId }: { currentId: string }) {
-  const [others, setOthers] = useState<{ id: string; name: string }[]>([]);
-  useEffect(() => {
-    fetchCollageList().then(
-      ({ puzzles }) => setOthers(puzzles.filter((p) => p.id !== currentId)),
-      () => {},
-    );
-  }, [currentId]);
-  if (others.length === 0) return null;
-  return (
-    <nav aria-label="Other puzzles" className="mt-8">
-      <h2 className="font-semibold">Play another</h2>
-      <ul className="mt-2 flex flex-wrap gap-2">
-        {others.map((p) => (
-          <li key={p.id}>
-            <Link
-              href={`/close-ups/${p.id}`}
-              className="inline-flex min-h-11 items-center rounded-full border-[1.5px] border-ink px-5 font-semibold hover:bg-ink/5"
-            >
-              {p.name}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
-}
-
-function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { maxGuesses, tilesPerCollage } = RULES.keywordCollage;
-  const { start, perWrongGuess, unlock } = POINTS.keywordCollage;
-  return (
-    <Dialog open={open} onClose={onClose} labelledBy="collage-help-title" className="max-w-md bg-surface text-ink">
-      <div className="flex items-start justify-between gap-4">
-        <h2 id="collage-help-title" className="font-display text-3xl font-[850] leading-none">
-          How to play
-        </h2>
-        <CloseButton onClick={onClose} />
-      </div>
-      <ul className="mt-4 list-disc space-y-2 pl-5 leading-snug text-pretty">
-        <li>Guess the film from close-ups of its stills.</li>
-        <li>
-          Every collage shows {tilesPerCollage} close-ups that share one keyword, like &ldquo;Hands&rdquo;. The first
-          one is free.
-        </li>
-        <li>
-          You start with {start} points. Unlocking another keyword costs {-unlock.hard} to {-unlock.easy} points: the
-          more its close-ups give away, the more it costs.
-        </li>
-        <li>
-          A wrong guess costs {-perWrongGuess} points, and after {maxGuesses} wrong guesses the game is over.
-        </li>
-        <li>Once per game, Enhance widens one close-up for free.</li>
-        <li>When the game ends, the close-ups zoom out to their full frames.</li>
-        <li>Your progress is saved on this device.</li>
-      </ul>
-    </Dialog>
+      )}
+    </header>
   );
 }

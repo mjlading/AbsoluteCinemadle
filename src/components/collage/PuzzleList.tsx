@@ -21,7 +21,7 @@ export function PuzzleList() {
         const marks: Record<string, string> = {};
         for (const p of puzzles) {
           try {
-            const raw = window.localStorage.getItem(`collage:${p.id}`);
+            const raw = window.localStorage.getItem(`close-ups:${p.id}`);
             const status = raw ? (JSON.parse(raw) as { state?: { status?: string } }).state?.status : undefined;
             if (status) marks[p.id] = status === "playing" ? "In progress" : status === "won" ? "Solved" : "Finished";
           } catch {

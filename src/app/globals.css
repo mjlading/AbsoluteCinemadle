@@ -143,6 +143,210 @@ body {
   }
 }
 
+/*
+ * Close-Ups. The page is one screen: the stage is a size container, and the
+ * board takes the smallest of the stage's width, the height left once the
+ * strip, the board's padding and the rows below it are taken off, and 600px.
+ * Below 240px it stops shrinking and the page may scroll (landscape phones).
+ */
+.closeups-stage {
+  container-type: size;
+}
+
+.closeups-group {
+  /* The strip (36px), its gap (8px) and the board's padding (8px all round), on top of the square grid. */
+  --board-chrome: 44px;
+  /* Whatever sits under the board, at its tallest: the result panel with its gap. */
+  --board-below: 141px;
+  --board: max(240px, min(100cqw, 100cqh - var(--board-chrome) - var(--board-below), 600px));
+  width: var(--board);
+}
+
+/* Labels shrink with the board, so five fit in a row down to the smallest board. */
+.closeups-tape-label {
+  font-size: clamp(10px, (var(--board) - 120px) / 17, 14px);
+}
+
+.closeups-below {
+  min-height: calc(var(--board-below) - 12px);
+}
+
+/*
+ * The keyword strip is paper tape stuck on the contact sheet: the current
+ * keyword is bright tape with torn ends, used ones are dim tape with a red
+ * marker cross, and the ones still to come are empty dashed slots.
+ */
+.closeups-tape {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    calc(100% - 3px) 18%,
+    100% 36%,
+    calc(100% - 3px) 54%,
+    100% 72%,
+    calc(100% - 3px) 90%,
+    100% 100%,
+    0 100%,
+    3px 82%,
+    0 64%,
+    3px 46%,
+    0 28%,
+    3px 10%
+  );
+  transition:
+    background-color 200ms,
+    color 200ms;
+}
+
+[data-state="current"] > .closeups-tape {
+  background: var(--tier-4);
+  color: var(--on-tape);
+  animation: closeups-stick 420ms cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+[data-state="won"] > .closeups-tape {
+  background: var(--tier-2);
+  color: var(--on-tape);
+  animation: closeups-stick 420ms cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+[data-state="spent"] > .closeups-tape,
+[data-state="unreached"] > .closeups-tape {
+  background: rgb(237 235 227 / 0.13);
+  color: rgb(232 238 241 / 0.82);
+}
+
+[data-state="unreached"] > .closeups-tape {
+  color: rgb(232 238 241 / 0.6);
+}
+
+[aria-selected="true"][data-state="spent"] > .closeups-tape,
+[aria-selected="true"][data-state="unreached"] > .closeups-tape {
+  background: rgb(237 235 227 / 0.82);
+  color: var(--on-tape);
+}
+
+[data-state="locked"] > .closeups-tape {
+  clip-path: none;
+  border-radius: 3px;
+  color: rgb(232 238 241 / 0.34);
+  outline: 1.5px dashed rgb(232 238 241 / 0.18);
+  outline-offset: -1.5px;
+}
+
+@keyframes closeups-stick {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) rotate(-3deg) scale(1.08);
+  }
+}
+
+/* The marker cross on a used keyword, drawn in like Casting call's. */
+.closeups-cross path {
+  fill: none;
+  stroke: var(--color-marker-strong);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  animation: marker-cross 220ms ease-out both;
+}
+
+.closeups-cross path:last-child {
+  animation-delay: 140ms;
+}
+
+@keyframes marker-cross {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* A new keyword's collage cross-fades in; a miss also jolts it like film slipping in the gate. */
+.closeups-swap {
+  animation: closeups-swap 340ms ease-out;
+}
+
+.closeups-slip {
+  animation:
+    closeups-swap 340ms ease-out,
+    gate-slip 380ms steps(1, end);
+}
+
+@keyframes closeups-swap {
+  from {
+    opacity: 0;
+    filter: brightness(1.6);
+    scale: 0.985;
+  }
+}
+
+/* The one enhanced close-up widens out of its crop. */
+.closeups-enhanced {
+  animation: closeups-enhance 900ms cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+
+@keyframes closeups-enhance {
+  from {
+    scale: 1.5;
+  }
+}
+
+.closeups-badge {
+  transition:
+    scale 150ms,
+    opacity 250ms,
+    background-color 150ms,
+    color 150ms;
+}
+
+.closeups-badge[data-gone] {
+  scale: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    scale 250ms,
+    opacity 250ms,
+    visibility 0s 250ms;
+}
+
+/* A miss chip is struck through in red marker. */
+.closeups-chip {
+  animation: closeups-pop 250ms ease-out;
+}
+
+.closeups-chip[data-miss]::after {
+  content: "";
+  position: absolute;
+  inset-inline: 7px;
+  top: 50%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--marker);
+  rotate: -3deg;
+}
+
+@keyframes closeups-pop {
+  from {
+    opacity: 0;
+    scale: 0.8;
+  }
+}
+
+.closeups-rise {
+  animation: closeups-rise 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes closeups-rise {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+}
+
 .tile[data-effect="settle"] .tile-face {
   animation: tile-settle 420ms ease-out forwards;
 }

@@ -6,7 +6,11 @@ import { suggestFilms, type FilmSuggestion } from "@/lib/game/api";
 
 interface TitleGuessProps {
   disabled: boolean;
-  onGuess: (guess: string, tmdbId?: number) => void;
+  /**
+   * With `clearOnGuess`, a promise holds the box's text until it settles, and
+   * `false` (returned or resolved) keeps it, for a guess that was turned away.
+   */
+  onGuess: (guess: string, tmdbId?: number) => void | boolean | Promise<void | boolean>;
   /** Shows a "Skip for now" button; the warm-up uses it, the keyword collage does not. */
   onSkip?: () => void;
   /** False when this is the only card left, so skipping would change nothing. */
@@ -17,6 +21,10 @@ interface TitleGuessProps {
   autoFocus?: boolean;
   /** Empty the box after each guess, for games where guesses stay on one question. */
   clearOnGuess?: boolean;
+  /** Where the suggestions open: below the box, or above it when the box sits low on the screen. */
+  listPlacement?: "below" | "above";
+  /** While the box is empty, the button beside it does this instead (Close-Ups' Skip); Enter in an empty box does nothing. */
+  emptyAction?: { label: string; onPress: () => void };
 }
 
 /**
@@ -31,6 +39,8 @@ export function TitleGuess({
   placeholder = "Which film is this?",
   autoFocus = true,
   clearOnGuess = false,
+  listPlacement = "below",
+  emptyAction,
 }: TitleGuessProps) {
   const inputId = useId();
   const listId = useId();
@@ -66,8 +76,13 @@ export function TitleGuess({
 
   const submit = (guess: string, tmdbId?: number) => {
     if (!guess.trim() || disabled) return;
-    onGuess(guess, tmdbId);
-    if (clearOnGuess) setValue("");
+    const result = onGuess(guess, tmdbId);
+    if (clearOnGuess) {
+      // Only the text that was guessed goes; anything typed since stays.
+      const clear = (outcome: void | boolean) => outcome !== false && setValue((v) => (v === guess ? "" : v));
+      if (result instanceof Promise) void result.then(clear, () => {});
+      else clear(result);
+    }
     setOpen(false);
     setActive(-1);
   };
@@ -132,7 +147,9 @@ export function TitleGuess({
               id={listId}
               role="listbox"
               aria-label="Suggestions"
-              className="absolute inset-x-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-ink/15 bg-surface py-1 shadow-xl"
+              className={`absolute inset-x-0 z-20 max-h-64 overflow-y-auto rounded-lg border border-ink/15 bg-surface py-1 shadow-xl ${
+                listPlacement === "above" ? "bottom-full mb-2" : "top-full mt-1"
+              }`}
             >
               {films.map((film, index) => (
                 <li
@@ -155,13 +172,26 @@ export function TitleGuess({
             </ul>
           )}
         </div>
-        <button
-          type="submit"
-          disabled={disabled || !query}
-          className="min-h-12 shrink-0 rounded-full bg-ink px-6 font-semibold text-table disabled:opacity-35"
-        >
-          Guess
-        </button>
+        {emptyAction && !query ? (
+          <button
+            type="button"
+            onClick={emptyAction.onPress}
+            disabled={disabled}
+            className="min-h-12 min-w-[6.5rem] shrink-0 rounded-full bg-ink/9 px-6 font-semibold text-ink transition-colors hover:bg-ink/15 disabled:opacity-35"
+          >
+            {emptyAction.label}
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={disabled || !query}
+            className={`min-h-12 shrink-0 rounded-full bg-ink px-6 font-semibold text-table disabled:opacity-35 ${
+              emptyAction ? "min-w-[6.5rem]" : ""
+            }`}
+          >
+            Guess
+          </button>
+        )}
       </div>
       {onSkip && (
         <button
