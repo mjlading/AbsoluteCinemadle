@@ -67,21 +67,15 @@ export function SoundbytesIcon({ className = "" }: { className?: string }) {
   );
 }
 
+/** The outline of one raised open hand, palm out, thumb on the left. */
+const HAND =
+  "M32 110C29 106 25 96 22 87C16 80 9 71 5.5 63C3 57 8 52.5 13 55.5C18.5 59 24.5 66 30.5 70.5C31.5 62 30.5 52 29.5 46C27.5 34 24.5 21 23 12.5C22 5 31 3 32.5 10C34.5 20 37 33 39.5 44C40.5 47.5 43.5 47.5 44.5 44C44.5 32 44.5 17 45 8.5C45.5 1.5 55 1.5 55.5 8.5C56 18 55.5 32 55.5 44C56.5 47.5 59.5 47.5 60.5 44.5C61.5 33 63.5 21 65.5 12.5C67 5.5 75.5 7.5 74.5 14.5C73 24 70.5 36 69.5 46C70.5 49.5 73.5 49.5 74.5 47C76.5 40 80 31 83.5 24.5C86.5 18.5 93.5 22 91.5 28.5C88.5 38 84.5 48 82.5 58.5C80.5 72 78.5 84 74.5 94C72.5 100 70.5 106 70 110Z";
+
 /** One raised open hand, the meme's gesture, thumb on the left; `mirror` puts the thumb on the right. */
 export function RaisedHand({ className = "", mirror = false }: { className?: string; mirror?: boolean }) {
   return (
-    <svg viewBox="0 0 60 70" className={className} aria-hidden="true" focusable="false">
-      <g transform={mirror ? "translate(60 0) scale(-1 1)" : undefined}>
-        {/* Fingers and thumb are round-ended strokes fanning out of the palm, so it all reads as one hand. */}
-        <g stroke="currentColor" strokeLinecap="round" fill="none">
-          <path d="M21 32 13 8" strokeWidth="7" />
-          <path d="M28 30 25.5 4" strokeWidth="7" />
-          <path d="M35 30 39.5 6" strokeWidth="7" />
-          <path d="M41 34 51 15" strokeWidth="6.2" />
-          <path d="M19 46 4 36.5" strokeWidth="7.5" />
-        </g>
-        <path d="M17 31c0-3 2-5 5-5h18c3 0 5 2 5 5v15c0 10-5 17-14 17h-1c-9 0-13-7-13-17Z" fill="currentColor" />
-      </g>
+    <svg viewBox="0 0 100 112" className={className} aria-hidden="true" focusable="false">
+      <path d={HAND} fill="currentColor" transform={mirror ? "translate(100 0) scale(-1 1)" : undefined} />
     </svg>
   );
 }
