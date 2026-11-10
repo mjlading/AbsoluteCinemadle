@@ -4,14 +4,14 @@ import { z } from "zod";
 
 import { errorResponse, parseJsonBody } from "@/lib/http";
 import { posterUrl } from "@/lib/tmdb/images";
-import { titleMatches } from "@/lib/warmup/match";
+import { titleMatches } from "@/lib/game/match";
 import { parseCollageView, renderCollageImage } from "./image";
 import type { CollageAnswer, CollageGuessResult, CollagePuzzle, CollageSolution, PublicCollagePuzzle } from "./types";
 
 /*
  * Request handling for /api/collage/[puzzleId]/... The client gets keyword
  * labels and opaque tile ids; the title only arrives with a right guess or
- * from the solution route, as with the daily puzzle.
+ * from the solution route.
  */
 
 const noStore = { "Cache-Control": "no-store" };

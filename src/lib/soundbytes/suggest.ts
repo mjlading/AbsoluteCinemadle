@@ -1,4 +1,4 @@
-import { normalizeTitle, rankSuggestions } from "@/lib/warmup/match";
+import { normalizeTitle, rankSuggestions } from "@/lib/game/match";
 import type { GuessPick } from "./types";
 
 const MAX_FILMS = 6;

@@ -3,8 +3,8 @@ import "server-only";
 import sharp from "sharp";
 
 import { RULES } from "@/config/rules";
-import { renderTileImage } from "@/lib/puzzle/tile-image";
-import { placeholderSvg } from "@/lib/puzzle/placeholder-image";
+import { renderTileImage } from "./tile-image";
+import { placeholderSvg } from "./placeholder-image";
 import { tmdbImageUrl } from "@/lib/tmdb/images";
 import { widenCrop } from "./crop";
 import type { CollageTile } from "./types";

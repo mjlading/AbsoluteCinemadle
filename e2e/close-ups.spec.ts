@@ -72,66 +72,70 @@ test("the help opens on the first visit only", async ({ page }) => {
   await expect(dialog).toBeVisible();
 });
 
-test("a game: a miss, Enter on an empty box, a skip, enhance, then the right guess", async ({ page, context }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await openPuzzle(page);
+test(
+  "a game: a miss, Enter on an empty box, a skip, enhance, then the right guess",
+  { tag: "@phone" },
+  async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await openPuzzle(page);
 
-  // The answer is nowhere on the page or in what the client got.
-  const puzzle = await (await page.request.get("/api/collage/fixture1")).text();
-  expect(puzzle).not.toContain(ANSWER);
-  await expect(page.getByText(ANSWER)).toHaveCount(0);
-  await expectRound(page, "Hands");
-  await expect(closeUps(page, "Hands")).toHaveCount(4);
-  await expect(page.getByRole("button", { name: "Skip" })).toBeVisible();
-  // No empty list before the first miss.
-  await expect(history(page)).toHaveCount(0);
+    // The answer is nowhere on the page or in what the client got.
+    const puzzle = await (await page.request.get("/api/collage/fixture1")).text();
+    expect(puzzle).not.toContain(ANSWER);
+    await expect(page.getByText(ANSWER)).toHaveCount(0);
+    await expectRound(page, "Hands");
+    await expect(closeUps(page, "Hands")).toHaveCount(4);
+    await expect(page.getByRole("button", { name: "Skip" })).toBeVisible();
+    // No empty list before the first miss.
+    await expect(history(page)).toHaveCount(0);
 
-  await guess(page, "Jaws");
-  await expectRound(page, "Doors");
-  await expect(closeUps(page, "Doors")).toHaveCount(4);
-  await expect(history(page).getByRole("listitem")).toHaveText(["Jaws"]);
-  await expect(live(page)).toHaveText("Not Jaws. Doors is open.");
-  await expect(guessBox(page)).toBeFocused();
-  await expect(guessBox(page)).toHaveValue("");
+    await guess(page, "Jaws");
+    await expectRound(page, "Doors");
+    await expect(closeUps(page, "Doors")).toHaveCount(4);
+    await expect(history(page).getByRole("listitem")).toHaveText(["Jaws"]);
+    await expect(live(page)).toHaveText("Not Jaws. Doors is open.");
+    await expect(guessBox(page)).toBeFocused();
+    await expect(guessBox(page)).toHaveValue("");
 
-  // Enter in an empty box changes nothing: the skip below opens Food, not Signs.
-  await guessBox(page).press("Enter");
-  await page.getByRole("button", { name: "Skip" }).click();
-  await expectRound(page, "Food");
-  await expect(history(page).getByRole("listitem")).toHaveText(["Jaws", "Skipped"]);
-  await expect(page.getByRole("button", { name: "Skip" })).toBeFocused();
+    // Enter in an empty box changes nothing: the skip below opens Food, not Signs.
+    await guessBox(page).press("Enter");
+    await page.getByRole("button", { name: "Skip" }).click();
+    await expectRound(page, "Food");
+    await expect(history(page).getByRole("listitem")).toHaveText(["Jaws", "Skipped"]);
+    await expect(page.getByRole("button", { name: "Skip" })).toBeFocused();
 
-  // No how-to text on screen: what Enhance does is told to screen readers only.
-  await expect(enhance(page)).toHaveAttribute("title", "Enhance");
-  await expect(enhance(page)).toHaveAccessibleDescription("Widens one close-up, once per game.");
-  await enhance(page).click();
-  await expect(enhance(page)).toHaveAttribute("aria-pressed", "true");
-  await expect(live(page)).toHaveText("Pick a close-up to widen.");
-  await page.getByRole("button", { name: "Food, close-up 2 of 4" }).click();
-  await expect(page.getByRole("img", { name: "Food, close-up 2 of 4, enhanced" })).toBeVisible();
-  await expect(enhance(page)).toHaveCount(0);
+    // No how-to text on screen: what Enhance does is told to screen readers only.
+    await expect(enhance(page)).toHaveAttribute("title", "Enhance");
+    await expect(enhance(page)).toHaveAccessibleDescription("Widens one close-up, once per game.");
+    await enhance(page).click();
+    await expect(enhance(page)).toHaveAttribute("aria-pressed", "true");
+    await expect(live(page)).toHaveText("Pick a close-up to widen.");
+    await page.getByRole("button", { name: "Food, close-up 2 of 4" }).click();
+    await expect(page.getByRole("img", { name: "Food, close-up 2 of 4, enhanced" })).toBeVisible();
+    await expect(enhance(page)).toHaveCount(0);
 
-  await guess(page, "back to the futur");
-  await expect(page.getByRole("heading", { name: ANSWER })).toBeVisible();
-  await expect(page.getByText("Got it", { exact: true })).toBeVisible();
-  await expect(score(page)).toHaveText("2");
-  await expect(tab(page, "Food")).toHaveAttribute("data-state", "won");
+    await guess(page, "back to the futur");
+    await expect(page.getByRole("heading", { name: ANSWER })).toBeVisible();
+    await expect(page.getByText("Got it", { exact: true })).toBeVisible();
+    await expect(score(page)).toHaveText("2");
+    await expect(tab(page, "Food")).toHaveAttribute("data-state", "won");
 
-  await page.getByRole("button", { name: "Share" }).click();
-  await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
-  // Windows' clipboard turns line breaks into CRLF.
-  const copied = (await page.evaluate(() => navigator.clipboard.readText())).replaceAll("\r\n", "\n");
-  expect(copied).toMatch(/^Close-Ups (#\d+ )?2\/6\n🟥🟥🟩⬛$/);
+    await page.getByRole("button", { name: "Share" }).click();
+    await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
+    // Windows' clipboard turns line breaks into CRLF.
+    const copied = (await page.evaluate(() => navigator.clipboard.readText())).replaceAll("\r\n", "\n");
+    expect(copied).toMatch(/^Close-Ups (#\d+ )?2\/6\n🟥🟥🟩⬛$/);
 
-  // Every keyword is viewable now, and its close-ups pull back to the full frames.
-  for (const keyword of KEYWORDS) {
-    await tab(page, keyword).click();
-    await expect(tab(page, keyword)).toHaveAttribute("aria-selected", "true");
-    await expect(
-      page.getByRole("img", { name: new RegExp(`^${keyword}, close-up \\d of 4, full frame$`) }),
-    ).toHaveCount(4);
-  }
-});
+    // Every keyword is viewable now, and its close-ups pull back to the full frames.
+    for (const keyword of KEYWORDS) {
+      await tab(page, keyword).click();
+      await expect(tab(page, keyword)).toHaveAttribute("aria-selected", "true");
+      await expect(
+        page.getByRole("img", { name: new RegExp(`^${keyword}, close-up \\d of 4, full frame$`) }),
+      ).toHaveCount(4);
+    }
+  },
+);
 
 test("the first clue wins 6 with the bonus", async ({ page }) => {
   await openPuzzle(page);
@@ -168,18 +172,9 @@ test("four misses lose, and giving up takes two presses", async ({ page }) => {
   await expect(score(page)).toHaveText("0");
 });
 
-test("a repeated guess costs nothing", async ({ page }) => {
-  await openPuzzle(page);
-  await guess(page, "Jaws");
-  await expectRound(page, "Doors");
-  await guess(page, "jaws");
-  await expect(live(page)).toHaveText("Already guessed Jaws.");
-  await expectRound(page, "Doors");
-  await expect(history(page).getByRole("listitem")).toHaveCount(1);
-  await expect(guessBox(page)).toHaveValue("jaws");
-});
-
-test("a reload mid-game resumes, and an old saved game is ignored", async ({ page }) => {
+test("a repeated guess costs nothing, a reload mid-game resumes, and an old saved game is ignored", async ({
+  page,
+}) => {
   // The old key, holding a finished game in the old shape, for the very same tiles: only the new key keeps it out.
   await page.addInitScript(
     (signature) =>
@@ -204,6 +199,11 @@ test("a reload mid-game resumes, and an old saved game is ignored", async ({ pag
 
   await guess(page, "Jaws");
   await expectRound(page, "Doors");
+  await guess(page, "jaws");
+  await expect(live(page)).toHaveText("Already guessed Jaws.");
+  await expectRound(page, "Doors");
+  await expect(guessBox(page)).toHaveValue("jaws");
+
   await page.reload();
   await expectRound(page, "Doors");
   await expect(history(page).getByRole("listitem")).toHaveText(["Jaws"]);
@@ -249,7 +249,7 @@ async function expectOnlyJawsSpent(page: Page) {
   await expect(tab(page, "Food")).toHaveAttribute("data-state", "locked");
 }
 
-test("a double tap on Guess held across the answer is not a Skip", async ({ page }) => {
+test("a double tap on Guess held across the answer is not a Skip", { tag: "@phone" }, async ({ page }) => {
   await openPuzzle(page);
   await slowGuesses(page);
   await guessBox(page).fill("Jaws");
@@ -271,7 +271,7 @@ test("a double tap on Guess held across the answer is not a Skip", async ({ page
   await expectOnlyJawsSpent(page);
 });
 
-test("a second tap on Guess right as the answer comes in is not a Skip", async ({ page }) => {
+test("a second tap on Guess right as the answer comes in is not a Skip", { tag: "@phone" }, async ({ page }) => {
   await openPuzzle(page);
   await slowGuesses(page);
   await guessBox(page).fill("Jaws");
@@ -297,7 +297,7 @@ test("a second tap on Guess right as the answer comes in is not a Skip", async (
   await expectRound(page, "Food");
 });
 
-test("fits one screen", async ({ page }) => {
+test("fits one screen", { tag: "@phone" }, async ({ page }) => {
   await openPuzzle(page);
   const overflow = () =>
     page.evaluate(() => {
@@ -334,8 +334,7 @@ test("fits one screen", async ({ page }) => {
   }
 });
 
-test("playable by keyboard alone", async ({ page, isMobile }) => {
-  test.skip(isMobile, "Keyboard play is a desktop concern.");
+test("playable by keyboard alone", async ({ page }) => {
   await page.route("**/api/films/search**", (route) =>
     route.fulfill({
       json: {

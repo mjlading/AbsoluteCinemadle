@@ -1,4 +1,4 @@
-import type { Crop } from "@/lib/puzzle/types";
+import type { Crop } from "@/lib/tmdb/images";
 
 /**
  * A square crop widened by `factor` around its centre, for the "Enhance"

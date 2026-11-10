@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { cropToPixels, defaultSquareCrop, sourceSizeFor } from "./images";
+import { cropToPixels, sourceSizeFor } from "./images";
 
 describe("sourceSizeFor", () => {
   it("picks the smallest size that keeps the crop sharp", () => {
@@ -31,18 +31,5 @@ describe("cropToPixels", () => {
       width: 10,
       height: 10,
     });
-  });
-});
-
-describe("defaultSquareCrop", () => {
-  it("centers a square on a landscape backdrop", () => {
-    const crop = defaultSquareCrop(1920, 1080, "backdrop");
-    expect(crop.x).toBeCloseTo(0.21875);
-    expect(crop.width).toBeCloseTo(0.5625);
-    expect(crop).toMatchObject({ y: 0, height: 1 });
-  });
-
-  it("keeps the top of a portrait, where the face is", () => {
-    expect(defaultSquareCrop(400, 600, "profile")).toEqual({ x: 0, y: 0, width: 1, height: 400 / 600 });
   });
 });

@@ -26,7 +26,7 @@ export function isPlayableDate(date: string, now: Date = new Date()): boolean {
   return isIsoDate(date) && date <= tomorrowUtc;
 }
 
-/** Today's date in UTC, which the admin uses to plan the calendar. */
+/** Today's date in UTC, the base for the latest day the server will hand out. */
 export function utcIsoDate(now: Date = new Date()): string {
   return now.toISOString().slice(0, 10);
 }

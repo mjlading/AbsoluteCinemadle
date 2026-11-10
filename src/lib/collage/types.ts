@@ -1,4 +1,12 @@
-import type { Crop, TileImage } from "@/lib/puzzle/types";
+import type { Crop } from "@/lib/tmdb/images";
+
+/**
+ * How a tile's picture is produced. TMDB images are always shown through a
+ * crop rendered on the server; placeholders are emoji art for dev and tests.
+ */
+export type TileImage =
+  | { kind: "tmdb"; source: "profile" | "backdrop"; path: string; crop: Crop }
+  | { kind: "placeholder"; glyph: string; hue: number };
 
 /**
  * How much a keyword's close-ups give the film away, which sets where it falls in the reveal order:

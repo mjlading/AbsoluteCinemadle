@@ -1,8 +1,7 @@
 # Absolute Cinemadle
 
-A collection of movie and series games, starting with a daily movie puzzle.
-Each game in development has its design notes in [docs/](docs/).
-The product spec is in [docs/SPEC.md](docs/SPEC.md) and decisions taken along the way are in [ASSUMPTIONS.md](ASSUMPTIONS.md).
+Three film games: Close-Ups (name the film from close-ups that share a keyword), Casting call (name films to cross out a cast) and Soundbytes (name the film by ear).
+Each game has its design notes in [docs/](docs/), and decisions taken along the way are in [ASSUMPTIONS.md](ASSUMPTIONS.md).
 
 ## Set up
 
@@ -13,13 +12,14 @@ npm install
 cp .env.example .env.local   # then fill in the values
 npm run db:up                # start Postgres in Docker
 npm run db:migrate
-npm run db:seed              # schedule the sample puzzle for today
+npm run db:import-collage -- e2e/fixtures/keyword-collage.json --days=0,-1      # test puzzles for today and yesterday
+npm run db:import-soundbytes -- e2e/fixtures/soundbytes/boards.json --days=0     # a test board for today
 npm run dev
 ```
 
 In `.env.local`, the TMDB token is the "API Read Access Token" from your own free TMDB account (Settings → API).
-The admin password and session secret can be anything locally, and `ANTHROPIC_API_KEY` can stay empty unless you use the admin LLM helpers.
-The game gallery runs at http://localhost:3000, the daily puzzle at http://localhost:3000/daily, and the puzzle editor at http://localhost:3000/admin.
+The game gallery runs at http://localhost:3000.
+Real puzzles are made on the owner's PC by the labs in `tools/` (see their READMEs).
 
 On a network that inspects TLS traffic (common on work laptops), Node cannot reach TMDB until it trusts the system's certificates.
 Set `NODE_USE_SYSTEM_CA=1` in your environment (on Windows: `setx NODE_USE_SYSTEM_CA 1`, then open a new terminal).
@@ -50,7 +50,6 @@ The site runs on Vercel with a Neon Postgres database, connected through Neon's 
 - Each build runs `npm run db:migrate` first (see `vercel.json`), against the direct connection in `DATABASE_URL_UNPOOLED`.
 - Functions run in Frankfurt (`fra1` in `vercel.json`), next to the Neon database (`aws-eu-central-1`).
 - Secrets live in the Vercel project's environment variables, never in the repo.
-  `ANTHROPIC_API_KEY` is set for Production only, so previews can't spend LLM budget outside the production ledger.
 
 Film data and images come from [TMDB](https://www.themoviedb.org/).
 This product uses the TMDB API but is not endorsed or certified by TMDB.

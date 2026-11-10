@@ -17,20 +17,17 @@
     "db:up": "docker compose up -d --wait",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.mts",
-    "db:seed": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/seed.mts",
     "db:import-collage": "tsx --env-file-if-exists=.env.local scripts/import-collage.mts",
     "db:import-soundbytes": "tsx --env-file-if-exists=.env.local scripts/import-soundbytes.mts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.133.0",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.4",
     "postgres": "^3.4.9",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "react-easy-crop": "^6.2.4",
     "server-only": "^0.0.1",
     "sharp": "^0.35.5",
     "zod": "^4.6.7"

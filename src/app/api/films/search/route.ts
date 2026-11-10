@@ -1,11 +1,11 @@
 import { errorResponse } from "@/lib/http";
 import { searchMovies } from "@/lib/tmdb/cached";
-import { rankSuggestions } from "@/lib/warmup/match";
+import { rankSuggestions } from "@/lib/game/match";
 
 const MAX_SUGGESTIONS = 8;
 
 /**
- * Title suggestions for the warm-up guess box. Results only echo what the
+ * Title suggestions for the guess boxes. Results only echo what the
  * player typed, so they reveal nothing; TMDB lookups are cached on the server.
  */
 export async function GET(request: Request) {

@@ -21,12 +21,6 @@ export async function searchPeople(query: string) {
   return api.searchPeople(query);
 }
 
-export async function getMovie(tmdbId: number) {
-  "use cache";
-  cacheLife("days");
-  return api.getMovie(tmdbId);
-}
-
 export async function getMovieWithCast(tmdbId: number) {
   "use cache";
   cacheLife("days");
@@ -37,34 +31,4 @@ export async function getPerson(personId: number) {
   "use cache";
   cacheLife("days");
   return api.getPerson(personId);
-}
-
-export async function getPersonProfiles(personId: number) {
-  "use cache";
-  cacheLife("days");
-  return api.getPersonProfiles(personId);
-}
-
-export async function getPersonFilmography(personId: number) {
-  "use cache";
-  cacheLife("days");
-  return api.getPersonFilmography(personId);
-}
-
-export async function getForeignTitles(tmdbId: number) {
-  "use cache";
-  cacheLife("days");
-  return api.getForeignTitles(tmdbId);
-}
-
-export async function getReviews(tmdbId: number) {
-  "use cache";
-  cacheLife("days");
-  return api.getReviews(tmdbId);
-}
-
-export async function getVideos(tmdbId: number) {
-  "use cache";
-  cacheLife("days");
-  return api.getVideos(tmdbId);
 }

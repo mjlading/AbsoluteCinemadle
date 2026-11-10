@@ -54,12 +54,11 @@ export function writeJson(key: string, value: unknown): void {
 }
 
 /**
- * useReducer that resumes from localStorage and saves every change. With a
- * null key (the admin preview) it is a plain reducer. Only mount it on the
- * client, after the puzzle has loaded, so the stored state is there on first render.
+ * useReducer that resumes from localStorage and saves every change. Only mount it
+ * on the client, after the puzzle has loaded, so the stored state is there on first render.
  */
 export function usePersistentReducer<S, A, I>(
-  key: string | null,
+  key: string,
   signature: string,
   reducer: Reducer<S, A>,
   initialArg: I,
@@ -67,12 +66,12 @@ export function usePersistentReducer<S, A, I>(
   revive: (stored: S) => S = (stored) => stored,
 ) {
   const [state, dispatch] = useReducer(reducer, initialArg, (arg) => {
-    const stored = key ? readStored<S>(key, signature) : null;
+    const stored = readStored<S>(key, signature);
     return stored ? revive(stored) : init(arg);
   });
 
   useEffect(() => {
-    if (key) writeStored(key, signature, state);
+    writeStored(key, signature, state);
   }, [key, signature, state]);
 
   return [state, dispatch] as const;

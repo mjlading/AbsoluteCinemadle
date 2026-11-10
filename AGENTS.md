@@ -1,19 +1,22 @@
 # Absolute Cinemadle
 
-Daily movie puzzle web app: a back-translated-titles warm-up, a 4×4 image grid (Connections-style, one film per group) and a color-barcode bonus round.
-The full brief is [docs/SPEC.md](docs/SPEC.md); read it before starting any phase.
-Decisions taken where the spec is ambiguous live in [ASSUMPTIONS.md](ASSUMPTIONS.md); add to it instead of stopping to ask.
+Three film games, each with its own route, code folders and design notes:
+
+- Close-Ups (`/close-ups`, docs/CLOSE-UPS.md): a daily; name the film from collages of close-ups that share a keyword.
+  `/close-ups` is today's puzzle and `/close-ups/archive` lists earlier days; puzzles are curated in `tools/collage-lab` and loaded with `npm run db:import-collage`.
+- Soundbytes (`/soundbytes`, docs/SOUNDBYTES.md): a daily; name the film from lines of dialogue that get easier, then its theme.
+  Boards are built on the owner's PC by `tools/soundbytes-lab` and loaded with `npm run db:import-soundbytes`.
+- Casting call (`/casting-call`, docs/CASTING-CALL.md): cross out 8 actors by naming films, within 5 guesses and a 40-second bar, on a fixed list of boards in `src/lib/casting-call/boards.ts`.
+
+Decisions taken where the owner's briefs are silent live in [ASSUMPTIONS.md](ASSUMPTIONS.md); add to it instead of stopping to ask.
+None of the games has an admin editor; the labs make the content.
 
 ## Status
 
-All five build phases are done (grid; database, TMDB and admin editor at `/admin`; warm-up with LLM back-translations; barcode bonus round; hints, scoring, results, streaks and saved progress).
-Hosting is Vercel (Hobby) with a Neon (free) database at absolutecinemadle.fun; see "Deploy" in README.md.
-Before launch: a refresh job for `films` rows older than about 5 months, and real puzzles.
-Close-Ups (`/close-ups`, see docs/CLOSE-UPS.md) is a daily: `/close-ups` is today's puzzle, `/close-ups/archive` lists earlier days, and dated puzzles are curated in the collage lab and loaded with `npm run db:import-collage`; it has no admin editor yet.
-Soundbytes (`/soundbytes`, see docs/SOUNDBYTES.md) is a daily like Close-Ups: `/soundbytes` is today's board and `/soundbytes/archive` lists earlier days, built on the owner's PC by `tools/soundbytes-lab` from dialogue clips cut from official videos and loaded with `npm run db:import-soundbytes`, played like Heardle (5 lines from 5 voices, each miss opens the next); it has no admin editor yet.
-Casting call (`/casting-call`) is playable: cross out 8 named actors by naming films, within 5 guesses and before a 40-second bar runs out, on a fixed list of boards in `src/lib/casting-call/boards.ts` (see docs/CASTING-CALL.md).
+All three games are live at absolutecinemadle.fun (Vercel Hobby with a Neon free database; see "Deploy" in README.md).
+Close-Ups and Soundbytes need a new week of content before the last imported day runs out.
+Collage puzzles and Soundbytes answers are TMDB data: rows older than about 5 months (`synced_at`) must be re-exported or deleted.
 Update this section as that work lands.
-Phases are listed in SPEC.md under "Build phases"; owner additions (posters, review hint, animations) are listed there too.
 
 ## Stack
 
@@ -23,32 +26,26 @@ The repo is public: Vercel's Hobby plan only deploys other people's commits from
 Pushes to `main` deploy to production; every other branch gets a preview deployment with its own Neon database branch, and `vercel.json` runs migrations before each build.
 Player progress lives in localStorage; there are no player accounts.
 Commands: see `package.json` scripts; first-time setup is in README.md.
-`test:e2e` migrates and seeds the `cinemadle_test` database, builds the app and serves it on port 3200.
-Players read puzzles through `src/lib/puzzle/source.ts` (cached, date-gated); the admin edits them through `src/lib/admin/puzzles.ts`.
+`test:e2e` migrates the `cinemadle_test` database, imports the test fixtures, builds the app and serves it on port 3200.
 On networks that intercept TLS (the owner's work laptop), Node needs `NODE_USE_SYSTEM_CA=1` to reach TMDB.
 
 ## Hard rules
 
 - Answers never reach the client before they are earned.
-  Guesses are validated by the server; the client only gets opaque tile ids.
-  Tile images are served through our own image route under opaque ids, so TMDB file paths and uncropped backdrops never leak (prop crops are rendered server-side).
-- Secrets (TMDB, Anthropic, DB, admin password) stay server-side.
+  Guesses are validated by the server; the client only gets opaque ids.
+  Pictures and clips are served through our own routes under opaque ids, so TMDB file paths, uncropped frames and clip sources never leak.
+- Alt text and accessible names never reveal the answer ("Hands, close-up 2 of 4", "Face 3").
+- Secrets (TMDB, DB) stay server-side.
   Modules that touch them import `server-only`; never use a `NEXT_PUBLIC_` prefix for them.
-- Tile alt text never reveals the answer ("Tile 7, prop close-up"); a flipped label is announced to screen readers.
 - Film audio and video are used only under fair use, in pieces far too short to stand in for the work:
   - Soundbytes dialogue: clips of about 4 seconds cut from official scene clips and trailers on YouTube, the voice separated out with the rest of the soundtrack turned far down.
     They are prepared offline by a local tool on the owner's PC, never on the server, and served from our own route under opaque ids, with no metadata that names the film.
-  - The daily puzzle's sound hint: a visible YouTube embed with start/end times.
   - Soundbytes' theme clue: a window of the iTunes Search API's 30-second preview, played unaltered from Apple's servers, never rehosted.
 - Never host or stream full films, scenes or trailers, and take a clip down promptly when a rights holder asks.
-- Every point value lives in the single scoring config file; never hardcode scores elsewhere.
-- LLM use: model `claude-haiku-5-5` only, server-side, admin-triggered only.
-  Every call goes through the spend guard, which records cost in the DB and refuses calls once the USD 10 lifetime cap would be exceeded.
-  Do not add an LLM call site that bypasses it, and do not change the model or cap without the owner's approval.
-  On Vercel the Anthropic key is set for Production only: each preview's Neon branch keeps its own spend ledger, so a key there would let total spend pass the cap.
-- Ask the owner before adding any new paid or keyed third-party API.
+- Every point value lives in `src/config/scoring.ts` and every other game rule number in `src/config/rules.ts`; never hardcode them elsewhere.
+- Ask the owner before adding any paid or keyed third-party API, including LLM APIs (the labs use Claude Code agents for judgment calls instead).
 - Show the TMDB attribution in the footer; TMDB use is licensed for non-commercial use only.
-- TMDB data may be kept for at most 6 months: `films.synced_at` records when it was fetched, and stale rows must be refreshed, not kept.
+- TMDB data may be kept for at most 6 months: `synced_at` records when it was fetched, and stale rows must be refreshed or deleted, not kept.
 
 ## Neon skills
 
@@ -56,15 +53,16 @@ On networks that intercept TLS (the owner's work laptop), Node needs `NODE_USE_S
 Use them for Postgres connections, migrations, branching and diagnostics; where they disagree with this file, this file wins:
 
 - Keep the existing `postgres` driver and Drizzle setup.
-- Don't adopt other Neon products (Auth, Functions, Object Storage, AI Gateway, Realtime, Data API) or Upstash without the owner's approval; LLM calls stay on the spend guard above.
+- Don't adopt other Neon products (Auth, Functions, Object Storage, AI Gateway, Realtime, Data API) or Upstash without the owner's approval.
 - Local development uses Docker Postgres. Don't create Neon projects, claimable projects or branches yourself: the Vercel integration makes preview branches, and the free plan allows only 10.
 - Update the skills (`npx neon skills update`) only when the owner asks, not at the start of every session.
 - Never send `neon feedback` or any other report to Neon without asking the owner first.
 
 ## Verifying work
 
-- Pure game logic (grid state, scoring, fuzzy matching, validation, palette extraction) gets Vitest unit tests.
-- Player flows get Playwright E2E tests.
+- Pure game logic (game state, scoring, title matching, validation) gets Vitest unit tests.
+- Player flows get Playwright E2E tests, run on desktop; tag a test `@phone` when it checks layout, touch or a whole game, so it also runs at phone size.
+- Don't repeat in E2E what a unit test already pins down; an E2E test checks what the player sees.
 - Check UI changes in a real browser at phone width (390px) and desktop, with keyboard only, before calling them done.
 
 <!-- BEGIN:nextjs-agent-rules -->

@@ -2,7 +2,7 @@
 
 Shows every film of a batch (images/<prefix>-picks.json from pick_demo.py) with all keyword rows
 from its SAM 3 and MM-DINO reports and every tile in them, not just the first six.
-For each film: pick 5 keywords, choose exactly which 4 tiles make each collage, set the label,
+For each film: pick 4 keywords, choose exactly which 4 tiles make each collage, set the label,
 tier and free starter, check a tile against its full frame, and give the day its date.
 Saves to images/<slug>-curation.json as you go; a draft already there (from a curation agent)
 is the starting point. Mark a day "approved" when it is done; export_demo.py warns about the rest.
@@ -172,7 +172,7 @@ dialog::backdrop { background: rgba(0,0,0,.8); }
 <dialog id="frame"><div class="framewrap"><img alt=""><div class="box"></div></div><p class="hint" id="framecap"></p></dialog>
 <script>
 const DATA = __DATA__;
-const TIERS = DATA.tiers, KEEP = 5, TILES = 4;
+const TIERS = DATA.tiers, KEEP = 4, TILES = 4;
 const days = DATA.days.map(initDay);
 let current = Math.max(0, days.findIndex(d => !d.approved));
 const $ = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else if (v !== false && v != null) e.setAttribute(k, v === true ? "" : v); } e.append(...kids.flat().filter(k => k != null)); return e; };
@@ -200,7 +200,7 @@ function ordered(day) {
 function problems(day) {
   const p = [];
   if (day.keys.length < KEEP) p.push(`${KEEP - day.keys.length} more keyword(s) needed`);
-  if (day.keys.length > KEEP) p.push(`${day.keys.length - KEEP} past the fifth will be dropped`);
+  if (day.keys.length > KEEP) p.push(`${day.keys.length - KEEP} too many: the game uses ${KEEP}`);
   const free = day.keys.filter(k => k.free).length;
   if (free !== 1) p.push(free ? "only one free keyword" : "no free keyword");
   for (const k of day.keys) if (k.frames.length !== TILES) p.push(`${k.label}: ${k.frames.length}/4 tiles`);

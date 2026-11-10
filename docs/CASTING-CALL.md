@@ -15,7 +15,7 @@ Rules decided where the brief is silent are in [ASSUMPTIONS.md](../ASSUMPTIONS.m
 
 ## Answer protection
 
-Who is on the board is the puzzle, so it follows the project's hard rules like the daily grid:
+Who is on the board is the puzzle, so it follows the project's hard rules on answers:
 
 - The client gets faces under opaque ids (their position on the board) and pictures rendered by our own image route, never TMDB person ids or file paths.
 - A guess returns only the faces in that film, with their names.

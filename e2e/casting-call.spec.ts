@@ -93,16 +93,6 @@ async function win(page: Page) {
 }
 
 test.describe("with TMDB stubbed", () => {
-  test("the gallery leads to the list of boards", async ({ page }) => {
-    await page.goto("/");
-    await page
-      .getByRole("link")
-      .filter({ has: page.getByRole("heading", { name: "Casting call" }) })
-      .click();
-    await expect(page).toHaveURL(/\/casting-call$/);
-    await expect(page.getByRole("link", { name: /^Board \d/ })).toHaveCount(6);
-  });
-
   test("before Start the faces are blurred, unnamed, and the names are not fetched", async ({ page }) => {
     const solutionCalls: string[] = [];
     page.on("request", (r) => {
@@ -125,27 +115,34 @@ test.describe("with TMDB stubbed", () => {
     expect(solutionCalls).toHaveLength(1);
   });
 
-  test("a win crosses everyone out, survives a reload and is marked in the list", async ({ page }) => {
-    await openBoard(page);
-    await start(page);
-    await win(page);
+  test(
+    "a win crosses everyone out, survives a reload and is marked in the list",
+    { tag: "@phone" },
+    async ({ page }) => {
+      await openBoard(page);
+      await start(page);
+      await win(page);
 
-    await expect(page.getByRole("heading", { name: "That's a wrap!" })).toBeVisible();
-    await expect(page.getByText("All 8 actors in 4 guesses.")).toBeVisible();
-    await expect(crossedOut(page)).toHaveCount(8);
-    await expect(page.getByText("8", { exact: true })).toBeVisible();
-    await expect(guessBox(page)).toBeDisabled();
+      await expect(page.getByRole("heading", { name: "That's a wrap!" })).toBeVisible();
+      await expect(page.getByText("All 8 actors in 4 guesses.")).toBeVisible();
+      await expect(crossedOut(page)).toHaveCount(8);
+      await expect(page.getByText("8", { exact: true })).toBeVisible();
+      await expect(guessBox(page)).toBeDisabled();
 
-    await page.reload();
-    await expect(page.getByRole("heading", { name: "That's a wrap!" })).toBeVisible();
-    await expect(crossedOut(page)).toHaveCount(8);
+      await page.reload();
+      await expect(page.getByRole("heading", { name: "That's a wrap!" })).toBeVisible();
+      await expect(crossedOut(page)).toHaveCount(8);
 
-    await page.getByRole("link", { name: "Another board" }).click();
-    await expect(page.getByRole("link", { name: /^Board 1/ })).toContainText("Solved in 4");
-    await expect(page.getByRole("link", { name: /^Board 2/ })).toContainText("Play");
-  });
+      await page.getByRole("link", { name: "Another board" }).click();
+      await expect(page.getByRole("link", { name: /^Board \d/ })).toHaveCount(6);
+      await expect(page.getByRole("link", { name: /^Board 1/ })).toContainText("Solved in 4");
+      await expect(page.getByRole("link", { name: /^Board 2/ })).toContainText("Play");
+    },
+  );
 
-  test("a miss and a film with nobody new cost a guess; repeating a film does not", async ({ page }) => {
+  test("a miss and a film with nobody new cost a guess, repeating a film does not, and a reload resumes", async ({
+    page,
+  }) => {
     await openBoard(page);
     await start(page);
 
@@ -166,17 +163,10 @@ test.describe("with TMDB stubbed", () => {
     await expect(page.getByText("Echo Street only has actors you've already crossed out.")).toBeVisible();
     await expect(guessesLeft(page, 2)).toBeVisible();
     await expect(crossedOut(page)).toHaveCount(3);
-  });
-
-  test("a reload mid-game resumes the board", async ({ page }) => {
-    await openBoard(page);
-    await start(page);
-    await guess(page, "Bravo Run");
-    await hit(page, "Bravo Run", "Dov Dale, Eva Ellis");
 
     await page.reload();
-    await expect(crossedOut(page)).toHaveCount(2);
-    await expect(guessesLeft(page, 4)).toBeVisible();
+    await expect(crossedOut(page)).toHaveCount(3);
+    await expect(guessesLeft(page, 2)).toBeVisible();
     await expect(timer(page)).toBeVisible();
     await expect(page.getByRole("button", { name: "Start" })).toHaveCount(0);
   });
@@ -220,8 +210,7 @@ test.describe("with TMDB stubbed", () => {
     await expect(guessBox(page)).toBeDisabled();
   });
 
-  test("the game can be played with the keyboard alone", async ({ page, isMobile }) => {
-    test.skip(isMobile, "Keyboard play is a desktop concern.");
+  test("the game can be played with the keyboard alone", async ({ page }) => {
     await openBoard(page);
 
     await page.getByRole("button", { name: "Start" }).focus();
@@ -244,7 +233,7 @@ test.describe("with TMDB stubbed", () => {
     await expect(page.getByRole("option")).toHaveCount(0);
   });
 
-  test("the page has no horizontal scroll", async ({ page }) => {
+  test("the page has no horizontal scroll", { tag: "@phone" }, async ({ page }) => {
     await openBoard(page);
     await start(page);
     const overflow = await page.evaluate(

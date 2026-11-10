@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { RULES } from "@/config/rules";
 import { widenCrop } from "@/lib/collage/crop";
 import type { PublicCollageKeyword } from "@/lib/collage/types";
-import type { Crop } from "@/lib/puzzle/types";
+import type { Crop } from "@/lib/tmdb/images";
 import { PANEL_ID, tabId } from "./KeywordStrip";
 
 /** Alt text names the keyword and position only, never the film. */

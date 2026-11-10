@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Confetti } from "@/components/game/Confetti";
 import { ReelSpinner } from "@/components/game/ReelSpinner";
-import { TitleGuess } from "@/components/warmup/TitleGuess";
+import { TitleGuess } from "./TitleGuess";
 import { SITE } from "@/config/site";
 import { fetchCollageDay, fetchCollageSolution, guessCollage } from "@/lib/collage/api";
 import { closeUpsNumber } from "@/lib/collage/day";
@@ -20,7 +20,7 @@ import type { CollageSolution, PublicCollagePuzzle } from "@/lib/collage/types";
 import { localIsoDate } from "@/lib/dates";
 import { ApiError } from "@/lib/game/api";
 import { readJson, usePersistentReducer, writeJson } from "@/lib/game/storage";
-import { normalizeTitle } from "@/lib/warmup/match";
+import { normalizeTitle } from "@/lib/game/match";
 import { CollageGrid, ENHANCE_ID, EnhanceBadge, type FrameInfo } from "./CollageTiles";
 import { GuessHistory } from "./GuessHistory";
 import { HelpDialog } from "./HelpDialog";
@@ -324,12 +324,8 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
               <>
                 <div ref={guessRow}>
                   <TitleGuess
-                    disabled={false}
                     onGuess={guess}
                     placeholder="Name the film…"
-                    autoFocus={false}
-                    clearOnGuess
-                    listPlacement="above"
                     emptyAction={{ label: round === last ? giveUpLabel : "Skip", onPress: skip }}
                   />
                 </div>
