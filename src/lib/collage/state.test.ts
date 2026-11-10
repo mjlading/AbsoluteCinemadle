@@ -23,7 +23,7 @@ const skip: CollageAction = { type: "skip" };
 const misses = (n: number): CollageAction[] => Array.from({ length: n }, (_, i) => wrong(`Film ${i}`));
 
 describe("Close-Ups state", () => {
-  it("starts on the first keyword with 5 guesses and nothing enhanced", () => {
+  it("starts on the first keyword with 4 guesses and nothing enhanced", () => {
     const state = play();
     expect(currentRound(state)).toBe(0);
     expect(guessesLeft(state)).toBe(RULES.closeUps.maxGuesses);
@@ -41,20 +41,15 @@ describe("Close-Ups state", () => {
     ]);
   });
 
-  it("scores 7 on the first clue, then 4, 3, 2, 1", () => {
+  it("scores 6 on the first clue, then 3, 2, 1, and 0 once the guesses are gone", () => {
     const scores = [0, 1, 2, 3, 4].map((n) => collageScore(play(...misses(n), right)));
-    expect(scores).toEqual([7, 4, 3, 2, 1]);
-    expect([0, 1, 2, 3, 4].map((n) => isFirstClueWin(play(...misses(n), right)))).toEqual([
-      true,
-      false,
-      false,
-      false,
-      false,
-    ]);
+    expect(scores).toEqual([6, 3, 2, 1, 0]);
+    expect([0, 1, 2, 3].map((n) => isFirstClueWin(play(...misses(n), right)))).toEqual([true, false, false, false]);
   });
 
-  it("is lost on the fifth miss or skip and scores 0", () => {
-    const state = play(...misses(4), skip);
+  it("is lost on the fourth miss or skip and scores 0", () => {
+    expect(play(...misses(3)).status).toBe("playing");
+    const state = play(...misses(3), skip);
     expect(state.status).toBe("lost");
     expect(collageScore(state)).toBe(0);
     expect(currentRound(state)).toBe(RULES.closeUps.maxGuesses - 1);
@@ -71,8 +66,8 @@ describe("Close-Ups state", () => {
   it("ignores everything once the game is over", () => {
     const won = play(right);
     expect(play(right, wrong("Heat"), skip, { type: "enhance", tileId: "t1" })).toEqual(won);
-    const lost = play(...misses(5));
-    expect(play(...misses(5), right, skip)).toEqual(lost);
+    const lost = play(...misses(4));
+    expect(play(...misses(4), right, skip)).toEqual(lost);
   });
 
   it("allows one enhance per game", () => {
@@ -86,6 +81,6 @@ describe("Close-Ups state", () => {
   });
 
   it("reveals the answer on a lost game", () => {
-    expect(play(...misses(5), { type: "reveal", answer }).answer).toEqual(answer);
+    expect(play(...misses(4), { type: "reveal", answer }).answer).toEqual(answer);
   });
 });

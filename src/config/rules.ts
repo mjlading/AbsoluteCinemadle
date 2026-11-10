@@ -1,5 +1,5 @@
 /** Close-Ups gives one guess per keyword, so the two counts below must stay equal. */
-const CLOSE_UPS_KEYWORDS = 5;
+const CLOSE_UPS_KEYWORDS = 4;
 
 /** Game rules that are not point values (those live in scoring.ts). */
 export const RULES = {

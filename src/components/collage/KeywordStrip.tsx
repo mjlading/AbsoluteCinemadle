@@ -20,7 +20,7 @@ export const PANEL_ID = "closeups-panel";
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
- * The five keywords as tape labels; also the guess counter. A tab list: opened
+ * The keywords as tape labels; also the guess counter. A tab list: opened
  * keywords show their collage again, locked ones are disabled tabs that only wiggle.
  */
 export function KeywordStrip({

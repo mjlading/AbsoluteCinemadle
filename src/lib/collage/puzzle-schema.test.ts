@@ -17,8 +17,8 @@ describe("collage puzzle schema", () => {
     expect(CollagePuzzleSchema.safeParse({ ...puzzle, keywords }).success).toBe(false);
   });
 
-  it("refuses a puzzle with fewer than 5 keywords", () => {
-    expect(CollagePuzzleSchema.safeParse({ ...puzzle, keywords: puzzle.keywords.slice(0, 4) }).success).toBe(false);
+  it("refuses a puzzle with fewer than 4 keywords", () => {
+    expect(CollagePuzzleSchema.safeParse({ ...puzzle, keywords: puzzle.keywords.slice(0, 3) }).success).toBe(false);
   });
 
   it("refuses a TMDB path that is not a plain file name", () => {
@@ -42,7 +42,7 @@ describe("collage puzzle schema", () => {
 });
 
 describe("readCollagePuzzle", () => {
-  it("serves a 6-keyword puzzle as 5, dropping the 6th in reveal order with its tiles", () => {
+  it("serves a 6-keyword puzzle as 4, dropping from the middle so the most telling stays last", () => {
     const sixth = {
       ...puzzle.keywords[4],
       id: "kwsixth",
@@ -52,8 +52,9 @@ describe("readCollagePuzzle", () => {
       tiles: [{ ...puzzle.keywords[4].tiles[0], id: "sixthtile01" }],
     };
     const read = readCollagePuzzle({ ...puzzle, keywords: [...puzzle.keywords, sixth] });
-    expect(read.keywords.map((k) => k.id)).toEqual(["kwhands", "kwdoors", "kwfood", "kwmouths", "kwsigns"]);
-    expect(JSON.stringify(read)).not.toContain("sixthtile01");
+    expect(read.keywords.map((k) => k.id)).toEqual(["kwhands", "kwdoors", "kwfood", "kwsixth"]);
+    expect(JSON.stringify(read)).not.toContain("fixturetile13");
+    expect(JSON.stringify(read)).not.toContain("fixturetile17");
   });
 
   it("puts the free keyword first whatever the stored order", () => {

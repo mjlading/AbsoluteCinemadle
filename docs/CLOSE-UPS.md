@@ -10,23 +10,23 @@ The 2026-11 redesign (rules, score, layout) is recorded in `docs/superpowers/spe
 
 - A puzzle is one hand-picked film or series.
 - A clue is a 2x2 collage of close-up crops that share a keyword, such as "shoes", all from the same title.
-- A puzzle has 5 keywords in a fixed order, from least to most revealing.
+- A puzzle has 4 keywords in a fixed order, from least to most revealing.
   Every player sees the same clues in the same order, so scores are comparable.
 - The game starts with the first keyword open.
-- The player has 5 guesses, one per keyword.
+- The player has 4 guesses, one per keyword.
   A wrong guess, or a Skip, uses up the current keyword's guess and opens the next keyword.
   The game is lost when the guesses run out; a Skip on the last keyword ends it (the button reads "Give up" there).
 - The first keyword always comes from a curated list of everyday objects, so it never gives the title away on its own.
 - Keyword tiers (hard, medium, easy) only decide the order and help curation: hard (atmospheric: hands, doors, chairs, lamps), medium (contextual: vehicles, guns, food, hats, jewelry), easy (character-adjacent: mouths, hair, signs).
 - One "Enhance" per game, free, widens one close-up by 50%.
-- After the game ends, the result panel replaces the guess row, all 5 keywords can be viewed from the strip, and the crops zoom out to their full frames.
+- After the game ends, the result panel replaces the guess row, all 4 keywords can be viewed from the strip, and the crops zoom out to their full frames.
 
 ## Score
 
-- Solving on guess _n_ (1 to 5) scores `6 - n`; solving on the first guess adds a bonus of 2, so the scores are 7, 4, 3, 2 and 1.
+- Solving on guess _n_ (1 to 4) scores `5 - n`; solving on the first guess adds a bonus of 2, so the scores are 6, 3, 2 and 1.
 - A loss scores 0.
 - The numbers live in `src/config/scoring.ts` (`closeUps`) and `src/config/rules.ts` (`closeUps`).
-- The share text is the puzzle name, the score out of 7 and one square per keyword: red for a used keyword, green for the one solved on, black for one never reached.
+- The share text is the puzzle name, the score out of 6 and one square per keyword: red for a used keyword, green for the one solved on, black for one never reached.
 
 ## Screen
 
@@ -49,7 +49,8 @@ It opens by itself on a first visit.
 - Stills come from TMDB backdrops; trailers and other video are never used.
 - Detection runs locally and is started by the admin, not by a cron job; the admin then curates the results.
   Collage puzzles have no admin editor yet; they are curated in the collage lab and imported with `npm run db:import-collage`.
-- A puzzle needs at least 5 keywords; the server orders them (the free one first, then hard, medium, easy, keeping the stored order within a tier) and the game uses the first 5.
+- A puzzle needs at least 4 keywords; the server orders them (the free one first, then hard, medium, easy, keeping the stored order within a tier).
+  The game uses 4; extra keywords are dropped from the middle, so the most revealing one always comes last.
 - Crops are filtered by minimum size, maximum share of the frame and detector confidence; there is no blur filter, since it would reject skies, explosions and shallow focus.
 - Crops that contain a recognisable face are flagged or dropped, as they can spoil the answer.
 - Detector experiments live in [tools/collage-lab](../tools/collage-lab/README.md).

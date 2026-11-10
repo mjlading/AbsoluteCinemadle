@@ -35,6 +35,17 @@ python pick_demo.py 3              # picks well-known films at random as demo-1.
 python export_demo.py             # curated keywords and dates (images/demo-curation.json) -> .data/keyword-collage.json (gitignored)
 # then, from the repo root: npm run db:import-collage -- .data/keyword-collage.json
 python sheet.py whiplash          # thumbnails of all fetched frames
+```
+
+## Daily batches
+
+```sh
+python pick_demo.py 7 batch1       # 7 secret picks as batch1-1..7 -> images/batch1-picks.json
+bash run_batch.sh batch1           # fetch, faces, frames, then SAM 3 and MM-DINO detect + report per film, one GPU job at a time
+python strips.py batch1-1          # one image per keyword row (agent/), every tile numbered, ~ marks likely same-shot tiles
+python curate.py batch1 2026-11-10 # curation page on http://localhost:8767: pick 5 keywords and their exact 4 tiles, date, approve
+python export_demo.py images/batch1-*-curation.json   # warns about days not approved
+# then, from the repo root: npm run db:import-collage -- .data/keyword-collage.json
 node count-backdrops.mjs          # backdrop counts for a sample of films and series
 ```
 

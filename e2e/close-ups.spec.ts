@@ -1,11 +1,14 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
-// The fixture puzzle (e2e/fixtures/keyword-collage.json) reveals Hands (the free starter), Doors, Food, Mouths
-// and Signs, in that order; the film is Back to the Future.
+// The fixture puzzle (e2e/fixtures/keyword-collage.json) stores 5 keywords; the game uses 4 and drops one from
+// the middle, so it reveals Hands (the free starter), Doors, Food and Signs (Mouths is never served);
+// the film is Back to the Future.
 const ANSWER = "Back to the Future";
-const KEYWORDS = ["Hands", "Doors", "Food", "Mouths", "Signs"];
+const KEYWORDS = ["Hands", "Doors", "Food", "Signs"];
 // What the game keys its saved progress to: every tile id, in reveal order (four per keyword).
-const SIGNATURE = Array.from({ length: 20 }, (_, i) => `fixturetile${String(i + 1).padStart(2, "0")}`).join(",");
+const SIGNATURE = [...Array.from({ length: 12 }, (_, i) => i + 1), 17, 18, 19, 20]
+  .map((n) => `fixturetile${String(n).padStart(2, "0")}`)
+  .join(",");
 
 const tab = (page: Page, name: string) => page.getByRole("tab", { name, exact: true });
 const guessBox = (page: Page) => page.getByRole("combobox", { name: /^Name the film/ });
@@ -91,7 +94,7 @@ test("a game: a miss, Enter on an empty box, a skip, enhance, then the right gue
   await expect(guessBox(page)).toBeFocused();
   await expect(guessBox(page)).toHaveValue("");
 
-  // Enter in an empty box changes nothing: the skip below opens Food, not Mouths.
+  // Enter in an empty box changes nothing: the skip below opens Food, not Signs.
   await guessBox(page).press("Enter");
   await page.getByRole("button", { name: "Skip" }).click();
   await expectRound(page, "Food");
@@ -111,14 +114,14 @@ test("a game: a miss, Enter on an empty box, a skip, enhance, then the right gue
   await guess(page, "back to the futur");
   await expect(page.getByRole("heading", { name: ANSWER })).toBeVisible();
   await expect(page.getByText("Got it", { exact: true })).toBeVisible();
-  await expect(score(page)).toHaveText("3");
+  await expect(score(page)).toHaveText("2");
   await expect(tab(page, "Food")).toHaveAttribute("data-state", "won");
 
   await page.getByRole("button", { name: "Share" }).click();
   await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
   // Windows' clipboard turns line breaks into CRLF.
   const copied = (await page.evaluate(() => navigator.clipboard.readText())).replaceAll("\r\n", "\n");
-  expect(copied).toMatch(/^Close-Ups (#\d+ )?3\/7\n🟥🟥🟩⬛⬛$/);
+  expect(copied).toMatch(/^Close-Ups (#\d+ )?2\/6\n🟥🟥🟩⬛$/);
 
   // Every keyword is viewable now, and its close-ups pull back to the full frames.
   for (const keyword of KEYWORDS) {
@@ -130,28 +133,27 @@ test("a game: a miss, Enter on an empty box, a skip, enhance, then the right gue
   }
 });
 
-test("the first clue wins 7 with the bonus", async ({ page }) => {
+test("the first clue wins 6 with the bonus", async ({ page }) => {
   await openPuzzle(page);
   await guess(page, ANSWER);
   await expect(page.getByRole("heading", { name: ANSWER })).toBeVisible();
   await expect(page.getByText("First clue!")).toBeVisible();
-  await expect(score(page)).toHaveText("7");
+  await expect(score(page)).toHaveText("6");
   await expect(page.getByText("+2 first clue")).toBeVisible();
   await expect(page.getByRole("heading", { name: ANSWER })).toBeFocused();
 
   // The game stays finished, and the archive shows today's score.
   await page.reload();
-  await expect(score(page)).toHaveText("7");
+  await expect(score(page)).toHaveText("6");
   await page.getByRole("link", { name: "Previous days" }).last().click();
-  await expect(page.getByRole("listitem").first()).toContainText("7/7");
+  await expect(page.getByRole("listitem").first()).toContainText("6/6");
 });
 
-test("five misses lose, and giving up takes two presses", async ({ page }) => {
+test("four misses lose, and giving up takes two presses", async ({ page }) => {
   await openPuzzle(page);
   await guess(page, "Jaws");
   await page.getByRole("button", { name: "Skip" }).click();
   await guess(page, "Alien");
-  await page.getByRole("button", { name: "Skip" }).click();
   await expectRound(page, "Signs");
 
   await page.getByRole("button", { name: "Give up", exact: true }).click();
