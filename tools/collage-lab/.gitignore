@@ -7,3 +7,6 @@ models/
 counts.json
 review/
 review-ab/
+agent/
+__pycache__/
+*.log

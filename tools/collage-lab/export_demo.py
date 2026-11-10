@@ -11,13 +11,14 @@ leave it out for an undated puzzle, which players never see). For example:
      {"label": "Hands", "tier": "hard", "free": true, "source": "mmdino", "row": "hand"},
      {"label": "Food", "tier": "medium", "source": "sam3", "row": "food", "skip": ["031.jpg"]}]}}
 
-A keyword takes the first 4 tiles of that report row, after any frames listed in "skip".
+A keyword takes the frames listed in "frames" (curate.py), or else the first 4 tiles of that report
+row after any frames listed in "skip".
 Tile and puzzle ids are random, so they say nothing about the film.
 
-usage: python export_demo.py
+usage: python export_demo.py [curation files..., default images/demo-curation.json]
 """
 import truststore; truststore.inject_into_ssl()
-import json, re, secrets, string, pathlib, requests
+import json, re, sys, secrets, string, pathlib, requests
 
 LAB = pathlib.Path(__file__).parent
 ROOT = LAB.parent.parent
@@ -31,7 +32,16 @@ def new_id(n=12):
     return "".join(secrets.choice(ALPHABET) for _ in range(n))
 
 
-curation = json.loads((LAB / "images" / "demo-curation.json").read_text())
+curation = {}
+for path in sys.argv[1:] or [LAB / "images" / "demo-curation.json"]:
+    for slug, spec in json.loads(pathlib.Path(path).read_text(encoding="utf-8-sig")).items():
+        if slug.startswith("_"):
+            continue
+        if slug in curation:
+            raise SystemExit(f"{slug} is in more than one curation file")
+        if path != LAB / "images" / "demo-curation.json" and not spec.get("approved"):
+            print(f"warning: {slug} is not approved")
+        curation[slug] = spec
 puzzles = []
 for slug, spec in curation.items():
     meta = json.loads((LAB / "images" / slug / "meta.json").read_text())
@@ -40,7 +50,11 @@ for slug, spec in curation.items():
     keywords = []
     for kw in spec["keywords"]:
         rows = json.loads((LAB / "detections" / f"{slug}-{kw['source']}-keywords.json").read_text())
-        hits = [(f, d) for f, d in rows[kw["row"]].items() if f not in kw.get("skip", [])][:TILES]
+        row = rows[kw["row"]]
+        if "frames" in kw:  # exact tiles, in order (curate.py)
+            hits = [(f, row[f]) for f in kw["frames"]]
+        else:
+            hits = [(f, d) for f, d in row.items() if f not in kw.get("skip", [])][:TILES]
         if len(hits) < TILES:
             raise SystemExit(f"{slug} {kw['label']}: only {len(hits)} tiles")
         tiles = []

@@ -1,9 +1,10 @@
 """Pick well-known films at random for a demo, without printing which ones.
 
-The picks go to images/demo-picks.json (gitignored) under opaque slugs demo-1, demo-2, ...
+The picks go to images/<prefix>-picks.json (gitignored) under opaque slugs <prefix>-1, <prefix>-2, ...
+The prefix defaults to "demo"; give each batch of dailies its own, such as "batch1".
 Films the lab already used are skipped, and so is anything with too few textless backdrops.
 
-usage: python pick_demo.py [count]
+usage: python pick_demo.py [count] [prefix]
 """
 import truststore; truststore.inject_into_ssl()
 import json, re, secrets, sys, pathlib, requests
@@ -12,6 +13,7 @@ LAB = pathlib.Path(__file__).parent
 env = (LAB.parent.parent / ".env.local").read_text()
 H = {"Authorization": f"Bearer {re.search(r'^TMDB_READ_ACCESS_TOKEN=(.+)$', env, re.M).group(1).strip()}"}
 COUNT = int(sys.argv[1]) if len(sys.argv) > 1 else 3
+PREFIX = sys.argv[2] if len(sys.argv) > 2 else "demo"
 MIN_TEXTLESS = 45
 API = "https://api.themoviedb.org/3"
 
@@ -40,8 +42,8 @@ for m in pool:
     if sum(1 for b in backdrops if b["iso_639_1"] is None) < MIN_TEXTLESS:
         continue
     genres_taken.add(genre)
-    picks.append({"slug": f"demo-{len(picks) + 1}", "tmdb_id": m["id"]})
+    picks.append({"slug": f"{PREFIX}-{len(picks) + 1}", "tmdb_id": m["id"]})
 
 (LAB / "images").mkdir(exist_ok=True)
-(LAB / "images" / "demo-picks.json").write_text(json.dumps(picks))
+(LAB / "images" / f"{PREFIX}-picks.json").write_text(json.dumps(picks))
 print(f"picked {len(picks)} films: " + ", ".join(p["slug"] for p in picks))
