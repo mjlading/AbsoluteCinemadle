@@ -1,0 +1,140 @@
+{
+  "boards": [
+    {
+      "id": "fixture1",
+      "name": "Test board",
+      "answer": {
+        "tmdbId": 329,
+        "title": "Jurassic Park",
+        "year": 1993,
+        "posterPath": "/d9mtMGQDLANKieb9PbD3yK7xxzo.jpg",
+        "cast": [
+          {
+            "tmdbId": 4783,
+            "name": "Sam Neill"
+          },
+          {
+            "tmdbId": 4784,
+            "name": "Laura Dern"
+          },
+          {
+            "tmdbId": 4785,
+            "name": "Jeff Goldblum"
+          },
+          {
+            "tmdbId": 4786,
+            "name": "Richard Attenborough"
+          },
+          {
+            "tmdbId": 4789,
+            "name": "Bob Peck"
+          },
+          {
+            "tmdbId": 4790,
+            "name": "Martin Ferrero"
+          },
+          {
+            "tmdbId": 14592,
+            "name": "BD Wong"
+          },
+          {
+            "tmdbId": 4787,
+            "name": "Joseph Mazzello"
+          }
+        ],
+        "themeUrl": "https://music.apple.com/us/album/e2e-theme/1?i=1"
+      },
+      "nodes": [
+        {
+          "id": "q7rk",
+          "slot": 0,
+          "label": "Line 1",
+          "category": "dialogue",
+          "art": null,
+          "clip": {
+            "id": "dialogue-a",
+            "contentType": "audio/wav",
+            "seconds": 6,
+            "mouth": "037774037970367797400048740146997653000000000004676406984046788630006984047899975200000000000688620698205799852002665304689987400000000000255530179710"
+          },
+          "source": {
+            "kind": "generated",
+            "id": "placeholder",
+            "at": 0
+          }
+        },
+        {
+          "id": "b2mx",
+          "slot": 1,
+          "label": "Line 2",
+          "category": "score",
+          "art": null,
+          "clip": {
+            "id": "score-a",
+            "contentType": "audio/wav",
+            "seconds": 6,
+            "mouth": "069975333422234320998543233332544089955342333323232321221049876764098844332332255409996543233333233333223333321111049984433333225440998543423233555099"
+          },
+          "source": {
+            "kind": "generated",
+            "id": "placeholder",
+            "at": 0
+          }
+        },
+        {
+          "id": "h9tc",
+          "slot": 2,
+          "label": "Line 3",
+          "category": "sfx",
+          "art": null,
+          "clip": {
+            "id": "sfx-a",
+            "contentType": "audio/wav",
+            "seconds": 6,
+            "mouth": "000597432111100000000000000000975321111000000000000000009863321110000000000000000089743211110000000000000000597432211100000000000000000975321111000000"
+          },
+          "source": {
+            "kind": "generated",
+            "id": "placeholder",
+            "at": 0
+          }
+        },
+        {
+          "id": "w4pz",
+          "slot": 3,
+          "label": "Line 4",
+          "category": "dialogue",
+          "art": null,
+          "clip": {
+            "id": "dialogue-b",
+            "contentType": "audio/wav",
+            "seconds": 6,
+            "mouth": "048850588873058960257698520000000000005982057775106984035797640000000000000686015797402798304677974000000000000389504787740499600478776300000000000059"
+          },
+          "source": {
+            "kind": "generated",
+            "id": "placeholder",
+            "at": 0
+          }
+        },
+        {
+          "id": "theme1",
+          "slot": 4,
+          "label": "Theme",
+          "category": "score",
+          "art": null,
+          "clip": {
+            "url": "https://audio-ssl.itunes.apple.com/itunes-assets/e2e/mzaf_theme.plus.aac.p.m4a",
+            "start": 2,
+            "seconds": 3
+          },
+          "source": {
+            "kind": "itunes",
+            "id": "1",
+            "at": 2
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -52,3 +52,6 @@ next-env.d.ts
 
 # keyword collage puzzles exported by the collage lab: answers and TMDB paths, server-side only
 /.data/
+
+.vercel
+.env*

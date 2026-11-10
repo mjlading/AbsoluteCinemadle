@@ -18,6 +18,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import type { CollageKeyword, CollagePuzzle } from "@/lib/collage/types";
+import type { SoundbytesBoard, StoredSoundNode } from "@/lib/soundbytes/types";
 import { TILE_TYPES, type TileImage } from "@/lib/puzzle/types";
 
 export const tileType = pgEnum("tile_type", TILE_TYPES);
@@ -171,6 +172,36 @@ export const collagePuzzles = pgTable("collage_puzzles", {
   answer: jsonb("answer").$type<CollagePuzzle["answer"]>().notNull(),
   keywords: jsonb("keywords").$type<CollageKeyword[]>().notNull(),
   syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Soundbytes boards, built by the soundbytes lab and loaded with `npm run db:import-soundbytes`.
+ * A board's nodes are one JSON document, validated on the way in and out
+ * (src/lib/soundbytes/board-schema.ts). The answer, cast and clip sources never leave the server.
+ * The answer is TMDB data, so `synced_at` dates it for the 6-month limit like `films`.
+ */
+export const soundbytesBoards = pgTable("soundbytes_boards", {
+  /** Opaque id, used in the board's URL. */
+  id: text("id").primaryKey(),
+  /** Spoiler-free name, e.g. "Demo 1"; players see the day's number instead. */
+  name: text("name").notNull(),
+  /** Order in the imported file. */
+  position: smallint("position").notNull(),
+  /** The day it is the daily board (YYYY-MM-DD); undated boards are never shown to players. */
+  date: date("date", { mode: "string" }).unique(),
+  answer: jsonb("answer").$type<SoundbytesBoard["answer"]>().notNull(),
+  nodes: jsonb("nodes").$type<StoredSoundNode[]>().notNull(),
+  syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** The audio of a board's dialogue clips: a few seconds each, with no metadata, served under the clip's opaque id. */
+export const soundbytesClips = pgTable("soundbytes_clips", {
+  id: text("id").primaryKey(),
+  boardId: text("board_id")
+    .notNull()
+    .references(() => soundbytesBoards.id, { onDelete: "cascade" }),
+  contentType: text("content_type").notNull(),
+  data: bytea("data").notNull(),
 });
 
 /** A short clip from an official trailer or scene on YouTube, played as a sound hint. Never downloaded or rehosted. */

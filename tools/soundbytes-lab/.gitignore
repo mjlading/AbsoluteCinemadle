@@ -1,0 +1,6 @@
+# Trailer audio, stems, transcripts and clips stay local; never commit them.
+.venv/
+.bin/
+models/
+work/
+__pycache__/

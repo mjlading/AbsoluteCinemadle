@@ -5,7 +5,9 @@
       "name": "dev",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "env": { "NODE_USE_SYSTEM_CA": "1" },
+      "env": {
+        "NODE_USE_SYSTEM_CA": "1"
+      },
       "port": 3000
     },
     {
@@ -19,6 +21,12 @@
       "runtimeExecutable": "tools/collage-lab/.venv/Scripts/python",
       "runtimeArgs": ["tools/collage-lab/ab.py"],
       "port": 8766
+    },
+    {
+      "name": "soundbytes-listen",
+      "runtimeExecutable": "tools/soundbytes-lab/.venv/Scripts/python",
+      "runtimeArgs": ["-m", "http.server", "8767", "--directory", "tools/soundbytes-lab/work/listen"],
+      "port": 8767
     }
   ]
 }

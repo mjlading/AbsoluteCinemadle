@@ -2,30 +2,50 @@ import "server-only";
 
 import { z } from "zod";
 
-import { POINTS } from "@/config/scoring";
-import { errorResponse, parseJsonBody } from "@/lib/http";
+import { bytesResponse, errorResponse, parseJsonBody } from "@/lib/http";
 import { posterUrl } from "@/lib/tmdb/images";
-import { getMockBoard, MOCK_BOARDS } from "./mock-boards";
-import type { PublicSoundbytesBoard, SoundbytesAnswer, SoundbytesBoard, SoundbytesGuessResult } from "./types";
+import { getClip } from "./source";
+import type {
+  Clip,
+  PublicSoundbytesBoard,
+  SoundbytesAnswer,
+  SoundbytesBoard,
+  SoundbytesGuessResult,
+  StoredClip,
+} from "./types";
 
 /*
- * Request handling for /api/soundbytes/... The client gets labels, prices and
- * clip addresses; the film and its cast stay here, and a guess only learns
- * whether it was right, as with the other games.
+ * Request handling for /api/soundbytes/... The client gets labels and
+ * clip addresses (our own clip route, under opaque ids); the film, its cast and
+ * where each clip came from stay here, and a guess only learns whether it was right, as with the other games.
  */
 
 const noStore = { "Cache-Control": "no-store" };
+
+const publicClip = (boardId: string, clip: StoredClip): Clip =>
+  "url" in clip
+    ? { url: clip.url, start: clip.start, seconds: clip.seconds }
+    : {
+        url: `/api/soundbytes/${encodeURIComponent(boardId)}/clips/${clip.id}`,
+        seconds: clip.seconds,
+        ...(clip.mouth ? { mouth: clip.mouth } : {}),
+      };
 
 export function toPublicBoard(board: SoundbytesBoard): PublicSoundbytesBoard {
   return {
     id: board.id,
     name: board.name,
+    date: board.date,
     nodes: [...board.nodes]
       .sort((a, b) => a.slot - b.slot)
       .map((n) => ({
-        ...n,
-        buyCost: n.free ? 0 : -POINTS.soundbytes.buy,
-        revealCost: -POINTS.soundbytes.reveal,
+        // Listed field by field, so nothing server-only (the clip's source) can slip through.
+        id: n.id,
+        slot: n.slot,
+        label: n.label,
+        category: n.category,
+        art: n.art,
+        clip: publicClip(board.id, n.clip),
       })),
   };
 }
@@ -34,15 +54,8 @@ const answerOf = (board: SoundbytesBoard): SoundbytesAnswer => ({
   title: board.answer.title,
   year: board.answer.year,
   posterUrl: posterUrl(board.answer.posterPath),
+  themeUrl: board.answer.themeUrl,
 });
-
-export const listBoardsResponse = () =>
-  Response.json({ boards: MOCK_BOARDS.map(({ id, name }) => ({ id, name })) }, { headers: noStore });
-
-/** Loads the board for a route's id param, or the error response to return instead. */
-export function boardOrErrorResponse(id: string): SoundbytesBoard | Response {
-  return getMockBoard(id) ?? errorResponse(404, "There is no such board.");
-}
 
 export const boardResponse = (board: SoundbytesBoard) => Response.json(toPublicBoard(board), { headers: noStore });
 
@@ -67,3 +80,13 @@ export async function guessResponse(board: SoundbytesBoard, request: Request): P
 /** The answer, for a lost or abandoned game. Calling it early only spoils the caller's own game. */
 export const solutionResponse = (board: SoundbytesBoard) =>
   Response.json({ answer: answerOf(board) }, { headers: noStore });
+
+/**
+ * A dialogue clip's audio. Clip ids are random and change with every import, so the
+ * browser may keep a clip for good; it stays out of shared caches (see bytesResponse).
+ */
+export async function clipResponse(boardId: string, clipId: string, request: Request): Promise<Response> {
+  const clip = await getClip(boardId, clipId);
+  if (!clip) return errorResponse(404, "That clip is not on this board.");
+  return bytesResponse(request, clip.data, clip.contentType, "private, max-age=31536000, immutable");
+}

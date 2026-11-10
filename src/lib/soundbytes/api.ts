@@ -1,11 +1,12 @@
 import { request } from "@/lib/game/api";
-import type { GuessPick, PublicSoundbytesBoard, SoundbytesAnswer, SoundbytesGuessResult } from "./types";
+import type { GuessPick, PublicSoundbytesBoard, SoundbytesAnswer, SoundbytesDay, SoundbytesGuessResult } from "./types";
 
 const base = (boardId: string) => `/api/soundbytes/${encodeURIComponent(boardId)}`;
 
-export const fetchBoardList = () => request<{ boards: { id: string; name: string }[] }>("/api/soundbytes");
+export const fetchSoundbytesDays = () => request<{ days: SoundbytesDay[] }>("/api/soundbytes");
 
-export const fetchBoard = (boardId: string) => request<PublicSoundbytesBoard>(base(boardId));
+export const fetchSoundbytesDay = (date: string) =>
+  request<PublicSoundbytesBoard>(`/api/soundbytes/day/${encodeURIComponent(date)}`);
 
 export const guessBoard = (boardId: string, pick: GuessPick) =>
   request<SoundbytesGuessResult>(`${base(boardId)}/guess`, {

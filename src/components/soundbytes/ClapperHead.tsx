@@ -6,7 +6,7 @@ import type { CSSProperties } from "react";
  * eyes, the slate is the lower jaw, and opening the hinge shows a mouth. Each
  * node gets one of three personalities (stripes, eyes, brows).
  *
- * soundbytes.css ("cb-") opens the jaw from --sb-level and --sb-time, which
+ * soundbytes.css ("cb-") snaps the jaw open from --sb-open and --sb-side, which
  * the clip player writes while its clip plays (see use-clip-player.ts).
  */
 

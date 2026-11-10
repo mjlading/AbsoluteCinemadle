@@ -1,21 +1,25 @@
 /*
- * Writes the placeholder clips the Soundbytes mock boards play, into
- * public/audio/mock/. Nothing here is film audio: every clip is synthesized,
- * so the files are safe to commit and easy to swap for real clips later.
+ * Writes the placeholder clips of the Soundbytes test board
+ * (e2e/fixtures/soundbytes/boards.json) into e2e/fixtures/soundbytes/clips/.
+ * Nothing here is film audio: every clip is synthesized, so the files are safe to commit.
  *
- * For each category there are two variants (a, b), each with a real 6-second
- * clip and a 2-second disguised one that mimics the disguise:
- *   dialogue: a warbling, vowel-like voice; disguised with a helium pitch-up
- *   score:    a short melody; disguised as a buzzy kazoo
- *   sfx:      thumps (a) or a roar (b); disguised by muffling
+ * For each category there are two variants (a, b), each a 6-second clip:
+ *   dialogue: a warbling, vowel-like voice
+ *   score:    a short melody
+ *   sfx:      thumps (a) or a roar (b)
+ * It also writes each clip's mouth track (its loudness, one digit per frame)
+ * into the board file, so tests play the characters as real boards do.
  *
  * Run with: npx tsx scripts/soundbytes-placeholder-audio.mts
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const RATE = 16_000;
-const OUT = join(import.meta.dirname, "..", "public", "audio", "mock");
+const WHOLE_SECONDS = 6;
+/** As in src/lib/soundbytes/types.ts. */
+const MOUTH_FPS = 25;
+const OUT = join(import.meta.dirname, "..", "e2e", "fixtures", "soundbytes", "clips");
 
 type Signal = Float32Array;
 
@@ -110,19 +114,19 @@ const VOWELS: Record<string, [number, number, number]> = {
 
 type Syllable = { vowel: keyof typeof VOWELS; length: number; gap: number };
 
-function voice(seconds: number, syllables: Syllable[], basePitch: number, shift: number, speed: number) {
+function voice(seconds: number, syllables: Syllable[], basePitch: number) {
   // Lay the syllables out in time, repeating the phrase to fill the clip.
   const spans: { start: number; end: number; vowel: string }[] = [];
   let t = 0.05;
   for (let k = 0; t < seconds; k++) {
     const s = syllables[k % syllables.length];
-    spans.push({ start: t, end: t + s.length / speed, vowel: s.vowel });
-    t += (s.length + s.gap) / speed;
+    spans.push({ start: t, end: t + s.length, vowel: s.vowel });
+    t += s.length + s.gap;
   }
   const at = (time: number) => spans.find((s) => time >= s.start && time < s.end) ?? null;
   const pitch = (time: number) => {
     const phrase = (time % 3) / 3; // a falling contour every few seconds, like a sentence
-    return basePitch * shift * (1.15 - 0.3 * phrase + 0.04 * Math.sin(2 * Math.PI * 5.5 * time));
+    return basePitch * (1.15 - 0.3 * phrase + 0.04 * Math.sin(2 * Math.PI * 5.5 * time));
   };
   const source = osc(seconds, pitch, saw);
   const envelope = new Float32Array(source.length);
@@ -134,7 +138,7 @@ function voice(seconds: number, syllables: Syllable[], basePitch: number, shift:
   }
   const formant = (n: 0 | 1 | 2) => (time: number) => {
     const span = at(time);
-    return VOWELS[span?.vowel ?? "a"][n] * (shift > 1 ? 1.5 : 1);
+    return VOWELS[span?.vowel ?? "a"][n];
   };
   const shaped = mix(
     biquad(source, "bandpass", formant(0), 6),
@@ -166,12 +170,9 @@ const PHRASES: Record<"a" | "b", { syllables: Syllable[]; pitch: number }> = {
   },
 };
 
-const dialogue = (variant: "a" | "b", disguised: boolean) => {
-  const { syllables, pitch } = PHRASES[variant];
-  return disguised ? voice(2, syllables, pitch, 1.9, 1.3) : voice(6, syllables, pitch, 1, 1);
-};
+const dialogue = (variant: "a" | "b") => voice(WHOLE_SECONDS, PHRASES[variant].syllables, PHRASES[variant].pitch);
 
-// --- Score: a melody, played straight or on a kazoo. ---
+// --- Score: a melody. ---
 
 const note = (semitones: number) => 261.63 * 2 ** (semitones / 12);
 
@@ -210,7 +211,7 @@ const MELODIES: Record<"a" | "b", { notes: [number, number][]; tempo: number }> 
   },
 };
 
-function melody(variant: "a" | "b", seconds: number, kazoo: boolean) {
+function melody(variant: "a" | "b", seconds: number) {
   const { notes, tempo } = MELODIES[variant];
   const beat = 60 / tempo;
   const events: { start: number; end: number; freq: number }[] = [];
@@ -221,29 +222,24 @@ function melody(variant: "a" | "b", seconds: number, kazoo: boolean) {
     t += beats * beat;
   }
   const at = (time: number) => events.find((e) => time >= e.start && time < e.end) ?? null;
-  const vibrato = (time: number) => 1 + (kazoo ? 0.012 : 0.004) * Math.sin(2 * Math.PI * 6 * time);
-  const tone = osc(seconds, (time) => (at(time) ?? events[0]).freq * vibrato(time), kazoo ? saw : tri);
+  const vibrato = (time: number) => 1 + 0.004 * Math.sin(2 * Math.PI * 6 * time);
+  const tone = osc(seconds, (time) => (at(time) ?? events[0]).freq * vibrato(time), tri);
   const envelope = tone.map((_, i) => {
     const time = i / RATE;
     const e = at(time);
     if (!e) return 0;
     const pos = time - e.start;
     const rest = e.end - time;
-    return Math.min(1, pos / 0.02) * Math.min(1, rest / 0.04) * (kazoo ? 1 : Math.exp(-pos * 0.9));
+    return Math.min(1, pos / 0.02) * Math.min(1, rest / 0.04) * Math.exp(-pos * 0.9);
   });
   const voiced = tone.map((v, i) => v * envelope[i]);
-  if (kazoo) {
-    // A kazoo is a hummed voice through a buzzing membrane: nasal and edgy.
-    const buzz = biquad(voiced, "bandpass", 1300, 1.4);
-    return mix(gain(buzz, 1.4), gain(biquad(voiced, "highpass", 2400), 0.5));
-  }
   const bass = osc(seconds, (time) => (at(time) ?? events[0]).freq / 2, sine).map((v, i) => v * envelope[i] * 0.4);
   return mix(voiced, bass);
 }
 
-const score = (variant: "a" | "b", disguised: boolean) => melody(variant, disguised ? 2 : 6, disguised);
+const score = (variant: "a" | "b") => melody(variant, WHOLE_SECONDS);
 
-// --- Sound effects: heavy thumps or a roar; muffled behind a door. ---
+// --- Sound effects: heavy thumps or a roar. ---
 
 function noise(seconds: number, seed: number) {
   const random = seeded(seed);
@@ -274,12 +270,7 @@ function roar(seconds: number) {
   return mix(breath, gain(biquad(growl, "lowpass", 600), 0.7)).map((v, i) => v * swell(i / RATE));
 }
 
-const sfx = (variant: "a" | "b", disguised: boolean) => {
-  const seconds = disguised ? 2 : 6;
-  const raw = variant === "a" ? thumps(seconds) : roar(seconds);
-  // Behind a door: everything above a few hundred hertz is gone.
-  return disguised ? biquad(biquad(raw, "lowpass", 320), "lowpass", 320) : raw;
-};
+const sfx = (variant: "a" | "b") => (variant === "a" ? thumps(WHOLE_SECONDS) : roar(WHOLE_SECONDS));
 
 // --- WAV output: 16-bit mono PCM. ---
 
@@ -303,14 +294,47 @@ function wav(samples: Signal): Buffer {
   return Buffer.concat([header, data]);
 }
 
+/** Syllables per frame, 0 (shut) to 9 (wide open), as the lab writes them (tools/soundbytes-lab/build.py, mouth_track). */
+function mouthTrack(s: Signal): string {
+  const frame = Math.round(RATE / MOUTH_FPS);
+  const loud: number[] = [];
+  for (let i = 0; i < s.length; i += frame) {
+    let sum = 0;
+    const end = Math.min(s.length, i + frame);
+    for (let j = i; j < end; j++) sum += s[j] * s[j];
+    loud.push(Math.sqrt(sum / (end - i)));
+  }
+  const around = (i: number, half: number) => loud.slice(Math.max(0, i - half), i + half + 1);
+  const ref = [...loud].sort((a, b) => a - b)[Math.floor(loud.length * 0.9)] || 1;
+  return loud
+    .map((v, i) => {
+      if (v < 0.15 * ref) return 0;
+      const floor = Math.min(...around(i, 3));
+      const peak = Math.max(...around(i, 6));
+      return Math.round(Math.min(1, Math.max(0, (v - floor) / (peak - floor + 1e-9))) * 9);
+    })
+    .join("");
+}
+
 mkdirSync(OUT, { recursive: true });
 const makers = { dialogue, score, sfx };
+const mouths: Record<string, { seconds: number; mouth: string }> = {};
 for (const [category, make] of Object.entries(makers)) {
   for (const variant of ["a", "b"] as const) {
-    for (const disguised of [true, false]) {
-      const file = `${category}-${variant}-${disguised ? "disguised" : "real"}.wav`;
-      writeFileSync(join(OUT, file), wav(finish(make(variant, disguised))));
-      console.log(`Wrote ${file}`);
-    }
+    const clip = finish(make(variant));
+    const id = `${category}-${variant}`;
+    writeFileSync(join(OUT, `${id}.wav`), wav(clip));
+    mouths[id] = { seconds: clip.length / RATE, mouth: mouthTrack(clip) };
+    console.log(`Wrote ${id}.wav`);
   }
 }
+
+const boardFile = join(import.meta.dirname, "..", "e2e", "fixtures", "soundbytes", "boards.json");
+const boards = JSON.parse(readFileSync(boardFile, "utf8")) as {
+  boards: { nodes: { clip: { id?: string; seconds: number; mouth?: string } }[] }[];
+};
+// A theme (an address on Apple's servers) has no file here and no mouth track.
+for (const node of boards.boards.flatMap((b) => b.nodes))
+  if (node.clip.id) Object.assign(node.clip, mouths[node.clip.id]);
+writeFileSync(boardFile, JSON.stringify(boards, null, 2) + "\n");
+console.log("Updated the mouth tracks in e2e/fixtures/soundbytes/boards.json");

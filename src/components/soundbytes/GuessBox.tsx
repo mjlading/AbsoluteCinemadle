@@ -11,17 +11,20 @@ import { FilmIcon, PersonIcon } from "./icons";
  * One guess box for films and actors. Suggestions come from TMDB, each marked
  * with a film or person icon; only a picked suggestion is a guess, so its
  * kind is never in doubt. The list opens upward, so a phone keyboard never
- * hides it.
+ * hides it. Beside the box is one button for the try that names nothing:
+ * Skip, or Give up on the last line.
  */
 export function GuessBox({
   disabled,
   shakeKey,
   onPick,
+  action,
 }: {
   disabled: boolean;
   /** Changes whenever the box should shake (a wrong or repeated guess). */
   shakeKey: number;
   onPick: (pick: GuessPick) => void;
+  action: { label: string; onPress: () => void };
 }) {
   const inputId = useId();
   const listId = useId();
@@ -81,74 +84,84 @@ export function GuessBox({
   };
 
   return (
-    <div className={`relative ${shaking ? "sb-shake" : ""}`} onAnimationEnd={() => setShakenKey(shakeKey)}>
-      <label htmlFor={inputId} className="sr-only">
-        Guess a film or an actor
-      </label>
-      <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center gap-0.5 text-ink-soft">
-        <FilmIcon className="size-4" style={{ "--sb-icon-hole": "var(--surface)" } as CSSProperties} />
-        <PersonIcon className="size-4" />
-      </span>
-      <input
-        id={inputId}
-        role="combobox"
-        aria-expanded={picks.length > 0}
-        aria-controls={listId}
-        aria-autocomplete="list"
-        aria-activedescendant={active >= 0 && picks[active] ? `${listId}-${active}` : undefined}
-        autoComplete="off"
-        autoCapitalize="words"
-        spellCheck={false}
-        enterKeyHint="search"
-        placeholder="Film or actor"
-        value={value}
-        disabled={disabled}
-        onChange={(event) => {
-          setValue(event.target.value);
-          setOpen(true);
-          setActive(-1);
-        }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-        onKeyDown={onKeyDown}
-        className="min-h-12 w-full rounded-full border-[1.5px] border-ink/30 bg-surface pl-[3.4rem] pr-4 text-lg focus:border-ink disabled:opacity-50"
-      />
-      {picks.length > 0 && (
-        <ul
-          id={listId}
-          role="listbox"
-          aria-label="Suggestions"
-          className="absolute inset-x-0 bottom-full z-20 mb-1.5 max-h-72 overflow-y-auto rounded-xl border border-ink/15 bg-surface py-1 shadow-xl"
-        >
-          {picks.map((choice, index) => (
-            <li
-              key={`${choice.kind}-${choice.tmdbId}`}
-              id={`${listId}-${index}`}
-              role="option"
-              aria-selected={index === active}
-              // Keep focus in the input; a mousedown here would blur it and close the list first.
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => pick(choice)}
-              className={`flex min-h-11 cursor-pointer items-center gap-3 px-3 py-1.5 ${index === active ? "bg-ink/10" : "hover:bg-ink/5"}`}
-            >
-              <span
-                className={`grid size-7 shrink-0 place-items-center rounded-full ${choice.kind === "film" ? "bg-ink text-table" : "bg-[var(--tier-1)] text-on-tape"}`}
+    <div className={`flex gap-2 ${shaking ? "sb-shake" : ""}`} onAnimationEnd={() => setShakenKey(shakeKey)}>
+      <div className="relative min-w-0 flex-1">
+        <label htmlFor={inputId} className="sr-only">
+          Guess a film or an actor
+        </label>
+        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center gap-0.5 text-ink-soft">
+          <FilmIcon className="size-4" style={{ "--sb-icon-hole": "var(--surface)" } as CSSProperties} />
+          <PersonIcon className="size-4" />
+        </span>
+        <input
+          id={inputId}
+          role="combobox"
+          aria-expanded={picks.length > 0}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          aria-activedescendant={active >= 0 && picks[active] ? `${listId}-${active}` : undefined}
+          autoComplete="off"
+          autoCapitalize="words"
+          spellCheck={false}
+          enterKeyHint="search"
+          placeholder="Film or actor…"
+          value={value}
+          disabled={disabled}
+          onChange={(event) => {
+            setValue(event.target.value);
+            setOpen(true);
+            setActive(-1);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setOpen(false)}
+          onKeyDown={onKeyDown}
+          className="min-h-12 w-full rounded-lg border-[1.5px] border-ink/30 bg-surface pl-[3.2rem] pr-3 text-lg placeholder:text-ink-soft/80 focus:border-ink disabled:opacity-60"
+        />
+        {picks.length > 0 && (
+          <ul
+            id={listId}
+            role="listbox"
+            aria-label="Suggestions"
+            className="absolute inset-x-0 bottom-full z-20 mb-2 max-h-72 overflow-y-auto rounded-lg border border-ink/15 bg-surface py-1 shadow-xl"
+          >
+            {picks.map((choice, index) => (
+              <li
+                key={`${choice.kind}-${choice.tmdbId}`}
+                id={`${listId}-${index}`}
+                role="option"
+                aria-selected={index === active}
+                // Keep focus in the input; a mousedown here would blur it and close the list first.
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => pick(choice)}
+                className={`flex min-h-11 cursor-pointer items-center gap-3 px-3 py-1.5 ${index === active ? "bg-ink/10" : "hover:bg-ink/5"}`}
               >
-                {choice.kind === "film" ? (
-                  <FilmIcon className="size-4" style={{ "--sb-icon-hole": "var(--ink)" } as CSSProperties} />
-                ) : (
-                  <PersonIcon className="size-4" />
-                )}
-              </span>
-              <span className="min-w-0">
-                <span className="sr-only">{choice.kind === "film" ? "Film: " : "Actor: "}</span>
-                <span className="font-semibold">{pickName(choice)}</span>
-                {choice.kind === "film" && choice.year && <span className="ml-2 text-ink-soft">{choice.year}</span>}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
+                <span
+                  className={`grid size-7 shrink-0 place-items-center rounded-full ${choice.kind === "film" ? "bg-ink text-table" : "bg-[var(--tier-1)] text-on-tape"}`}
+                >
+                  {choice.kind === "film" ? (
+                    <FilmIcon className="size-4" style={{ "--sb-icon-hole": "var(--ink)" } as CSSProperties} />
+                  ) : (
+                    <PersonIcon className="size-4" />
+                  )}
+                </span>
+                <span className="min-w-0">
+                  <span className="sr-only">{choice.kind === "film" ? "Film: " : "Actor: "}</span>
+                  <span className="font-semibold">{pickName(choice)}</span>
+                  {choice.kind === "film" && choice.year && <span className="ml-2 text-ink-soft">{choice.year}</span>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={action.onPress}
+        disabled={disabled}
+        className="min-h-12 min-w-[6.5rem] shrink-0 rounded-full bg-ink/9 px-6 font-semibold text-ink transition-colors hover:bg-ink/15 disabled:opacity-35"
+      >
+        {action.label}
+      </button>
     </div>
   );
 }
