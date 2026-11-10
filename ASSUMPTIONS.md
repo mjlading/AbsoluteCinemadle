@@ -67,7 +67,7 @@ Each entry says what was decided and why, so it can be revisited.
 
 - Soundbytes is a daily built like Close-Ups (the owner asked for the same one-screen redesign on 2026-11-10): each dated row of `soundbytes_boards` is one day's board, undated rows are never shown, and the import adds or replaces boards by id or date instead of wiping them, with `--days` for tests.
   Boards live in the `soundbytes_boards` table (dialogue audio in `soundbytes_clips`), imported from the soundbytes lab's export; a day without one says to come back tomorrow.
-- Soundbytes numbers count from `SITE.soundbytesLaunchDate`, a placeholder (2026-11-08, so the three local demos are #1 to #3) until the owner sets the real launch day.
+- Soundbytes numbers count from `SITE.soundbytesLaunchDate`, 2026-11-10: the owner launched it with a week of boards that day, Titanic first.
 - Soundbytes has no points, so nothing of it is in `scoring.ts`: the line count (5, and so 5 tries) is in `rules.ts`.
   The owner replaced points and buying with Heardle-style tries after a playtest: buying by holding felt strange.
 - A skip is a miss like a wrong guess: it uses a try and opens the next line.

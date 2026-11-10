@@ -26,6 +26,7 @@ export interface Playing {
 export function useClipPlayer() {
   const audio = useRef<HTMLAudioElement | null>(null);
   const frame = useRef(0);
+  const runs = useRef(0);
   const target = useRef<HTMLElement | null>(null);
   const [playing, setPlaying] = useState<Playing | null>(null);
 
@@ -65,7 +66,9 @@ export function useClipPlayer() {
       // The window's end, checked on the element's own time updates, which keep coming in a background tab
       // where animation frames stop (the fragment pauses the audio there, with no "ended" event).
       element.ontimeupdate = clip.start === undefined ? null : () => element.currentTime >= end - 0.05 && stop();
-      element.play().catch(() => stop());
+      // A tap on another clip while this one still loads rejects this play(): only the latest one may stop the player.
+      const run = ++runs.current;
+      element.play().catch(() => run === runs.current && stop());
       setPlaying({ nodeId, clip });
 
       let mouth = REST;

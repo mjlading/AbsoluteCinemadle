@@ -161,6 +161,7 @@ def separator():
 def separate(mix):
     """(voices, everything else) from stereo samples at RATE, both stereo and the same length."""
     tmp = WORK / "tmp"
+    tmp.mkdir(parents=True, exist_ok=True)
     for f in tmp.glob("*"):
         f.unlink()
     sf.write(tmp / "mix.wav", mix.T, RATE, subtype="FLOAT")

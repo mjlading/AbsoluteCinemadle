@@ -96,9 +96,19 @@ test("the theme plays a window of an Apple preview and stops at its end, then li
   // Apple's servers stand in for a local tone, so the test never leaves this machine.
   const theme = readFileSync(join(__dirname, "fixtures", "soundbytes", "clips", "sfx-b.wav"));
   const asked: string[] = [];
-  await page.route("https://audio-ssl.itunes.apple.com/**", (route) => {
+  await page.route("https://audio-ssl.itunes.apple.com/**", async (route) => {
     asked.push(route.request().url());
-    return route.fulfill({ body: theme, contentType: "audio/wav" });
+    // Answered in byte ranges, as Apple does: without them the audio can't seek to the window's start.
+    const range = /bytes=(\d+)-(\d*)/.exec((await route.request().headerValue("range")) ?? "");
+    if (!range) return route.fulfill({ body: theme, contentType: "audio/wav", headers: { "accept-ranges": "bytes" } });
+    const from = Number(range[1]);
+    const to = range[2] ? Number(range[2]) : theme.length - 1;
+    return route.fulfill({
+      status: 206,
+      body: theme.subarray(from, to + 1),
+      contentType: "audio/wav",
+      headers: { "accept-ranges": "bytes", "content-range": `bytes ${from}-${to}/${theme.length}` },
+    });
   });
   await openToday(page);
   await line(page, 1).click();

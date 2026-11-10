@@ -16,6 +16,6 @@ export const SITE = {
   launchDate: "2026-10-14",
   /** Close-Ups #1 is played on this date; its numbers count up one per day from it. */
   closeUpsLaunchDate: "2026-11-10",
-  /** Soundbytes #1 is played on this date; a placeholder until the owner sets the real launch day. */
-  soundbytesLaunchDate: "2026-11-08",
+  /** Soundbytes #1 is played on this date; its numbers count up one per day from it. */
+  soundbytesLaunchDate: "2026-11-10",
 } as const;
