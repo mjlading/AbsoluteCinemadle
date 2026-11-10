@@ -53,6 +53,11 @@ Each entry says what was decided and why, so it can be revisited.
 - Collage tiles are rendered from TMDB on each request and cached by the browser for 30 days, like grid tiles; a new export makes new tile ids.
 - Collage puzzles are TMDB data: `collage_puzzles.synced_at` dates them, and they must be re-exported or deleted within 6 months, like `films` rows.
 - Progress is saved per puzzle in localStorage under `close-ups:<id>`.
+- Each puzzle has an optional, unique date; only dated puzzles are shown, so the undated demos are hidden, not deleted.
+  Like the daily grid, a player gets the puzzle for their own local date, and the server refuses any day later than tomorrow in UTC.
+- `/close-ups` is always today's game, played or not; a finished game shows its result with a link to the archive, and a missing day says so.
+- Close-Ups numbers count from `SITE.closeUpsLaunchDate`; a day before it (a test puzzle) has no number.
+- `npm run db:import-collage` replaces stored puzzles with the same id or date and leaves the rest; `--days=0,-1` dates a file's puzzles relative to today, for tests.
   The saved state changed shape, so old `collage:<id>` entries are ignored.
 - Pages showing collages carry the line "Film stills belong to their copyright holders."
 - The compact footer wraps to about 3 lines at 390 px, because TMDB's attribution wording is fixed.

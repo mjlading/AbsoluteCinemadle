@@ -25,6 +25,7 @@ export function toPublicCollage(puzzle: CollagePuzzle): PublicCollagePuzzle {
   return {
     id: puzzle.id,
     name: puzzle.name,
+    date: puzzle.date,
     keywords: puzzle.keywords.map((k) => ({
       id: k.id,
       label: k.label,

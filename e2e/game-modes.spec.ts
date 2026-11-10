@@ -6,11 +6,11 @@ test("the gallery shows Close-Ups and no daily puzzle card", async ({ page }) =>
   await page.goto("/");
 
   const closeUps = page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Close-Ups" }) });
-  await expect(closeUps).toContainText("In development");
+  await expect(closeUps).toContainText("New");
   await expect(page.getByRole("heading", { name: "Daily film puzzle" })).toHaveCount(0);
 });
 
-test("the Close-Ups page is reachable by keyboard and lists its puzzles", async ({ page }) => {
+test("the Close-Ups card is reachable by keyboard and opens today's puzzle", async ({ page }) => {
   await page.goto("/");
   const closeUps = page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Close-Ups" }) });
 
@@ -19,10 +19,8 @@ test("the Close-Ups page is reachable by keyboard and lists its puzzles", async 
   await page.keyboard.press("Enter");
 
   await expect(page).toHaveURL(/\/close-ups$/);
-  await expect(page.getByRole("heading", { name: "Close-Ups" })).toBeVisible();
-  await expect(page.getByText("These are illustrations, not film or series images.")).toBeVisible();
-  // The E2E server reads the fixture puzzle file; without one the page says it is a preview.
-  await expect(page.getByRole("link", { name: /Test puzzle/ })).toBeVisible();
+  // A first visit opens the help over today's puzzle (the E2E server imports the fixture as today's).
+  await expect(page.getByRole("dialog", { name: "How to play" })).toBeVisible();
 });
 
 test("the old keyword collage addresses redirect", async ({ page }) => {

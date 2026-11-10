@@ -292,6 +292,299 @@
           ]
         }
       ]
+    },
+    {
+      "id": "fixture2",
+      "name": "Test puzzle 2",
+      "answer": {
+        "tmdbId": 105,
+        "title": "Back to the Future",
+        "originalTitle": null,
+        "year": 1985,
+        "posterPath": null
+      },
+      "keywords": [
+        {
+          "id": "kwhandsy",
+          "label": "Hands",
+          "tier": "hard",
+          "free": true,
+          "tiles": [
+            {
+              "id": "fixturetile01y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "✋",
+                "hue": 20
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile02y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "✋",
+                "hue": 40
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile03y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "✋",
+                "hue": 60
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile04y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "✋",
+                "hue": 80
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            }
+          ]
+        },
+        {
+          "id": "kwdoorsy",
+          "label": "Doors",
+          "tier": "hard",
+          "free": false,
+          "tiles": [
+            {
+              "id": "fixturetile05y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "🚪",
+                "hue": 100
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile06y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "🚪",
+                "hue": 120
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile07y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "🚪",
+                "hue": 140
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile08y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "🚪",
+                "hue": 160
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            }
+          ]
+        },
+        {
+          "id": "kwfoody",
+          "label": "Food",
+          "tier": "medium",
+          "free": false,
+          "tiles": [
+            {
+              "id": "fixturetile09y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "🍕",
+                "hue": 180
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile10y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "🍕",
+                "hue": 200
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile11y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "🍕",
+                "hue": 220
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile12y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "🍕",
+                "hue": 240
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            }
+          ]
+        },
+        {
+          "id": "kwmouthsy",
+          "label": "Mouths",
+          "tier": "easy",
+          "free": false,
+          "tiles": [
+            {
+              "id": "fixturetile13y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "👄",
+                "hue": 300
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile14y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "👄",
+                "hue": 320
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile15y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "👄",
+                "hue": 340
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile16y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "👄",
+                "hue": 360
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            }
+          ]
+        },
+        {
+          "id": "kwsignsy",
+          "label": "Signs",
+          "tier": "easy",
+          "free": false,
+          "tiles": [
+            {
+              "id": "fixturetile17y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "🪧",
+                "hue": 40
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile18y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "🪧",
+                "hue": 60
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile19y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "🪧",
+                "hue": 80
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            },
+            {
+              "id": "fixturetile20y",
+              "image": {
+                "kind": "placeholder",
+                "glyph": "🪧",
+                "hue": 100
+              },
+              "frame": {
+                "width": 1,
+                "height": 1
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -30,7 +30,7 @@ export default defineConfig({
   webServer: {
     // Idle connections stay open for two minutes: with Node's default of 5 seconds, a test's
     // page.request could reuse a socket just as the server closed it (ECONNRESET).
-    command: `npm run db:migrate && npm run db:seed -- --reset --days=-1,0,1 && npm run db:import-collage -- e2e/fixtures/keyword-collage.json && npm run build && npm run start -- --port ${PORT} --keepAliveTimeout 120000`,
+    command: `npm run db:migrate && npm run db:seed -- --reset --days=-1,0,1 && npm run db:import-collage -- e2e/fixtures/keyword-collage.json --days=0,-1 && npm run build && npm run start -- --port ${PORT} --keepAliveTimeout 120000`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: false,
     timeout: 240_000,

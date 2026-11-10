@@ -34,8 +34,10 @@ export interface CollageKeyword {
  */
 export interface CollagePuzzle {
   id: string;
-  /** Spoiler-free name shown in the puzzle list, e.g. "Demo 1". */
+  /** Spoiler-free name, e.g. "Demo 1". */
   name: string;
+  /** The day it is the daily puzzle (YYYY-MM-DD), or null for an undated one (the old demos), which players never see. */
+  date: string | null;
   answer: {
     tmdbId: number;
     title: string;
@@ -48,6 +50,12 @@ export interface CollagePuzzle {
 }
 
 // Shapes below are safe to send to the client.
+
+/** One day's puzzle in the archive. */
+export interface CollageDay {
+  date: string;
+  id: string;
+}
 
 export interface PublicCollageTile {
   id: string;
@@ -67,6 +75,7 @@ export interface PublicCollageKeyword {
 export interface PublicCollagePuzzle {
   id: string;
   name: string;
+  date: string | null;
   keywords: PublicCollageKeyword[];
 }
 

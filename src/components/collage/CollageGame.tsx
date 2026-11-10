@@ -7,7 +7,8 @@ import { Confetti } from "@/components/game/Confetti";
 import { ReelSpinner } from "@/components/game/ReelSpinner";
 import { TitleGuess } from "@/components/warmup/TitleGuess";
 import { SITE } from "@/config/site";
-import { fetchCollage, fetchCollageList, fetchCollageSolution, guessCollage } from "@/lib/collage/api";
+import { fetchCollageDay, fetchCollageSolution, guessCollage } from "@/lib/collage/api";
+import { closeUpsNumber } from "@/lib/collage/day";
 import {
   alreadyGuessed,
   collageReducer,
@@ -16,6 +17,7 @@ import {
   type CollageAction,
 } from "@/lib/collage/state";
 import type { CollageSolution, PublicCollagePuzzle } from "@/lib/collage/types";
+import { localIsoDate } from "@/lib/dates";
 import { ApiError } from "@/lib/game/api";
 import { readJson, usePersistentReducer, writeJson } from "@/lib/game/storage";
 import { normalizeTitle } from "@/lib/warmup/match";
@@ -45,27 +47,37 @@ const SHAKE: Keyframe[] = [
 ];
 const PULSE: Keyframe[] = [{ transform: "scale(1)" }, { transform: "scale(1.1)" }, { transform: "scale(1)" }];
 
-/** Loads a puzzle, then plays it; progress is kept on this device. */
-export function CollageGame({ puzzleId }: { puzzleId: string }) {
+/**
+ * Loads one day's puzzle, then plays it; progress is kept on this device.
+ * Without a date it is today's puzzle, by the player's own calendar.
+ */
+export function CollageGame({ date }: { date?: string }) {
   const [puzzle, setPuzzle] = useState<PublicCollagePuzzle | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    fetchCollage(puzzleId).then(
+    const today = localIsoDate();
+    // A day still ahead of the player's own calendar stays closed, even when the server would allow it.
+    const ahead = date !== undefined && date > today;
+    (ahead ? Promise.reject(new Error("ahead")) : fetchCollageDay(date ?? today)).then(
       (loaded) => !cancelled && setPuzzle(loaded),
       (reason: unknown) =>
         !cancelled &&
         setError(
-          reason instanceof ApiError && reason.status === 404
-            ? "There's no such puzzle."
-            : "Couldn't load the puzzle. Check your connection and try again.",
+          ahead
+            ? "That day hasn't come yet."
+            : reason instanceof ApiError && reason.status === 404
+              ? date
+                ? "There's no Close-Up for that day."
+                : "No Close-Up today. Come back tomorrow."
+              : "Couldn't load the puzzle. Check your connection and try again.",
         ),
     );
     return () => {
       cancelled = true;
     };
-  }, [puzzleId]);
+  }, [date]);
 
   if (!puzzle) {
     return (
@@ -73,7 +85,15 @@ export function CollageGame({ puzzleId }: { puzzleId: string }) {
         <TopBar />
         <main className="flex flex-1 items-start justify-center px-4 pt-16">
           {error ? (
-            <p className="text-center">{error}</p>
+            <div className="text-center">
+              <p>{error}</p>
+              <Link
+                href={SITE.games.closeUpsArchive}
+                className="mt-3 inline-block font-semibold underline underline-offset-4"
+              >
+                Previous days
+              </Link>
+            </div>
           ) : (
             <p className="flex items-center gap-2 text-ink-soft">
               <ReelSpinner className="size-5" /> Loading the puzzle&hellip;
@@ -111,7 +131,6 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
   const [confirmGiveUp, setConfirmGiveUp] = useState(false);
   const [helpOpen, setHelpOpen] = useState(() => readJson(HELP_SEEN_KEY) === null);
   const [solution, setSolution] = useState<CollageSolution | null>(null);
-  const [nextPuzzleId, setNextPuzzleId] = useState<string | null>(null);
   const [celebrate, setCelebrate] = useState(false);
 
   const pending = useRef(false);
@@ -122,7 +141,7 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
 
   const announce = (text: string) => setAnnouncement({ id: ++announcements.current, text });
 
-  // Once the game is over: the answer (on a loss), every tile's frame for the zoom-out, and the next puzzle.
+  // Once the game is over: the answer (on a loss) and every tile's frame for the zoom-out.
   useEffect(() => {
     if (state.status === "playing") return;
     let cancelled = false;
@@ -132,14 +151,6 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
         setSolution(loaded);
         // A loss shows the answer here; a win already has the same one.
         dispatch({ type: "reveal", answer: loaded.answer });
-      },
-      () => {},
-    );
-    fetchCollageList().then(
-      ({ puzzles }) => {
-        if (cancelled) return;
-        const at = puzzles.findIndex((p) => p.id === puzzle.id);
-        setNextPuzzleId(at >= 0 ? (puzzles[at + 1]?.id ?? null) : null);
       },
       () => {},
     );
@@ -266,10 +277,11 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
 
   return (
     <>
-      <TopBar name={puzzle.name} onHelp={() => setHelpOpen(true)} />
+      <TopBar date={puzzle.date} onHelp={() => setHelpOpen(true)} />
       <main className="closeups-stage flex min-h-0 flex-1 flex-col items-center px-4 pb-4 pt-1 min-[700px]:justify-center min-[700px]:py-4">
         <div
           className="closeups-group flex flex-col gap-3"
+          data-over={playing ? undefined : ""}
           onKeyDown={(event) => {
             if (event.key === "Escape" && picking) {
               event.stopPropagation();
@@ -306,7 +318,7 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
             </div>
           </section>
 
-          {/* Always as tall as the result panel, so the board stays put when the game ends. */}
+          {/* As tall as what it holds at its tallest (see .closeups-group in globals.css), so the board never jumps mid-game. */}
           <div className="closeups-below flex flex-col gap-3">
             {playing ? (
               <>
@@ -335,7 +347,7 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
                 </div>
               </>
             ) : (
-              <ResultPanel puzzle={puzzle} state={state} nextPuzzleId={nextPuzzleId} />
+              <ResultPanel puzzle={puzzle} state={state} />
             )}
           </div>
         </div>
@@ -355,14 +367,10 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
   );
 }
 
-function TopBar({ name, onHelp }: { name?: string; onHelp?: () => void }) {
+function TopBar({ date, onHelp }: { date?: string | null; onHelp?: () => void }) {
   return (
     <header className="flex h-14 shrink-0 items-center gap-1 px-2">
-      <Link
-        href={SITE.games.closeUps}
-        aria-label="All puzzles"
-        className="grid size-11 place-items-center rounded-full hover:bg-ink/8"
-      >
+      <Link href="/" aria-label="All games" className="grid size-11 place-items-center rounded-full hover:bg-ink/8">
         <svg
           viewBox="0 0 24 24"
           aria-hidden="true"
@@ -378,8 +386,30 @@ function TopBar({ name, onHelp }: { name?: string; onHelp?: () => void }) {
       </Link>
       <div className="flex min-w-0 flex-1 items-baseline gap-2">
         <h1 className="font-display text-[30px] font-[900] leading-none tracking-[-0.005em]">Close-Ups</h1>
-        {name && <span className="truncate font-condensed text-[15px] font-bold text-ink-soft">{name}</span>}
+        {closeUpsNumber(date ?? null) && (
+          <span className="font-condensed text-[15px] font-bold text-ink-soft">#{closeUpsNumber(date ?? null)}</span>
+        )}
       </div>
+      <Link
+        href={SITE.games.closeUpsArchive}
+        aria-label="Previous days"
+        title="Previous days"
+        className="grid size-11 shrink-0 place-items-center rounded-full hover:bg-ink/8"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          className="size-[22px]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+          <path d="M3.5 10h17M8 3v4M16 3v4" />
+        </svg>
+      </Link>
       {onHelp && (
         <button
           type="button"
