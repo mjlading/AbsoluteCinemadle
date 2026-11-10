@@ -1,4 +1,10 @@
-import type { Crop } from "@/lib/puzzle/types";
+/** A rectangle within a source image, as fractions (0 to 1) of its width and height. */
+export interface Crop {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 const IMAGE_BASE = "https://image.tmdb.org/t/p";
 
@@ -41,14 +47,4 @@ export function cropToPixels(crop: Crop, imageWidth: number, imageHeight: number
     width: Math.max(1, Math.min(Math.round(crop.width * imageWidth), imageWidth - left)),
     height: Math.max(1, Math.min(Math.round(crop.height * imageHeight), imageHeight - top)),
   };
-}
-
-/** The square crop a new tile starts with: centered for backdrops, from the top for portraits (where the face is). */
-export function defaultSquareCrop(imageWidth: number, imageHeight: number, source: "profile" | "backdrop"): Crop {
-  if (imageWidth >= imageHeight) {
-    const width = imageHeight / imageWidth;
-    return { x: (1 - width) / 2, y: 0, width, height: 1 };
-  }
-  const height = imageWidth / imageHeight;
-  return { x: 0, y: source === "profile" ? 0 : (1 - height) / 2, width: 1, height };
 }

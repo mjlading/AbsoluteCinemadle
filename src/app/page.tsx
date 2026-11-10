@@ -44,7 +44,7 @@ export default function Home() {
                 title="Soundbytes"
                 blurb="Name the film by ear."
                 color="#f2c641"
-                tag="In development"
+                tag="New"
                 icon={<SoundbytesIcon className="size-24" />}
                 href={SITE.games.soundbytes}
               />

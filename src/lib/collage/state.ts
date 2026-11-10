@@ -1,6 +1,6 @@
 import { RULES } from "@/config/rules";
 import { POINTS } from "@/config/scoring";
-import { normalizeTitle } from "@/lib/warmup/match";
+import { normalizeTitle } from "@/lib/game/match";
 import type { CollageAnswer } from "./types";
 
 /*

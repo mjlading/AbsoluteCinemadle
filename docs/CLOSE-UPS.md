@@ -4,7 +4,6 @@ Design notes for Close-Ups, the keyword collage game.
 It is a daily: `/close-ups` is today's puzzle by the player's own date, `/close-ups/<date>` an earlier day's, and `/close-ups/archive` lists every day so far.
 Puzzles are curated in the collage lab, each with a date, and imported into the `collage_puzzles` table; numbers count from `SITE.closeUpsLaunchDate`.
 Rules decided where this file is silent are in [ASSUMPTIONS.md](../ASSUMPTIONS.md) under "Close-Ups".
-The 2026-11 redesign (rules, score, layout) is recorded in `docs/superpowers/specs/2026-11-09-close-ups-redesign-design.md`.
 
 ## Game
 

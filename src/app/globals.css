@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 /*
- * Light table and contact sheet: the page is the lit table, the board is a dark
- * contact sheet, selections are red china-marker rings, and solved groups are
- * strips of colored tape. Tier tapes follow the dyes of color film (cyan,
- * yellow, magenta) plus the white paper tape used to label film cans.
+ * Light table and contact sheet: the page is the lit table, a board is a dark
+ * contact sheet, and marks are red china marker and colored tape. Tier tapes
+ * follow the dyes of color film (cyan, yellow, magenta) plus the white paper
+ * tape used to label film cans.
  */
 :root {
   --table: #e8eef1;
@@ -69,12 +69,6 @@ body {
   outline: none;
 }
 
-/* Banners match tile rows: --tile is one column of the 4-column grid. */
-.board-stack {
-  --gap: 6px;
-  --tile: calc((100cqi - 3 * var(--gap)) / 4);
-}
-
 /* Tiles sit on the dark sheet, so their focus ring is white. */
 .tile-face:focus-visible {
   outline: 3px solid #fff;
@@ -86,40 +80,7 @@ body {
   user-select: none;
 }
 
-.marker-ring path {
-  fill: none;
-  stroke: var(--marker);
-  stroke-width: 4.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 100;
-  vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 1.5px rgb(0 0 0 / 0.7));
-  animation: marker-draw 240ms ease-out;
-}
-
-@keyframes marker-draw {
-  from {
-    stroke-dashoffset: 100;
-  }
-}
-
-.tile-label {
-  animation: label-flip 280ms ease-out;
-  transform-origin: bottom;
-}
-
-@keyframes label-flip {
-  from {
-    transform: perspective(300px) rotateX(-90deg);
-  }
-}
-
-/* A wrong guess: the frames jump like film slipping in the projector gate. */
-.tile[data-effect="shake"] {
-  animation: gate-slip 380ms steps(1, end);
-}
-
+/* A miss: the frames jump like film slipping in the projector gate. */
 @keyframes gate-slip {
   0% {
     translate: 0 -7px;
@@ -168,7 +129,7 @@ body {
   --board-below: 155px;
 }
 
-/* Labels shrink with the board, so five fit in a row down to the smallest board. */
+/* Labels shrink with the board, so four fit in a row down to the smallest board. */
 .closeups-tape-label {
   font-size: clamp(10px, (var(--board) - 120px) / 17, 14px);
 }
@@ -353,44 +314,6 @@ body {
   }
 }
 
-.tile[data-effect="settle"] .tile-face {
-  animation: tile-settle 420ms ease-out forwards;
-}
-
-@keyframes tile-settle {
-  40% {
-    scale: 1.06;
-    box-shadow: 0 0 0 3px var(--settle-color);
-  }
-  100% {
-    scale: 0.94;
-    box-shadow: 0 0 0 3px var(--settle-color);
-    opacity: 0.6;
-  }
-}
-
-.group-banner {
-  animation: tape-press 300ms cubic-bezier(0.2, 0.8, 0.3, 1.2);
-}
-
-@keyframes tape-press {
-  from {
-    opacity: 0;
-    scale: 1.04 0.7;
-  }
-}
-
-.toast {
-  animation: toast-in 160ms ease-out;
-}
-
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    translate: 0 6px;
-  }
-}
-
 /* Confetti: tier-colored tape bits and a few tiny film frames, falling once. */
 .confetti-piece {
   position: absolute;
@@ -422,38 +345,6 @@ body {
   }
 }
 
-/* The light table switching on: a fluorescent tube's stutter, then full light. */
-.light-table-switch-on {
-  animation: tube-start 900ms linear forwards;
-}
-
-@keyframes tube-start {
-  0% {
-    opacity: 0.88;
-  }
-  12% {
-    opacity: 0.25;
-  }
-  18% {
-    opacity: 0.8;
-  }
-  30% {
-    opacity: 0.1;
-  }
-  36% {
-    opacity: 0.55;
-  }
-  55% {
-    opacity: 0;
-  }
-  62% {
-    opacity: 0.18;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
 .reel-spinner {
   animation: reel-spin 1.1s linear infinite;
 }
@@ -461,203 +352,6 @@ body {
 @keyframes reel-spin {
   to {
     rotate: 360deg;
-  }
-}
-
-/* "Absolute cinema": the spotlight clicks on, then the hands go up. */
-.cinema-figure-animated .cinema-spot {
-  animation: spot-on 700ms steps(1, end) both;
-}
-
-@keyframes spot-on {
-  0% {
-    opacity: 0;
-  }
-  25% {
-    opacity: 0.6;
-  }
-  40% {
-    opacity: 0.15;
-  }
-  60%,
-  100% {
-    opacity: 1;
-  }
-}
-
-.cinema-arm {
-  transform-box: view-box;
-}
-
-.cinema-arm-left {
-  transform-origin: 47px 60px;
-}
-
-.cinema-arm-right {
-  transform-origin: 73px 60px;
-}
-
-.cinema-figure-animated .cinema-arm-left {
-  animation: raise-left 620ms 650ms cubic-bezier(0.3, 1.5, 0.5, 1) both;
-}
-
-.cinema-figure-animated .cinema-arm-right {
-  animation: raise-right 620ms 650ms cubic-bezier(0.3, 1.5, 0.5, 1) both;
-}
-
-@keyframes raise-left {
-  from {
-    rotate: -128deg;
-  }
-}
-
-@keyframes raise-right {
-  from {
-    rotate: 128deg;
-  }
-}
-
-/* Academy leader: warm grey film, rings, a crosshair and a sweeping hand. */
-@property --sweep {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-
-.film-leader {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: min(15rem, 70vw);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #d9d3c7;
-  color: #2a2722;
-}
-
-.film-leader-sweep {
-  position: absolute;
-  inset: 0;
-  background: conic-gradient(rgb(42 39 34 / 0.38) var(--sweep), transparent var(--sweep));
-  animation: leader-sweep 1s linear infinite;
-}
-
-@keyframes leader-sweep {
-  from {
-    --sweep: 0deg;
-  }
-  to {
-    --sweep: 360deg;
-  }
-}
-
-.film-leader-number {
-  position: relative;
-  font-family: var(--font-sans);
-  font-size: min(7.5rem, 34vw);
-  font-weight: 800;
-  line-height: 1;
-  animation: leader-number 1s steps(1, end);
-}
-
-@keyframes leader-number {
-  0% {
-    opacity: 0.55;
-  }
-  8% {
-    opacity: 1;
-  }
-}
-
-/* A new warm-up card slides into the gate. */
-.warmup-card {
-  animation: card-in 260ms cubic-bezier(0.2, 0.8, 0.3, 1);
-}
-
-@keyframes card-in {
-  from {
-    opacity: 0;
-    translate: 0 10px;
-  }
-}
-
-/* A barcode develops in like a print in the tray: pale, then the colour comes up. */
-.barcode {
-  animation: develop 1400ms ease-out both;
-}
-
-@keyframes develop {
-  0% {
-    filter: brightness(2.4) saturate(0) contrast(0.35);
-    opacity: 0.35;
-  }
-  45% {
-    filter: brightness(1.5) saturate(0.4) contrast(0.7);
-    opacity: 1;
-  }
-  100% {
-    filter: none;
-  }
-}
-
-/*
- * The sound hint's projector: a cone of light falling onto the player from
- * above, with dust drifting in it. It ends at the player's top edge, since
- * YouTube allows nothing drawn over the player itself. The lamp is dim until
- * the clip plays, then it brightens and flickers like a running projector.
- */
-.projector-beam {
-  width: 100%;
-  height: 3.5rem;
-  background:
-    radial-gradient(circle at 30% 40%, rgb(255 248 230 / 0.75) 0 0.8px, transparent 1.4px) 0 0 / 37px 29px,
-    radial-gradient(circle at 70% 20%, rgb(255 248 230 / 0.5) 0 0.6px, transparent 1.2px) 11px 7px / 53px 41px,
-    radial-gradient(circle at 50% 80%, rgb(255 248 230 / 0.6) 0 0.7px, transparent 1.3px) 5px 13px / 23px 61px,
-    radial-gradient(ellipse 18% 70% at 50% 0, rgb(255 246 220 / 0.6), transparent),
-    linear-gradient(to bottom, rgb(255 236 180 / 0.45), rgb(255 236 180 / 0.1));
-  clip-path: polygon(47% 0, 53% 0, 100% 100%, 0 100%);
-  opacity: 0.4;
-  transition: opacity 300ms ease-out;
-  animation: dust-drift 9s linear infinite;
-}
-
-.projector-beam[data-playing] {
-  opacity: 1;
-  animation:
-    dust-drift 9s linear infinite,
-    lamp-flicker 180ms steps(1, end) infinite;
-}
-
-@keyframes dust-drift {
-  to {
-    background-position:
-      37px 58px,
-      -42px 89px,
-      28px 135px,
-      0 0,
-      0 0;
-  }
-}
-
-@keyframes lamp-flicker {
-  0% {
-    filter: brightness(1);
-  }
-  50% {
-    filter: brightness(0.86);
-  }
-}
-
-/* Results roll up line by line, like end credits. */
-.credit-line {
-  animation: credit-roll 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-
-@keyframes credit-roll {
-  from {
-    opacity: 0;
-    translate: 0 2.5rem;
   }
 }
 

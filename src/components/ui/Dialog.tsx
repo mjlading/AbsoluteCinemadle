@@ -37,18 +37,3 @@ export function Dialog({ open, onClose, labelledBy, className = "", children }: 
     </dialog>
   );
 }
-
-export function CloseButton({ onClick, label = "Close" }: { onClick: () => void; label?: string }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="-mr-2 -mt-2 grid size-10 shrink-0 place-items-center rounded-full hover:bg-current/10"
-    >
-      <svg viewBox="0 0 20 20" className="size-5" aria-hidden="true">
-        <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      </svg>
-    </button>
-  );
-}

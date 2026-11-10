@@ -50,6 +50,13 @@
       "when": 1794303514504,
       "tag": "0006_soundbytes_boards",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794312829449,
+      "tag": "0007_drop_daily_game",
+      "breakpoints": true
     }
   ]
 }
