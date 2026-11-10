@@ -10,7 +10,7 @@ All five build phases are done (grid; database, TMDB and admin editor at `/admin
 Hosting is Vercel (Hobby) with a Neon (free) database at absolutecinemadle.fun; see "Deploy" in README.md.
 Before launch: a refresh job for `films` rows older than about 5 months, and real puzzles.
 Close-Ups (`/close-ups`, see docs/CLOSE-UPS.md) is a daily: `/close-ups` is today's puzzle, `/close-ups/archive` lists earlier days, and dated puzzles are curated in the collage lab and loaded with `npm run db:import-collage`; it has no admin editor yet.
-Soundbytes (`/soundbytes`) has its UI on mock boards in `src/lib/soundbytes/mock-boards.ts` with generated placeholder clips; its audio pipeline is not built, and whether film audio may be hosted at all is still the owner's call (see docs/SOUNDBYTES.md).
+Soundbytes (`/soundbytes`, see docs/SOUNDBYTES.md) is a daily like Close-Ups: `/soundbytes` is today's board and `/soundbytes/archive` lists earlier days, built on the owner's PC by `tools/soundbytes-lab` from dialogue clips cut from official videos and loaded with `npm run db:import-soundbytes`, played like Heardle (5 lines from 5 voices, each miss opens the next); it has no admin editor yet.
 Casting call (`/casting-call`) is playable: cross out 8 named actors by naming films, within 5 guesses and before a 40-second bar runs out, on a fixed list of boards in `src/lib/casting-call/boards.ts` (see docs/CASTING-CALL.md).
 Update this section as that work lands.
 Phases are listed in SPEC.md under "Build phases"; owner additions (posters, review hint, animations) are listed there too.
@@ -35,8 +35,12 @@ On networks that intercept TLS (the owner's work laptop), Node needs `NODE_USE_S
 - Secrets (TMDB, Anthropic, DB, admin password) stay server-side.
   Modules that touch them import `server-only`; never use a `NEXT_PUBLIC_` prefix for them.
 - Tile alt text never reveals the answer ("Tile 7, prop close-up"); a flipped label is announced to screen readers.
-- Never download, rehost or stream film video or audio.
-  Sound hints use a visible YouTube embed with start/end times only.
+- Film audio and video are used only under fair use, in pieces far too short to stand in for the work:
+  - Soundbytes dialogue: clips of about 4 seconds cut from official scene clips and trailers on YouTube, the voice separated out with the rest of the soundtrack turned far down.
+    They are prepared offline by a local tool on the owner's PC, never on the server, and served from our own route under opaque ids, with no metadata that names the film.
+  - The daily puzzle's sound hint: a visible YouTube embed with start/end times.
+  - Soundbytes' theme clue: a window of the iTunes Search API's 30-second preview, played unaltered from Apple's servers, never rehosted.
+- Never host or stream full films, scenes or trailers, and take a clip down promptly when a rights holder asks.
 - Every point value lives in the single scoring config file; never hardcode scores elsewhere.
 - LLM use: model `claude-haiku-5-5` only, server-side, admin-triggered only.
   Every call goes through the spend guard, which records cost in the DB and refuses calls once the USD 10 lifetime cap would be exceeded.

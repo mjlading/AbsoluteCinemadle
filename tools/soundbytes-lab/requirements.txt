@@ -1,0 +1,14 @@
+truststore
+requests
+numpy
+scipy
+soundfile
+imageio-ffmpeg
+yt-dlp
+openai-whisper
+audio-separator[gpu]
+silero-vad
+speechbrain
+wordfreq
+torch
+torchaudio

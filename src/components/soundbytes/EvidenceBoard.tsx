@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
 
-import { DisguiseDefs } from "./DisguiseObject";
 import { HeadphonesIcon, PersonIcon } from "./icons";
 import { BOARD_HEIGHT, TAG_SPOTS, boardTop } from "./layout";
 
@@ -30,7 +29,6 @@ export function EvidenceBoard({
         style={{ aspectRatio: `100 / ${BOARD_HEIGHT}` } as CSSProperties}
         onContextMenu={(event) => event.preventDefault()}
       >
-        <DisguiseDefs />
         {tags.slice(0, TAG_SPOTS.length).map((name, i) => {
           const spot = TAG_SPOTS[i];
           return (

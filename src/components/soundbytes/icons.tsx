@@ -11,35 +11,6 @@ type IconProps = SVGProps<SVGSVGElement>;
 
 const base = { "aria-hidden": true, focusable: false } as const;
 
-export function CoinIcon(props: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <circle cx="12" cy="12" r="11" fill="#b8860f" />
-      <circle cx="12" cy="11.2" r="10" fill="#f2c641" />
-      <circle cx="12" cy="11.2" r="6.6" fill="none" stroke="#b8860f" strokeWidth="1.4" />
-      <circle cx="12" cy="11.2" r="3" fill="#e0ad2a" />
-      <path d="M5.5 7.5a7.5 7.5 0 0 1 4-3.6" stroke="#fff6cf" strokeWidth="1.3" strokeLinecap="round" fill="none" />
-    </svg>
-  );
-}
-
-export function FlagIcon(props: IconProps & { raise?: boolean }) {
-  const { raise, ...rest } = props;
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...rest}>
-      <path d="M6 2.5v19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path
-        className={raise ? "sb-flag-cloth" : undefined}
-        d="M7 4c3-1.6 5 1.4 8.2 0 1-.4 2-.5 2.8-.3v8.6c-.8-.2-1.8-.1-2.8.3-3.2 1.4-5.2-1.6-8.2 0z"
-        fill="#fff"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 export function HeadphonesIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 48 48" {...base} {...props}>
@@ -118,12 +89,19 @@ export function CategoryIcon({ category, ...props }: IconProps & { category: Sou
   return <BurstIcon {...props} />;
 }
 
-/** A price: a coin and the number, as a small chip. */
-export function PriceChip({ cost, className = "" }: { cost: number; className?: string }) {
+/** A padlock, for a line that is not open yet. */
+export function LockIcon(props: IconProps) {
   return (
-    <span className={`sb-chip ${className}`} aria-hidden="true">
-      <CoinIcon className="sb-chip-coin" />
-      {cost}
-    </span>
+    <svg viewBox="0 0 24 24" {...base} {...props}>
+      <path
+        d="M7.5 10.5V8a4.5 4.5 0 0 1 9 0v2.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      <rect x="4.5" y="10" width="15" height="11.5" rx="2.5" fill="currentColor" />
+      <circle cx="12" cy="15.4" r="1.7" fill="#fff" />
+    </svg>
   );
 }

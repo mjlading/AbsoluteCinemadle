@@ -26,10 +26,11 @@ export const RULES = {
     enhanceFactor: 1.5,
   },
   soundbytes: {
-    /** Film or actor guesses per board; only the right film wins. */
-    maxGuesses: 3,
-    /** How long a press must last to buy a node or remove a disguise. */
-    holdMs: 700,
+    /**
+     * Lines per board, and so tries: line 1 is open from the start, and each wrong guess or skip opens the next.
+     * A wrong or skipped try with every line open ends the game.
+     */
+    lines: 5,
   },
   castingCall: {
     /** Actors' faces on a board. */

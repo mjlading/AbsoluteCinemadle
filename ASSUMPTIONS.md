@@ -66,27 +66,49 @@ Each entry says what was decided and why, so it can be revisited.
 
 ## Soundbytes
 
-- Soundbytes is built like Close-Ups: a card on the home page, a list of boards at `/soundbytes` and one board per page at `/soundbytes/<id>`, rather than one board per date.
-  Until the audio pipeline exists, the boards are mock fixtures in `src/lib/soundbytes/mock-boards.ts`, using real films so the search and actor checks are real.
-- Every price is the same on every board and lives in `scoring.ts`: 1000 points to start, 100 to buy a node, 100 to remove a disguise, 150 for a correct actor.
-  The guess count and hold time are in `rules.ts`.
-- A wrong guess costs only the guess, not points, since there are only 3; repeating a guess is turned away for free.
-- A lost or abandoned game scores 0, as in Close-Ups; a buy or removal needs enough points left, so the score never goes negative.
+- Soundbytes is a daily built like Close-Ups (the owner asked for the same one-screen redesign on 2026-11-10): each dated row of `soundbytes_boards` is one day's board, undated rows are never shown, and the import adds or replaces boards by id or date instead of wiping them, with `--days` for tests.
+  Boards live in the `soundbytes_boards` table (dialogue audio in `soundbytes_clips`), imported from the soundbytes lab's export; a day without one says to come back tomorrow.
+- Soundbytes numbers count from `SITE.soundbytesLaunchDate`, 2026-11-10: the owner launched it with a week of boards that day, Titanic first.
+- Soundbytes has no points, so nothing of it is in `scoring.ts`: the line count (5, and so 5 tries) is in `rules.ts`.
+  The owner replaced points and buying with Heardle-style tries after a playtest: buying by holding felt strange.
+- A skip is a miss like a wrong guess: it uses a try and opens the next line.
+  On the last line it reads "Give up" and asks again ("Give up?"), as in Close-Ups; the held white flag went with the redesign, so there is no way to quit before the last line except skipping.
+- A right actor uses no try and opens no line; it is pinned as a hint, and only the film wins (the earlier "3 actors win" rule went with the points).
+- Repeating a guess is turned away for free.
 - Guesses only count when picked from the suggestions, so the server always knows whether it is a film or a person.
   Suggestions come from TMDB's film and person searches, people limited to actors.
 - An actor counts if they are among the film's top-billed cast in the board's answer.
   The answer and cast stay on the server; a guess comes back as right or wrong, with the actor's name for a right one.
-- Holding anywhere on a node spends, not just on its disguise object, so the door in front never blocks a tap and small objects are not hard to hit.
-  On a keyboard, Enter or Space plays and holding either key spends.
-- Giving up is a hold on the white flag too, so it can't happen by accident.
-- The headphones cover is remembered per board once dismissed; the first-visit hand hint is remembered once for the whole site.
-- Progress is saved per board in localStorage under `soundbytes:<id>`.
-- The game-over card is the one the keyword collage had before the Close-Ups redesign: the film, its poster and the numbers, then the board stays up with every node playing its real clip.
-  Soundbytes has no share text yet.
-- The characters move to the playing clip's loudness, measured by routing the audio through Web Audio; Safari 17+ is told the page plays media, so the iPhone's silent switch does not mute it.
-  Where Web Audio is unavailable the clip still plays and the characters follow a made-up speech rhythm.
-- Placeholder clips are generated tones in `public/audio/mock/`, made by `scripts/soundbytes-placeholder-audio.mts`: a buzzy melody for score, a warbling vowel for dialogue and a noise burst for effects, each with a disguised 2-second and a real 6-second version.
-  They are WAV files because nothing on the build machine encodes MP3, and every browser plays WAV.
+- The headphones cover is remembered per board once dismissed; the help dialog and the first-visit hand hint are each remembered once for the whole site, and the hand waits until the help is closed.
+- Progress is saved per board in localStorage under `soundbytes:<id>`; its signature includes a save version, so games saved by the points version start fresh.
+- The game-over panel is Close-Ups': in place of the guess row, the poster, the film and the line it was named on, with Share and Previous days; the board stays up with every line open.
+  Share copies "Soundbytes #3 2/5" and a square per line (red spent, green named, black not reached), as Close-Ups does.
+- Misses show under the guess row as Close-Ups' chips (struck-through names, "Skipped"); right actors stay on the board as name tags instead.
+- The footer says film clips are short excerpts used for play and gives `contact@absolutecinemadle.fun` for questions and takedowns: an ImprovMX alias forwarding to the owner's inbox, so their own address stays private. The owner does not want the GitHub repo linked from the site (2026-11-10).
+- The characters move to the clip's mouth track, made by the lab from the voice alone at 25 frames a second (one digit each), measured against the voice's own nearby floor and peak so the mouth snaps shut between syllables.
+  It replaced Web Audio, which heard the soundtrack bed too; plain audio playback also needs no Safari silent-switch workaround.
+  A clip without a mouth track gets a made-up speech rhythm.
+- The head swings to the other side when the mouth opens on a new syllable, at most every 0.14 s so fast speech doesn't jitter, in 160 ms with a soft overshoot; the mouth and eyes still snap in 70 ms.
+  How far it swings follows the voice's loudness, eased over about 0.15 s (`SWAY_S` in `src/lib/soundbytes/mouth.ts`): from about 1 degree on silence to 7 on the loudest words (4.5 for the clapperboard).
+- The test board (`e2e/fixtures/soundbytes/boards.json`) plays generated tones from `e2e/fixtures/soundbytes/clips/`, made by `scripts/soundbytes-placeholder-audio.mts`: a buzzy melody for score, a warbling vowel for dialogue and a noise burst for effects, each a 6-second clip, with mouth tracks written into the board file by the same script; the board uses four of the six as lines.
+  Its fifth node is a theme on an Apple preview address, which the E2E test serves from `sfx-b.wav` (`page.route`), so no test reaches Apple.
+  They are WAV files because the script has no MP3 encoder; the lab's real clips are MP3.
+- A board from the lab has 5 lines that get easier (the owner's plan of 2026-11-10, since the game was too hard): a side character's ordinary line, a lead's, then the 2 most iconic lines, the most iconic last, then the theme; a film without a theme gets a third iconic line, and with too few iconic lines, ordinary ones fill in.
+- A line is iconic when an official video's title quotes it or the film's Wikiquote page has it (bolded or captioned quotes count most); YouTube's most-replayed peak and the video's view count add to the score but can't make a line iconic alone, since they don't say what was said.
+  A title or quote only counts in full when it is most of the line, so "And spit like a man. What, they didn't teach you…" doesn't ride on a clip named "Spit Like a Man", and a line inside a long famous speech must be a sentence of 5 words or more.
+  Weights are in `iconic_score` in `tools/soundbytes-lab/build.py`; on Titanic they rank "Iceberg right ahead!", "To make each day count.", "I'm the king of the world!" and "You jump, I jump" on top.
+- The theme is the first track iTunes returns for the film's soundtrack album by its composer (theme-like names such as "Main Title" moved a little ahead), and the clue is the loudest 12 seconds of its 30-second preview, played from Apple's servers with a media fragment (`#t=start,end`) and stopped at the window's end on the audio element's time updates, which keep coming in a background tab.
+  On the three demo films that gives "My Heart Will Go On", Back to the Future's "Main Title" and the Wonder Woman theme.
+- The theme's preview address is in the board payload like the other clips' addresses: an opaque Apple file name, no more of a spoiler than playing a locked line early from the developer tools. The Apple Music link (the track's name) is only sent with the answer.
+- Iconic lines may be shorter (1 second, 2 words) and rougher than ordinary ones, and are cut from Whisper's word times when the voice detector misses them, since famous lines are often shouted over music; a voice may have an ordinary and an iconic line.
+- Labels are "Line 1" to "Line 5", in the order lines open; voice grouping was too rough for role labels.
+- Voices are still grouped (ECAPA voice prints, cosine distance 0.75) to keep trailer narrators out and to favour lead voices.
+  A trailer line counts only if its voice is also heard in a scene clip: in the owner's playtest, 4 of Return of the Jedi's 6 lines were its 1983 trailer narrator, who was also the voice with the most lines.
+  Leads are counted on scene-clip lines only: every voice with at least half as many as the top one, since films often have two.
+  A film needs 4 scene clips (`MIN_CLIPS`): with 2, too few voices are heard to vouch for its trailer lines.
+- The bed under each voice is the rest of the soundtrack at -10 dB (`BED_DB` in `tools/soundbytes-lab/build.py`), the owner's pick by ear over -18 dB and the voice alone, which sounds jarring; `listen.py` makes a page to compare levels.
+- Dialogue clips are served from `/api/soundbytes/<board>/clips/<clip>` with byte ranges, since Safari plays media only from servers that answer them.
+  They may be cached by the browser for good (ids change with every import) but never by the CDN: a shared cache keyed on the URL alone could hand Safari's 2-byte probe to the next player as the whole file.
 
 ## Puzzle day and answer protection
 
