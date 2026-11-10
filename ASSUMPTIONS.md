@@ -27,13 +27,14 @@ Each entry says what was decided and why, so it can be revisited.
 - The game is called "Close-Ups" wherever a player sees it, at `/close-ups`.
   `/keyword-collage` and `/keyword-collage/<id>` redirect there permanently (`next.config.ts`).
   Internal names (`src/lib/collage`, `/api/collage`, the `collage_puzzles` table) stay as they were.
-- A puzzle uses exactly 5 keywords in a fixed order, so every player sees the same clues and scores are comparable.
+- A puzzle uses exactly 4 keywords in a fixed order, so every player sees the same clues and scores are comparable.
+  It was 5 until 2026-11-10; the owner cut it to 4 because too many films could not fill 5 clean keywords.
   Players cannot choose which keyword opens next.
 - The order is set on the server when a puzzle is read (`src/lib/collage/order.ts`), so it never depends on how a puzzle was exported: the free keyword first, then hard, medium, easy, keeping the stored order within a tier.
-  Keywords past the fifth are dropped there, so their pictures are never served; the demo puzzles have 6 keywords and lose their most revealing one.
-- The player has 5 guesses, one per keyword.
+  A puzzle with more keywords loses them from the middle, so the most revealing one always stays last (the owner's rule); dropped keywords' pictures are never served.
+- The player has 4 guesses, one per keyword.
   A wrong guess or a Skip uses one and opens the next keyword; the game is lost when they run out.
-- The score is `6 - n` for a win on guess _n_, plus 2 for a win on the first guess (7, 4, 3, 2, 1), and 0 for a loss.
+- The score is `5 - n` for a win on guess _n_, plus 2 for a win on the first guess (6, 3, 2, 1), and 0 for a loss.
   There are no costs: no starting 1000 points, no unlock prices, no price for a wrong guess.
   The numbers live in `scoring.ts` and `rules.ts`; keyword tiers stay in the data for curation and ordering only.
 - Guards against losing a guess by accident: Enter in an empty guess box does nothing, so a Skip always takes a press of the Skip button.

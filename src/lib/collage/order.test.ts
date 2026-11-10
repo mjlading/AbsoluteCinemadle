@@ -22,15 +22,15 @@ describe("revealOrder", () => {
       kw("e2", "easy"),
       kw("m2", "medium"),
     ];
-    expect(ids(revealOrder(input))).toEqual(["h0", "h1", "m1", "m2", "e1"]);
+    expect(ids(revealOrder(input))).toEqual(["h0", "h1", "m1", "e2"]);
   });
 
   it("keeps the stored order within a tier", () => {
-    const input = [kw("f", "easy", true), kw("h2", "hard"), kw("h1", "hard"), kw("h3", "hard"), kw("m1", "medium")];
-    expect(ids(revealOrder(input))).toEqual(["f", "h2", "h1", "h3", "m1"]);
+    const input = [kw("f", "easy", true), kw("h2", "hard"), kw("h1", "hard"), kw("m1", "medium")];
+    expect(ids(revealOrder(input))).toEqual(["f", "h2", "h1", "m1"]);
   });
 
-  it("keeps only the first 5", () => {
+  it("drops extra keywords from the middle, keeping the most telling one last", () => {
     const input = [
       kw("a", "easy"),
       kw("b", "easy"),
@@ -39,6 +39,6 @@ describe("revealOrder", () => {
       kw("e", "easy"),
       kw("f", "easy"),
     ];
-    expect(ids(revealOrder(input))).toEqual(["c", "a", "b", "d", "e"]);
+    expect(ids(revealOrder(input))).toEqual(["c", "a", "b", "f"]);
   });
 });

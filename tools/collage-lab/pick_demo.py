@@ -14,7 +14,7 @@ env = (LAB.parent.parent / ".env.local").read_text()
 H = {"Authorization": f"Bearer {re.search(r'^TMDB_READ_ACCESS_TOKEN=(.+)$', env, re.M).group(1).strip()}"}
 COUNT = int(sys.argv[1]) if len(sys.argv) > 1 else 3
 PREFIX = sys.argv[2] if len(sys.argv) > 2 else "demo"
-MIN_TEXTLESS = 45
+MIN_TEXTLESS = 70  # films near 45 textless backdrops left too few usable stills for 5 keywords (batch1)
 API = "https://api.themoviedb.org/3"
 
 used = set()

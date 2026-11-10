@@ -18,7 +18,7 @@ export const POINTS = {
   },
   closeUps: {
     /** Points for a win on the first clue's keyword, before the bonus. */
-    start: 5,
+    start: 4,
     /** Each earlier miss or skip costs this much. */
     perMissOrSkip: -1,
     /** Extra points for a win on the very first guess. */
