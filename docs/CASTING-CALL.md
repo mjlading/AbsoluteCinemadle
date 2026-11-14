@@ -11,10 +11,10 @@ Rules decided where the brief is silent are in [ASSUMPTIONS.md](../ASSUMPTIONS.m
   Every actor on the board who is in a guessed film's cast is crossed out (a red marker cross on the face, a line through the name).
 - Any film with at least one actor from the board refills the bar, even if they were already crossed out.
 - Crossing out all 8 wins; the score is the number of guesses used, fewer is better.
-- The bar running out, or 5 guesses without crossing out all 8, loses; the missed actors are then shown in red.
+- The bar running out, or 6 guesses without crossing out all 8, loses; the missed actors are then shown in red.
 - A guess that crosses out nobody new still counts; repeating a film is turned away for free.
 - Once the game is over, win or lose, the board's best route is shown: the films it was built from (3 or 4), each with its group of actors.
-- Share copies `Casting call #5 4/5` and one square per guess: green crossed someone new, red didn't, black unused.
+- Share copies `Casting call #5 4/6` and one square per guess: green crossed someone new, red didn't, black unused.
 
 ## Daily boards
 

@@ -112,8 +112,8 @@ describe("casting call state", () => {
 
   it("shares the guesses used and a square per guess", () => {
     const won = play(start, guess(1, "0", "1"), guess(2), guess(3, "1"), guess(4, "2", "3"));
-    expect(castingShareText("Casting call #6", won)).toBe("Casting call #6 4/5\n🟩🟥🟥🟩⬛");
+    expect(castingShareText("Casting call #6", won)).toBe("Casting call #6 4/6\n🟩🟥🟥🟩⬛⬛");
     const lost = play(start, guess(1, "0"), { type: "timeUp" });
-    expect(castingShareText("Casting call #7", lost)).toBe("Casting call #7 X/5\n🟩⬛⬛⬛⬛");
+    expect(castingShareText("Casting call #7", lost)).toBe("Casting call #7 X/6\n🟩⬛⬛⬛⬛⬛");
   });
 });

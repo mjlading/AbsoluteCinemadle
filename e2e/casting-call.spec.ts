@@ -68,7 +68,7 @@ async function stubTmdbRoutes(page: Page) {
 
 const guessBox = (page: Page) => page.getByRole("combobox", { name: "Guess a film" });
 const timer = (page: Page) => page.getByRole("timer");
-const guessesLeft = (page: Page, left: number) => page.getByLabel(`${left} of 5 guesses left`);
+const guessesLeft = (page: Page, left: number) => page.getByLabel(`${left} of 6 guesses left`);
 const crossedOut = (page: Page) => page.getByRole("img", { name: /, crossed out$/ });
 
 async function openBoard(page: Page) {
@@ -162,12 +162,12 @@ test.describe("with TMDB stubbed", () => {
 
     await guess(page, "Empty One");
     await miss(page, "Empty One");
-    await expect(guessesLeft(page, 4)).toBeVisible();
+    await expect(guessesLeft(page, 5)).toBeVisible();
     await expect(page.getByText("Nobody from the board")).toBeVisible();
 
     await guess(page, "Empty One");
     await expect(page.getByText("You already tried Empty One.")).toBeVisible();
-    await expect(guessesLeft(page, 4)).toBeVisible();
+    await expect(guessesLeft(page, 5)).toBeVisible();
 
     await guess(page, "Alpha Heist");
     await hit(page, "Alpha Heist", "Ada Archer, Ben Bright, Cleo Crane");
@@ -175,20 +175,20 @@ test.describe("with TMDB stubbed", () => {
 
     await guess(page, "Echo Street");
     await expect(page.getByText("Echo Street only has actors you've already crossed out.")).toBeVisible();
-    await expect(guessesLeft(page, 2)).toBeVisible();
+    await expect(guessesLeft(page, 3)).toBeVisible();
     await expect(crossedOut(page)).toHaveCount(3);
 
     await page.reload();
     await expect(crossedOut(page)).toHaveCount(3);
-    await expect(guessesLeft(page, 2)).toBeVisible();
+    await expect(guessesLeft(page, 3)).toBeVisible();
     await expect(timer(page)).toBeVisible();
     await expect(page.getByRole("button", { name: "Start" })).toHaveCount(0);
   });
 
-  test("five guesses without clearing the board loses and shows who was missed", async ({ page }) => {
+  test("six guesses without clearing the board loses and shows who was missed", async ({ page }) => {
     await openBoard(page);
     await start(page);
-    for (const title of ["Empty One", "Empty Two", "Empty Three", "Empty Four"]) {
+    for (const title of ["Empty One", "Empty Two", "Empty Three", "Empty Four", "Empty Five"]) {
       await guess(page, title);
       await miss(page, title);
     }
