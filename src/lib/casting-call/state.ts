@@ -80,13 +80,21 @@ export function newlyCrossed(state: CastingCallState, guessIndex: number): strin
 }
 
 /**
- * The share text: the day's title and guesses used ("X" for a loss), then one
- * square per guess (green crossed someone new, red didn't) and black for guesses left.
+ * The share text: the day's title and guesses used ("X" for a loss), then one row per film,
+ * as wide as the board has faces, that builds up as Wordle's does: a green square for every
+ * actor crossed out so far, and the grey of an unused square for the rest. A film that crossed
+ * out nobody new repeats the row above it.
  */
-export function castingShareText(title: string, state: CastingCallState): string {
-  const max = RULES.castingCall.maxGuesses;
-  const squares: string[] = state.guesses.map((_, i) => (newlyCrossed(state, i).length > 0 ? "🟩" : "🟥"));
-  while (squares.length < max) squares.push("⬛");
+export function castingShareText(
+  title: string,
+  state: CastingCallState,
+  faceCount: number = RULES.castingCall.faceCount,
+): string {
+  let crossed = 0;
+  const rows = state.guesses.map((_, i) => {
+    crossed += newlyCrossed(state, i).length;
+    return "🟩".repeat(crossed) + "⬛".repeat(Math.max(0, faceCount - crossed));
+  });
   const result = state.status === "won" ? state.guesses.length : "X";
-  return `${title} ${result}/${max}\n${squares.join("")}`;
+  return `${title} ${result}/${RULES.castingCall.maxGuesses}\n${rows.join("\n")}`;
 }

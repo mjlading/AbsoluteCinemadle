@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Confetti } from "@/components/game/Confetti";
 import { GameTopBar } from "@/components/game/GameTopBar";
 import { ReelSpinner } from "@/components/game/ReelSpinner";
+import { ResultActions } from "@/components/game/ResultActions";
 import { RULES } from "@/config/rules";
 import { SITE } from "@/config/site";
 import {
@@ -429,23 +430,6 @@ function EndPanel({ board, state }: { board: PublicCastingBoard; state: CastingC
   const won = state.status === "won";
   const used = state.guesses.length;
   const total = board.faces.length;
-  const [copied, setCopied] = useState<"yes" | "failed" | null>(null);
-
-  useEffect(() => {
-    if (!copied) return;
-    const timer = window.setTimeout(() => setCopied(null), 2000);
-    return () => window.clearTimeout(timer);
-  }, [copied]);
-
-  async function share() {
-    try {
-      await navigator.clipboard.writeText(castingShareText(castingCallTitle(board.date), state));
-      setCopied("yes");
-    } catch {
-      setCopied("failed");
-    }
-  }
-
   return (
     <section aria-labelledby="ccall-end" className="mt-5 rounded-lg bg-surface p-5 ring-1 ring-ink/15">
       <h2 id="ccall-end" className="font-display text-4xl font-[900] leading-none">
@@ -457,20 +441,11 @@ function EndPanel({ board, state }: { board: PublicCastingBoard; state: CastingC
           : `You found ${state.crossed.length} of ${total}. Better luck next time!`}
       </p>
       <BestRoute board={board} names={state.names} />
-      <div className="mt-4 flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={share}
-          className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 font-semibold text-table hover:opacity-90"
-        >
-          {copied === "yes" ? "Copied" : copied === "failed" ? "Couldn't copy" : "Share"}
-        </button>
-        <Link
-          href={SITE.games.castingCallArchive}
-          className="inline-flex min-h-11 items-center rounded-full px-5 font-semibold ring-1 ring-ink/30 hover:ring-ink"
-        >
-          Previous days
-        </Link>
+      <div className="mt-5">
+        <ResultActions
+          shareText={() => castingShareText(castingCallTitle(board.date), state, board.faces.length)}
+          archiveHref={SITE.games.castingCallArchive}
+        />
       </div>
     </section>
   );

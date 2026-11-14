@@ -37,6 +37,19 @@ export function addDays(date: string, days: number): string {
   return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
 }
 
+/**
+ * A daily game's number on a date: 1 on its launch date, counting up one per day.
+ * A day before the launch has no number.
+ */
+export function dayNumber(date: string, launchDate: string): number | null {
+  const utcDay = (iso: string) => {
+    const [year, month, day] = iso.split("-").map(Number);
+    return Date.UTC(year, month - 1, day) / DAY_MS;
+  };
+  const n = utcDay(date) - utcDay(launchDate) + 1;
+  return n >= 1 ? n : null;
+}
+
 /** "Wednesday 14 October" for a YYYY-MM-DD date, independent of the viewer's time zone. */
 export function formatPuzzleDate(date: string): string {
   const [year, month, day] = date.split("-").map(Number);

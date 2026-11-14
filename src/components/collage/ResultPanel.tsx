@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { POINTS } from "@/config/scoring";
+import { ResultActions } from "@/components/game/ResultActions";
 import { SITE } from "@/config/site";
 import { collageScore, currentRound, isFirstClueWin, maxCollageScore, type CollageState } from "@/lib/collage/state";
 import { closeUpsTitle } from "@/lib/collage/day";
@@ -22,7 +22,6 @@ export function collageShareText(puzzle: PublicCollagePuzzle, state: CollageStat
 /** Takes the guess row's place once the game is over: the film, the score, Share and the way on. */
 export function ResultPanel({ puzzle, state }: { puzzle: PublicCollagePuzzle; state: CollageState }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const [copied, setCopied] = useState<"yes" | "failed" | null>(null);
   const { answer } = state;
   const won = state.status === "won";
   const firstClue = isFirstClueWin(state);
@@ -30,21 +29,6 @@ export function ResultPanel({ puzzle, state }: { puzzle: PublicCollagePuzzle; st
 
   // The guess box this replaces had focus, so focus moves to the film's name.
   useEffect(() => headingRef.current?.focus({ preventScroll: true }), []);
-
-  useEffect(() => {
-    if (!copied) return;
-    const timer = window.setTimeout(() => setCopied(null), 2000);
-    return () => window.clearTimeout(timer);
-  }, [copied]);
-
-  async function share() {
-    try {
-      await navigator.clipboard.writeText(collageShareText(puzzle, state));
-      setCopied("yes");
-    } catch {
-      setCopied("failed");
-    }
-  }
 
   return (
     <section aria-labelledby="closeups-result" className="closeups-rise flex flex-col gap-3">
@@ -93,21 +77,7 @@ export function ResultPanel({ puzzle, state }: { puzzle: PublicCollagePuzzle; st
           )}
         </div>
       </div>
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={share}
-          className="h-12 flex-1 rounded-xl bg-ink font-semibold text-table transition-colors hover:bg-ink/85"
-        >
-          {copied === "yes" ? "Copied" : copied === "failed" ? "Couldn't copy" : "Share"}
-        </button>
-        <Link
-          href={SITE.games.closeUpsArchive}
-          className="grid h-12 flex-1 place-items-center rounded-xl bg-ink/7 font-condensed text-[17px] font-extrabold tracking-[0.02em] transition-colors hover:bg-ink/12"
-        >
-          Previous days
-        </Link>
-      </div>
+      <ResultActions shareText={() => collageShareText(puzzle, state)} archiveHref={SITE.games.closeUpsArchive} />
     </section>
   );
 }
