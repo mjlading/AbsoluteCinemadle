@@ -201,47 +201,6 @@ test.describe("with TMDB stubbed", () => {
     await expect(guessBox(page)).toBeDisabled();
   });
 
-  test("firing takes one actor off the board without a guess", { tag: "@phone" }, async ({ page }) => {
-    await openBoard(page);
-    await start(page);
-    const fireOne = page.getByRole("button", { name: /^Fire an actor/ });
-
-    // Pick mode by keyboard: focus lands on the first face that can go, and Escape backs out.
-    await fireOne.focus();
-    await page.keyboard.press("Enter");
-    await expect(page.getByText("Tap the actor to fire")).toBeVisible();
-    await expect(page.getByText("1 left")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Fire Ada Archer" })).toBeFocused();
-    await page.keyboard.press("Escape");
-    await expect(page.getByRole("button", { name: /^Fire [A-Z]/ })).toHaveCount(0);
-    await expect(page.getByText("1 left")).toBeVisible();
-
-    await guess(page, "Alpha Heist");
-    await hit(page, "Alpha Heist", "Ada Archer, Ben Bright, Cleo Crane");
-    await fireOne.click();
-    await page.getByRole("button", { name: "Cancel" }).click();
-    await expect(page.getByRole("button", { name: /^Fire [A-Z]/ })).toHaveCount(0);
-    await fireOne.click();
-    // Crossed-out faces can't be fired.
-    await expect(page.getByRole("button", { name: /^Fire [A-Z]/ })).toHaveCount(5);
-    await page.getByRole("button", { name: "Fire Hal Hayes" }).click();
-
-    await expect(page.getByRole("img", { name: "Hal Hayes, fired" })).toBeVisible();
-    await expect(page.getByText("You fired Hal Hayes.")).toBeVisible();
-    await expect(page.getByText("3 of 8 found, 1 fired")).toBeVisible();
-    await expect(guessesLeft(page, 5)).toBeVisible();
-    await expect(fireOne).toHaveCount(0);
-
-    await guess(page, "Bravo Run");
-    await hit(page, "Bravo Run", "Dov Dale, Eva Ellis");
-    await guess(page, "Charlie Point");
-    await expect(page.getByRole("heading", { name: "That's a wrap!" })).toBeVisible();
-    await expect(page.getByText("All 8 actors in 3 guesses, 1 fired.")).toBeVisible();
-
-    await page.reload();
-    await expect(page.getByRole("img", { name: "Hal Hayes, fired" })).toBeVisible();
-  });
-
   test("the bar refills on a film with someone from the board, not on a miss, and ends the game", async ({ page }) => {
     await page.clock.install();
     await openBoard(page);

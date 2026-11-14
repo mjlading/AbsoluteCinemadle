@@ -4,7 +4,7 @@ import "./casting-call.css";
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Confetti } from "@/components/game/Confetti";
 import { GameTopBar } from "@/components/game/GameTopBar";
@@ -22,8 +22,6 @@ import {
   alreadyGuessed,
   castingCallReducer,
   castingShareText,
-  firesLeft,
-  isDone,
   guessesLeft,
   initialCastingCallState,
   msLeft,
@@ -36,7 +34,6 @@ import { localIsoDate } from "@/lib/dates";
 import { ApiError, type FilmSuggestion } from "@/lib/game/api";
 import { usePersistentReducer } from "@/lib/game/storage";
 import { FilmGuess } from "./FilmGuess";
-import { PinkSlip } from "./PinkSlip";
 
 export const castingStorageKey = (boardId: string) => `casting-call:${boardId}`;
 
@@ -127,37 +124,12 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
   const [feedback, setFeedback] = useState<Feedback>(null);
   // Faces crossed by the latest guess get the stamp animation; a reload shows them already crossed.
   const [fresh, setFresh] = useState<string[]>([]);
-  // Picking who to fire: the faces still on the board turn into buttons until one is picked or it's cancelled.
-  const [firing, setFiring] = useState(false);
-  const facesRef = useRef<HTMLUListElement>(null);
-  const fireMessages = useRef(0);
 
   const playing = state.status === "playing";
   const over = state.status === "won" || state.status === "lost";
   const crossed = new Set(state.crossed);
-  const fired = new Set(state.fired);
   const left = guessesLeft(state);
   const deadline = state.deadline;
-  const canFire = playing && firesLeft(state) > 0;
-  const picking = firing && canFire && !busy;
-
-  // Entering pick mode moves focus to the first face that can be fired; Escape leaves it.
-  useEffect(() => {
-    if (!picking) return;
-    facesRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setFiring(false);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [picking]);
-
-  function fire(faceId: string) {
-    if (!canFire || isDone(state, faceId)) return;
-    dispatch({ type: "fire", faceId });
-    setFiring(false);
-    setFresh([faceId]);
-    // Negative ids never clash with the guesses' timestamps.
-    setFeedback({ id: -++fireMessages.current, kind: "hit", message: `You fired ${state.names[faceId]}.` });
-  }
 
   // The bar: ticks while playing and ends the game at zero, unless a film submitted in time is still being checked.
   useEffect(() => {
@@ -225,15 +197,14 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
     <div className="mt-3">
       {state.status === "won" && <Confetti />}
 
-      <div className="flex min-h-9 items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-ink-soft">
           <strong className="text-ink">{crossed.size}</strong> of {board.faces.length} found
-          {fired.size > 0 && <>, {fired.size} fired</>}
         </p>
         <GuessDots left={left} />
       </div>
 
-      <ul ref={facesRef} aria-label="Faces" className="mt-3 grid grid-cols-4 gap-2 sm:gap-3">
+      <ul aria-label="Faces" className="mt-4 grid grid-cols-4 gap-2 sm:gap-3">
         {board.faces.map((face, i) => (
           <FaceCard
             key={face.id}
@@ -241,18 +212,12 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
             imageUrl={face.imageUrl}
             name={state.names[face.id] ?? null}
             crossed={crossed.has(face.id)}
-            fired={fired.has(face.id)}
             fresh={fresh.includes(face.id)}
-            missed={state.status === "lost" && !crossed.has(face.id) && !fired.has(face.id)}
+            missed={state.status === "lost" && !crossed.has(face.id)}
             blurred={state.status === "ready"}
-            onFire={picking && !isDone(state, face.id) ? () => fire(face.id) : undefined}
           />
         ))}
       </ul>
-
-      {canFire && (
-        <FireRow picking={picking} left={firesLeft(state)} disabled={busy} onToggle={() => setFiring((f) => !f)} />
-      )}
 
       <div className="mt-5">
         {state.status === "ready" ? (
@@ -294,7 +259,7 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
             <span className="text-ink-soft">
               Start reveals the {board.faces.length} faces and names and sets off a {RULES.castingCall.timeLimitSeconds}
               -second bar. Any film with someone from the board refills it. Cross out everyone within{" "}
-              {RULES.castingCall.maxGuesses} guesses. Stuck on someone? Fire them.
+              {RULES.castingCall.maxGuesses} guesses.
             </span>
           ) : state.guesses.length === 0 && playing ? (
             <span className="text-ink-soft">
@@ -391,139 +356,50 @@ function FaceCard({
   imageUrl,
   name,
   crossed,
-  fired,
   fresh,
   missed,
   blurred,
-  onFire,
 }: {
   index: number;
   imageUrl: string;
   name: string | null;
   crossed: boolean;
-  fired: boolean;
   fresh: boolean;
   missed: boolean;
   /** Before Start: the face can't be studied for free. */
   blurred: boolean;
-  /** Set while the player is picking who to fire: the face becomes a button. */
-  onFire?: () => void;
 }) {
-  const done = crossed || fired;
-  const picture = (
-    <>
-      <Image
-        src={imageUrl}
-        alt={onFire ? "" : crossed ? `${name}, crossed out` : fired ? `${name}, fired` : (name ?? `Face ${index + 1}`)}
-        fill
-        unoptimized
-        sizes="(min-width: 640px) 8rem, 25vw"
-        className={`object-cover transition-[filter,scale] duration-500 ${done ? "grayscale-[0.6] brightness-75" : ""} ${fired ? "grayscale brightness-[0.6]" : ""} ${blurred ? "scale-125 blur-xl" : ""}`}
-      />
-      {crossed && <MarkerCross animate={fresh} />}
-      {fired && <FiredStamp animate={fresh} />}
-    </>
-  );
-  const frame = "relative block aspect-square w-full overflow-hidden rounded-[6px] bg-sheet";
   return (
     <li className="min-w-0">
-      {onFire ? (
-        <button
-          type="button"
-          onClick={onFire}
-          aria-label={`Fire ${name}`}
-          className={`${frame} outline-none ring-2 ring-marker ring-offset-2 ring-offset-table hover:brightness-110 focus-visible:ring-4`}
-        >
-          {picture}
-        </button>
-      ) : (
-        <div className={`${frame} ring-1 ring-ink/15 ${crossed && fresh ? "ccall-stamp" : ""}`}>{picture}</div>
-      )}
+      <div
+        className={`relative aspect-square overflow-hidden rounded-[6px] bg-sheet ring-1 ring-ink/15 ${
+          crossed && fresh ? "ccall-stamp" : ""
+        }`}
+      >
+        <Image
+          src={imageUrl}
+          alt={crossed ? `${name}, crossed out` : (name ?? `Face ${index + 1}`)}
+          fill
+          unoptimized
+          sizes="(min-width: 640px) 8rem, 25vw"
+          className={`object-cover transition-[filter,scale] duration-500 ${crossed ? "grayscale-[0.6] brightness-75" : ""} ${blurred ? "scale-125 blur-xl" : ""}`}
+        />
+        {crossed && <MarkerCross animate={fresh} />}
+      </div>
       <p
         className={`mt-1 line-clamp-2 min-h-[2.2em] text-center text-xs font-semibold leading-tight ${
           missed
             ? "text-marker"
             : crossed
               ? "text-ink-soft line-through decoration-marker decoration-2"
-              : fired
-                ? "text-ink-soft line-through decoration-ink-soft decoration-2"
-                : name
-                  ? "text-ink"
-                  : "text-ink-soft"
+              : name
+                ? "text-ink"
+                : "text-ink-soft"
         }`}
       >
         {name ?? "?"}
       </p>
     </li>
-  );
-}
-
-/** A red rubber stamp over a fired face. */
-function FiredStamp({ animate }: { animate: boolean }) {
-  return (
-    <span aria-hidden="true" className="pointer-events-none absolute inset-0 grid place-items-center">
-      <span
-        className={`ccall-fired rounded-[3px] border-[2.5px] border-marker-strong bg-white/85 px-1.5 py-0.5 font-condensed text-[clamp(0.7rem,3.4vw,1rem)] font-black uppercase leading-none tracking-[0.12em] text-marker-strong ${animate ? "ccall-fired-in" : ""}`}
-      >
-        Fired
-      </span>
-    </span>
-  );
-}
-
-/**
- * Firing, out in the open under the faces: the pink slip, what it does and how
- * many are left. Pressed, it turns red and asks for a face, with Cancel beside it.
- */
-function FireRow({
-  picking,
-  left,
-  disabled,
-  onToggle,
-}: {
-  picking: boolean;
-  left: number;
-  disabled: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <div
-      className={`mt-4 flex items-center gap-2 rounded-[12px] p-1.5 pr-2 ring-[1.5px] transition-colors ${
-        picking ? "bg-marker/12 ring-marker" : "bg-surface ring-ink/12"
-      }`}
-    >
-      <button
-        type="button"
-        onClick={onToggle}
-        disabled={disabled}
-        aria-pressed={picking}
-        aria-describedby="ccall-fire-hint"
-        className="group flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-[9px] px-1.5 text-left outline-offset-2 hover:bg-ink/4 disabled:opacity-60"
-      >
-        <PinkSlip className="ccall-slip size-11 shrink-0 transition-transform group-hover:-rotate-6 group-hover:scale-105" />
-        <span className="min-w-0 leading-tight">
-          <span className={`block font-display text-xl font-[850] ${picking ? "text-marker" : ""}`}>
-            {picking ? "Tap the actor to fire" : "Fire an actor"}
-          </span>
-          <span id="ccall-fire-hint" className="block text-sm text-ink-soft">
-            {picking ? "They're off the board, no guess used." : "Can't place someone? Cut them, no guess used."}
-          </span>
-        </span>
-      </button>
-      {picking ? (
-        <button
-          type="button"
-          onClick={onToggle}
-          className="min-h-10 shrink-0 rounded-full px-4 text-sm font-semibold ring-1 ring-ink/30 hover:ring-ink"
-        >
-          Cancel
-        </button>
-      ) : (
-        <span className="shrink-0 rounded-full bg-marker px-2.5 py-1 font-condensed text-xs font-bold uppercase tracking-wide text-white">
-          {left} left
-        </span>
-      )}
-    </div>
   );
 }
 
@@ -569,7 +445,7 @@ function EndPanel({ board, state }: { board: PublicCastingBoard; state: CastingC
       </h2>
       <p className="mt-2 leading-snug">
         {won
-          ? `All ${total} actors in ${used} ${used === 1 ? "guess" : "guesses"}${state.fired.length ? `, ${state.fired.length} fired` : ""}.`
+          ? `All ${total} actors in ${used} ${used === 1 ? "guess" : "guesses"}.`
           : `You found ${state.crossed.length} of ${total}. The ones you missed are in red.`}
       </p>
       <BestRoute board={board} names={state.names} />

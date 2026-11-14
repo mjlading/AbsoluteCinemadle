@@ -136,15 +136,13 @@ Each entry says what was decided and why, so it can be revisited.
 - The six fixed boards were retired from the app and kept in `tools/casting-call/legacy-boards.json`; their old addresses redirect to today's board.
 - Faces are blurred before Start and names are not sent at all; the names are only fetched when Start is pressed, so the clock is running once they're known. The blur is CSS only, so the picture itself is still reachable by someone digging in the browser, which only spoils their own game.
 - The 5-guess limit stayed when the 40-second bar was added; the owner's brief for the bar didn't remove it.
-  The owner raised it to 6 on 2026-11-14, dropped it back to 5 when firing was added, then settled on 6 the same day.
+  The owner raised it to 6 on 2026-11-14, after playtests of the daily found it hard.
 - A film refills the bar if anyone from the board is in it, including actors already crossed out; a film with nobody from the board doesn't.
 - The bar keeps running across a reload, since its deadline is saved; time spent waiting for the server to check a film isn't charged.
 - Any credited role in a film counts, however small: the player named a film the actor is in.
 - Names are TMDB's spelling of the person, not the film's credit, and actors are matched by TMDB person id.
 - A guess that finds nobody new still uses a guess.
-- Firing (the owner's idea): one actor per game, only after Start (names are needed to choose), never one already crossed out.
-  It is a deliberate two-step (Fire one, then a face) with Cancel and Escape, so a stray tap can't fire anyone; faces in pick mode don't animate, so they're easy to hit.
-  Firing the last actor left wins at once. A fired actor shows as fired, never in red on a loss.
+- Firing an actor (once a game, taking them off the board without a guess) was tried on 2026-11-14 and dropped by the owner the same day.
 - There are no points: the result is the number of guesses used, so nothing needs adding to `scoring.ts`.
 - Progress is saved per board in localStorage under `casting-call:<id>`, so a reload resumes; the archive shows "Solved in N" or "Missed".
   Games saved on the old fixed boards are simply never read again.

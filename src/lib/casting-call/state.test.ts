@@ -5,14 +5,12 @@ import {
   alreadyGuessed,
   castingCallReducer,
   castingShareText,
-  firesLeft,
   guessesLeft,
   initialCastingCallState,
   msLeft,
   newlyCrossed,
   reviveCastingCallState,
   type CastingCallAction,
-  type CastingCallState,
 } from "./state";
 
 const LIMIT = RULES.castingCall.timeLimitSeconds * 1000;
@@ -117,52 +115,5 @@ describe("casting call state", () => {
     expect(castingShareText("Casting call #6", won)).toBe("Casting call #6 4/6\n🟩🟥🟥🟩⬛⬛");
     const lost = play(start, guess(1, "0"), { type: "timeUp" });
     expect(castingShareText("Casting call #7", lost)).toBe("Casting call #7 X/6\n🟩⬛⬛⬛⬛⬛");
-  });
-
-  describe("firing", () => {
-    const fire = (faceId: string): CastingCallAction => ({ type: "fire", faceId });
-
-    it("takes an actor off the board as done, without a guess or touching the bar", () => {
-      const state = play(start, guess(1, "0"), fire("3"));
-      expect(state.fired).toEqual(["3"]);
-      expect(state.crossed).toEqual(["0"]);
-      expect(state.guesses).toHaveLength(1);
-      expect(state.deadline).toBe(1000 + LIMIT);
-      expect(firesLeft(state)).toBe(RULES.castingCall.firesPerGame - 1);
-    });
-
-    it("allows only so many fires, only while playing, and only someone not done yet", () => {
-      expect(play(fire("0")).fired).toEqual([]);
-      const once = play(start, fire("0"));
-      if (RULES.castingCall.firesPerGame === 1) expect(reducer(once, fire("1"))).toBe(once);
-      expect(reducer(once, fire("0"))).toBe(once);
-      const crossed = play(start, guess(1, "2"));
-      expect(reducer(crossed, fire("2"))).toBe(crossed);
-      expect(reducer(play(start), fire("9")).fired).toEqual([]);
-    });
-
-    it("counts a fired actor towards the win, and never crosses them out later", () => {
-      const state = play(start, fire("3"), guess(1, "0", "1"), guess(2, "2", "3"));
-      expect(state.status).toBe("won");
-      expect(state.crossed).toEqual(["0", "1", "2"]);
-      expect(newlyCrossed(state, 1)).toEqual(["2"]);
-    });
-
-    it("wins at once when the last actor left is fired", () => {
-      const state = play(start, guess(1, "0", "1", "2"), fire("3"));
-      expect(state.status).toBe("won");
-      expect(state.guesses).toHaveLength(1);
-    });
-
-    it("shows a flame in the share text", () => {
-      const state = play(start, guess(1, "0", "1", "2"), fire("3"));
-      expect(castingShareText("Casting call #5", state)).toBe("Casting call #5 1/6 🔥\n🟩⬛⬛⬛⬛⬛");
-    });
-
-    it("reads games saved before firing existed as having fired nobody", () => {
-      const old: Partial<CastingCallState> = { ...play(start, guess(1, "0")) };
-      delete old.fired;
-      expect(reviveCastingCallState(old as CastingCallState).fired).toEqual([]);
-    });
   });
 });
