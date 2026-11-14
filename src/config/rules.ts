@@ -57,10 +57,10 @@ export const RULES = {
       wellKnownRoles: 8,
       /**
        * The film a group shares ranks below `from` and no lower than `to`: widely seen, but not a top
-       * blockbuster (about 15,000 to 4,250 votes in November 2026, Alice in Wonderland to Babel).
+       * blockbuster (about 16,800 to 5,200 votes in November 2026).
        * No two in a group may share a film ranked above `from`.
        */
-      sharedFilmRanks: { from: 150, to: 1200 },
+      sharedFilmRanks: { from: 120, to: 900 },
       /** Everyone in a group is billed this high (TMDB cast order from 0) in the film they share. */
       sharedFilmOrder: 5,
       /** Actors and films used on a board aren't used again within this many days either side. */

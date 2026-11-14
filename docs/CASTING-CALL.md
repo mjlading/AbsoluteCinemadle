@@ -32,8 +32,8 @@ The owner's brief: obscure films, well-known actors; playtests then moved the fi
 - How a group is found: a lead from the top of the billing of one of the 400 most-voted films; one of their lesser-known films; well-known co-stars from its billing (the biggest groups are found first).
 - Well known: at least 8 starring roles (billed in the top 4) in films ranked in the top 1,750 (about 3,000 votes in November 2026), counting only on-screen roles in proper films (no cameos as themselves, voice parts, TV films, animation or documentaries).
   It was 6 roles in films with 1,000+ votes until the owner's first playtest (2026-11-14) found faces such as Kevin Dunn and Clea DuVall too little known.
-- The shared film: one ranked #151 to #1,200 (about 15,000 to 4,250 votes in November 2026) where everyone in the group is billed in the top 6: widely seen, but not a top blockbuster.
-  No two in a group may share a film ranked higher. It was 40 to 799 votes, then 300 to 2,499, then 1,500 to 5,999, then ranks #351 to #2,100, then #201 to #1,500; the owner's playtests on 2026-11-14 found each too hard.
+- The shared film: one ranked #121 to #900 (about 16,800 to 5,200 votes in November 2026) where everyone in the group is billed in the top 6: widely seen, but not a top blockbuster.
+  No two in a group may share a film ranked higher. It was 40 to 799 votes, then 300 to 2,499, then 1,500 to 5,999, then ranks #351 to #2,100, then #201 to #1,500, then #151 to #1,200; the owner's playtests on 2026-11-14 found each too hard.
 - Every board is checked against every film the 8 are credited in: if fewer films than it has groups could clear it, it is thrown away and another is built.
 - Actors and films used on a board aren't used again within 60 days either side.
 - The faces are shuffled, so a group never sits in a known place on the board.
