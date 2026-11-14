@@ -19,6 +19,7 @@
     "db:migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.mts",
     "db:import-collage": "tsx --env-file-if-exists=.env.local scripts/import-collage.mts",
     "db:import-soundbytes": "tsx --env-file-if-exists=.env.local scripts/import-soundbytes.mts",
+    "db:import-casting-call": "tsx --env-file-if-exists=.env.local scripts/import-casting-call.mts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

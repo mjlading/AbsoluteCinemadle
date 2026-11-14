@@ -17,11 +17,15 @@ test(
   },
 );
 
-test("old addresses redirect: the keyword collage to Close-Ups, the retired daily game home", async ({ page }) => {
+test("old addresses redirect: the keyword collage to Close-Ups, the retired daily game home, fixed Casting call boards to today", async ({
+  page,
+}) => {
   await page.goto("/daily");
   await expect(page).toHaveURL(/\/$/);
   await page.goto("/keyword-collage/fixture1");
   await expect(page).toHaveURL(/\/close-ups\/fixture1$/);
   await page.goto("/keyword-collage");
   await expect(page).toHaveURL(/\/close-ups$/);
+  await page.goto("/casting-call/4");
+  await expect(page).toHaveURL(/\/casting-call$/);
 });

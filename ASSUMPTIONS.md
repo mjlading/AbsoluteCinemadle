@@ -124,7 +124,15 @@ Each entry says what was decided and why, so it can be revisited.
 
 ## Casting call
 
-- The game is called "Casting call" and lives at `/casting-call`, with a list of boards and one board per page, like Soundbytes; boards are a fixed list in `src/lib/casting-call/boards.ts`.
+- The game is called "Casting call" and lives at `/casting-call`.
+  It became a daily on 2026-11-14, at the owner's request: `/casting-call` is today's board, `/casting-call/<date>` an earlier day and `/casting-call/archive` the list, like the other two dailies.
+- It shares their numbering (the owner's choice): #1 is 2026-11-10, so its first daily was #5, and the archive starts there.
+- Boards build themselves with no computer of the owner's switched on (the owner's requirement): by a daily Vercel Cron job, or on a day's first visit when the job hasn't run.
+  An LLM was considered and left out: building and checking a board is plain logic over TMDB data, and keyed APIs need the owner's approval.
+  A player may only cause a board to be built for a day that is today somewhere on Earth, so the past and future can't be filled by request.
+- The owner wants obscure films and well-known actors: boards pair well-known actors through lesser-known films they share (see "Daily boards" in docs/CASTING-CALL.md for the thresholds).
+- The best route (the board's 4 films) is shown when the game ends, won or lost (the owner's request), from its own route, since the names route is called at Start.
+- The six fixed boards were retired from the app and kept in `tools/casting-call/legacy-boards.json`; their old addresses redirect to today's board.
 - Faces are blurred before Start and names are not sent at all; the names are only fetched when Start is pressed, so the clock is running once they're known. The blur is CSS only, so the picture itself is still reachable by someone digging in the browser, which only spoils their own game.
 - The 5-guess limit stayed when the 40-second bar was added; the owner's brief for the bar didn't remove it.
 - A film refills the bar if anyone from the board is in it, including actors already crossed out; a film with nobody from the board doesn't.
@@ -133,6 +141,8 @@ Each entry says what was decided and why, so it can be revisited.
 - Names are TMDB's spelling of the person, not the film's credit, and actors are matched by TMDB person id.
 - A guess that finds nobody new still uses a guess.
 - There are no points: the result is the number of guesses used, so nothing needs adding to `scoring.ts`.
-- Progress is saved per board in localStorage under `casting-call:<id>`, so a reload resumes; the board list shows "Solved in N".
-- Faces are 320-pixel squares cropped from the top of the TMDB profile photo, cached for a day (face ids are positions, so a board edit reuses them).
-- The "no film covers more than two or three actors" aim for boards applies to ordinary films; the 2012 collage film "Final Cut: Ladies and Gentlemen" credits up to five actors on one board, and is left as a lucky find.
+- Progress is saved per board in localStorage under `casting-call:<id>`, so a reload resumes; the archive shows "Solved in N" or "Missed".
+  Games saved on the old fixed boards are simply never read again.
+- Faces are 320-pixel squares cropped from the top of the TMDB profile photo, cached for a day.
+- A board must need at least 4 films counting every film its actors are credited in, so even a collage film like "Final Cut: Ladies and Gentlemen" can't make one easy.
+- Boards keep only TMDB ids; the cron job re-fetches the people on boards older than 5 months and dates them again, and deletes a board whose people TMDB no longer has.

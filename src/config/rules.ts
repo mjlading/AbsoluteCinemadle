@@ -28,5 +28,25 @@ export const RULES = {
     maxGuesses: 5,
     /** The bar's length; it starts on Start and refills on any film with someone from the board. */
     timeLimitSeconds: 40,
+    /**
+     * How the daily board is built (src/lib/casting-call/generate.ts): well-known actors in pairs,
+     * each pair sharing a lesser-known film, so the best route takes one film per pair.
+     */
+    board: {
+      /** Pairs on a board; times two it must equal faceCount. */
+      pairs: 4,
+      /** The fewest films that may clear a board, counting every film the eight are in. */
+      minFilmsToClear: 4,
+      /** A film counts as well known from this many TMDB votes. */
+      wellKnownVotes: 1000,
+      /** Billed this high (TMDB cast order from 0) counts as a starring role. */
+      starringOrder: 5,
+      /** An actor is well known with at least this many starring roles in well-known films. */
+      wellKnownRoles: 6,
+      /** The film a pair shares has at least `min` TMDB votes (so it can be found) and fewer than `max`. */
+      sharedFilmVotes: { min: 40, max: 800 },
+      /** Actors and films used on a board aren't used again within this many days either side. */
+      cooldownDays: 60,
+    },
   },
 } as const;

@@ -32,3 +32,15 @@ export async function getPerson(personId: number) {
   cacheLife("days");
   return api.getPerson(personId);
 }
+
+export async function getPersonFilmCredits(personId: number) {
+  "use cache";
+  cacheLife("days");
+  return api.getPersonFilmCredits(personId);
+}
+
+export async function getMostVotedFilms(page: number) {
+  "use cache";
+  cacheLife("days");
+  return api.getMostVotedFilms(page);
+}

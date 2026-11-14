@@ -7,13 +7,21 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { Confetti } from "@/components/game/Confetti";
+import { GameTopBar } from "@/components/game/GameTopBar";
 import { ReelSpinner } from "@/components/game/ReelSpinner";
 import { RULES } from "@/config/rules";
 import { SITE } from "@/config/site";
-import { fetchCastingBoard, fetchCastingSolution, guessCastingFilm } from "@/lib/casting-call/api";
+import {
+  fetchCastingBestRoute,
+  fetchCastingCallDay,
+  fetchCastingSolution,
+  guessCastingFilm,
+} from "@/lib/casting-call/api";
+import { castingCallNumber, castingCallTitle } from "@/lib/casting-call/day";
 import {
   alreadyGuessed,
   castingCallReducer,
+  castingShareText,
   guessesLeft,
   initialCastingCallState,
   msLeft,
@@ -21,44 +29,80 @@ import {
   reviveCastingCallState,
   type CastingCallState,
 } from "@/lib/casting-call/state";
-import type { PublicCastingBoard } from "@/lib/casting-call/types";
+import type { CastingBestRoute, PublicCastingBoard } from "@/lib/casting-call/types";
+import { localIsoDate } from "@/lib/dates";
 import { ApiError, type FilmSuggestion } from "@/lib/game/api";
 import { usePersistentReducer } from "@/lib/game/storage";
 import { FilmGuess } from "./FilmGuess";
 
 export const castingStorageKey = (boardId: string) => `casting-call:${boardId}`;
 
-/** Loads a board, then plays it; progress is kept on this device. */
-export function CastingCallGame({ boardId }: { boardId: string }) {
+const TITLE = "Casting call";
+
+/**
+ * Loads one day's board, then plays it; progress is kept on this device.
+ * Without a date it is today's board, by the player's own calendar.
+ */
+export function CastingCallGame({ date }: { date?: string }) {
   const [board, setBoard] = useState<PublicCastingBoard | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    fetchCastingBoard(boardId).then(
+    const today = localIsoDate();
+    // A day still ahead of the player's own calendar stays closed, even when the server would allow it.
+    const ahead = date !== undefined && date > today;
+    (ahead ? Promise.reject(new Error("ahead")) : fetchCastingCallDay(date ?? today)).then(
       (loaded) => !cancelled && setBoard(loaded),
       (reason: unknown) =>
         !cancelled &&
         setError(
-          reason instanceof ApiError && reason.status === 404
-            ? "There's no such board."
-            : "Couldn't load the board. Check your connection and try again.",
+          ahead
+            ? "That day hasn't come yet."
+            : reason instanceof ApiError && reason.status === 404
+              ? date
+                ? "There's no Casting call for that day."
+                : "No Casting call today. Come back tomorrow."
+              : "Couldn't load the board. Check your connection and try again.",
         ),
     );
     return () => {
       cancelled = true;
     };
-  }, [boardId]);
+  }, [date]);
 
-  if (error) return <p className="mt-10 text-center">{error}</p>;
   if (!board) {
     return (
-      <p className="mt-10 flex items-center justify-center gap-2 text-ink-soft">
-        <ReelSpinner className="size-5" /> Loading the faces&hellip;
-      </p>
+      <>
+        <GameTopBar title={TITLE} number={null} archiveHref={SITE.games.castingCallArchive} />
+        <main className="flex flex-1 justify-center px-4 pt-16">
+          {error ? (
+            <div className="text-center">
+              <p>{error}</p>
+              <Link
+                href={SITE.games.castingCallArchive}
+                className="mt-3 inline-block font-semibold underline underline-offset-4"
+              >
+                Previous days
+              </Link>
+            </div>
+          ) : (
+            <p className="flex items-center gap-2 text-ink-soft">
+              <ReelSpinner className="size-5" /> Loading the faces&hellip;
+            </p>
+          )}
+        </main>
+      </>
     );
   }
-  return <CastingCallPlay key={board.id} board={board} />;
+  return (
+    <>
+      <GameTopBar title={TITLE} number={castingCallNumber(board.date)} archiveHref={SITE.games.castingCallArchive} />
+      <main className="mx-auto w-full max-w-[34rem] flex-1 px-4 pb-12">
+        <CastingCallPlay key={board.id} board={board} />
+      </main>
+    </>
+  );
 }
 
 type Feedback = { id: number; kind: "hit" | "miss"; message: string } | null;
@@ -153,17 +197,11 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
     <div className="mt-3">
       {state.status === "won" && <Confetti />}
 
-      <div className="flex items-end justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wide text-ink-soft">Casting call</p>
-          <h1 className="mt-1 font-display text-4xl font-[900] leading-none">{board.name}</h1>
-        </div>
-        <div className="text-right">
-          <GuessDots left={left} />
-          <p className="mt-1 text-sm text-ink-soft">
-            <strong className="text-ink">{crossed.size}</strong> of {board.faces.length} found
-          </p>
-        </div>
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm text-ink-soft">
+          <strong className="text-ink">{crossed.size}</strong> of {board.faces.length} found
+        </p>
+        <GuessDots left={left} />
       </div>
 
       <ul aria-label="Faces" className="mt-4 grid grid-cols-4 gap-2 sm:gap-3">
@@ -231,7 +269,7 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
         </p>
       </div>
 
-      {over && <EndPanel state={state} total={board.faces.length} />}
+      {over && <EndPanel board={board} state={state} />}
 
       {state.guesses.length > 0 && (
         <section aria-labelledby="cc-guesses" className="mt-6">
@@ -379,9 +417,27 @@ function MarkerCross({ animate }: { animate: boolean }) {
   );
 }
 
-function EndPanel({ state, total }: { state: CastingCallState; total: number }) {
+function EndPanel({ board, state }: { board: PublicCastingBoard; state: CastingCallState }) {
   const won = state.status === "won";
   const used = state.guesses.length;
+  const total = board.faces.length;
+  const [copied, setCopied] = useState<"yes" | "failed" | null>(null);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(null), 2000);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+
+  async function share() {
+    try {
+      await navigator.clipboard.writeText(castingShareText(castingCallTitle(board.date), state));
+      setCopied("yes");
+    } catch {
+      setCopied("failed");
+    }
+  }
+
   return (
     <section aria-labelledby="ccall-end" className="mt-5 rounded-lg bg-surface p-5 ring-1 ring-ink/15">
       <h2 id="ccall-end" className="font-display text-4xl font-[900] leading-none">
@@ -392,14 +448,78 @@ function EndPanel({ state, total }: { state: CastingCallState; total: number }) 
           ? `All ${total} actors in ${used} ${used === 1 ? "guess" : "guesses"}.`
           : `You found ${state.crossed.length} of ${total}. The ones you missed are in red.`}
       </p>
+      <BestRoute board={board} names={state.names} />
       <div className="mt-4 flex flex-wrap gap-3">
-        <Link
-          href={SITE.games.castingCall}
+        <button
+          type="button"
+          onClick={share}
           className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 font-semibold text-table hover:opacity-90"
         >
-          Another board
+          {copied === "yes" ? "Copied" : copied === "failed" ? "Couldn't copy" : "Share"}
+        </button>
+        <Link
+          href={SITE.games.castingCallArchive}
+          className="inline-flex min-h-11 items-center rounded-full px-5 font-semibold ring-1 ring-ink/30 hover:ring-ink"
+        >
+          Previous days
         </Link>
       </div>
     </section>
+  );
+}
+
+/** The films the board was built from, one per pair of faces: the fewest guesses that clear it. */
+function BestRoute({ board, names }: { board: PublicCastingBoard; names: Record<string, string> }) {
+  const [route, setRoute] = useState<CastingBestRoute | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchCastingBestRoute(board.id).then(
+      (loaded) => !cancelled && setRoute(loaded),
+      () => !cancelled && setFailed(true),
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [board.id]);
+
+  return (
+    <div className="mt-4">
+      <h3 className="text-xs font-bold uppercase tracking-wide text-ink-soft">
+        Best route{route ? `: ${route.films.length} films` : ""}
+      </h3>
+      {route ? (
+        <ul className="mt-2 flex flex-col gap-2">
+          {route.films.map((film) => (
+            <li key={film.tmdbId} className="flex items-center gap-3">
+              <span className="flex shrink-0 -space-x-2">
+                {film.faceIds.map((faceId) => {
+                  const face = board.faces.find((f) => f.id === faceId);
+                  return face ? (
+                    <span key={faceId} className="relative size-8 overflow-hidden rounded-full ring-2 ring-surface">
+                      <Image src={face.imageUrl} alt="" fill unoptimized sizes="2rem" className="object-cover" />
+                    </span>
+                  ) : null;
+                })}
+              </span>
+              <span className="min-w-0 leading-tight">
+                <span className="font-semibold">{film.title}</span>
+                {film.year && <span className="ml-1.5 text-ink-soft">{film.year}</span>}
+                <span className="block text-sm text-ink-soft">
+                  {film.faceIds.map((id) => names[id] ?? "?").join(" and ")}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : failed ? (
+        <p className="mt-2 text-sm text-ink-soft">The best route couldn&rsquo;t be loaded.</p>
+      ) : (
+        <p className="mt-2 flex items-center gap-2 text-sm text-ink-soft">
+          <ReelSpinner className="size-4" /> Finding it&hellip;
+        </p>
+      )}
+    </div>
   );
 }

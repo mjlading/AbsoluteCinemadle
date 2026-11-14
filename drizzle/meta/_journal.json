@@ -57,6 +57,13 @@
       "when": 1794312829449,
       "tag": "0007_drop_daily_game",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794660995470,
+      "tag": "0008_casting_call_boards",
+      "breakpoints": true
     }
   ]
 }

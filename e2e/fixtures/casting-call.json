@@ -1,0 +1,48 @@
+{
+  "boards": [
+    {
+      "id": "fixture1",
+      "personIds": [2524, 6885, 934, 73421, 514, 10409, 139, 141],
+      "pairs": [
+        {
+          "filmId": 76341,
+          "faces": [0, 1]
+        },
+        {
+          "filmId": 98,
+          "faces": [2, 3]
+        },
+        {
+          "filmId": 694,
+          "faces": [4, 5]
+        },
+        {
+          "filmId": 24,
+          "faces": [6, 7]
+        }
+      ]
+    },
+    {
+      "id": "fixture2",
+      "personIds": [1100, 2713, 62, 4566, 8891, 8892, 1532, 707],
+      "pairs": [
+        {
+          "filmId": 218,
+          "faces": [0, 1]
+        },
+        {
+          "filmId": 562,
+          "faces": [2, 3]
+        },
+        {
+          "filmId": 621,
+          "faces": [4, 5]
+        },
+        {
+          "filmId": 620,
+          "faces": [6, 7]
+        }
+      ]
+    }
+  ]
+}

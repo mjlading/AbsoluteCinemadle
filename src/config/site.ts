@@ -10,9 +10,12 @@ export const SITE = {
     soundbytes: "/soundbytes",
     soundbytesArchive: "/soundbytes/archive",
     castingCall: "/casting-call",
+    castingCallArchive: "/casting-call/archive",
   },
   /** Close-Ups #1 is played on this date; its numbers count up one per day from it. */
   closeUpsLaunchDate: "2026-11-10",
   /** Soundbytes #1 is played on this date; its numbers count up one per day from it. */
   soundbytesLaunchDate: "2026-11-10",
+  /** Casting call shares the other dailies' count, so all three show the same number on the same day. */
+  castingCallLaunchDate: "2026-11-10",
 } as const;

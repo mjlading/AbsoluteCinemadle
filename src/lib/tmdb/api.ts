@@ -156,3 +156,59 @@ export async function getPerson(personId: number): Promise<Person> {
   );
   return { tmdbId: p.id, name: p.name, profilePath: p.profile_path };
 }
+
+export interface PersonFilmCredit {
+  tmdbId: number;
+  voteCount: number;
+  /** Billing position in that film, from 0. */
+  order: number;
+  genreIds: number[];
+  /** Playing themselves (a cameo, a concert film), not a role. */
+  asSelf: boolean;
+  /** A voice part, where the face is never seen. */
+  asVoice: boolean;
+  /** TMDB's "video" flag: a release that isn't a proper film, such as a featurette. */
+  video: boolean;
+  hasReleaseDate: boolean;
+}
+
+const PersonFilmCreditsSchema = z.object({
+  cast: z.array(
+    z.object({
+      id: z.number(),
+      vote_count: z.number().default(0),
+      order: z.number().nullish(),
+      genre_ids: z.array(z.number()).default([]),
+      character: z.string().nullish(),
+      video: z.boolean().default(false),
+      release_date: z.string().nullish(),
+    }),
+  ),
+});
+
+/** Every film a person acted in, as TMDB credits them. */
+export async function getPersonFilmCredits(personId: number): Promise<PersonFilmCredit[]> {
+  const { cast } = await tmdb(`/person/${personId}/movie_credits`, PersonFilmCreditsSchema, { language: "en-US" });
+  return cast.map((c) => ({
+    tmdbId: c.id,
+    voteCount: c.vote_count,
+    order: c.order ?? 999,
+    genreIds: c.genre_ids,
+    asSelf: /\b(self|himself|herself|themselves)\b/i.test(c.character ?? ""),
+    asVoice: /\(voice\)/i.test(c.character ?? ""),
+    video: c.video,
+    hasReleaseDate: Boolean(c.release_date),
+  }));
+}
+
+/** One page (20 films) of the films with the most TMDB votes, animation and documentaries left out. */
+export async function getMostVotedFilms(page: number): Promise<number[]> {
+  const { results } = await tmdb("/discover/movie", z.object({ results: z.array(z.object({ id: z.number() })) }), {
+    sort_by: "vote_count.desc",
+    include_adult: "false",
+    without_genres: "16,99",
+    language: "en-US",
+    page: String(page),
+  });
+  return results.map((r) => r.id);
+}

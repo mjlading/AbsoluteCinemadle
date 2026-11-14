@@ -6,13 +6,14 @@ import { z } from "zod";
 import { errorResponse, parseJsonBody } from "@/lib/http";
 import { getMovieWithCast, getPerson } from "@/lib/tmdb/cached";
 import { tmdbImageUrl } from "@/lib/tmdb/images";
-import { faceIds, getBoard, type CastingCallBoard } from "./boards";
-import type { CastingGuessResult, FoundFace, PublicCastingBoard } from "./types";
+import { getBoard, type CastingCallBoard } from "./source";
+import type { CastingBestRoute, CastingGuessResult, FoundFace, PublicCastingBoard } from "./types";
 
 /*
  * Request handling for /api/casting-call/... Who is on a board is the puzzle,
  * so the client only gets opaque face ids and pictures rendered here; the
- * names come from the solution route, which the game calls when Start is pressed.
+ * names come from the solution route, which the game calls when Start is pressed,
+ * and the best route's films from the best-route route, called once the game is over.
  */
 
 const noStore = { "Cache-Control": "no-store" };
@@ -21,15 +22,18 @@ const FACE_PX = 320;
 const faceUrl = (board: CastingCallBoard, faceId: string) =>
   `/api/casting-call/${encodeURIComponent(board.id)}/faces/${faceId}/image`;
 
+/** A face's opaque id: its position on the board, which says nothing about who it is. */
+const faceIds = (board: CastingCallBoard) => board.personIds.map((_, i) => String(i));
+
 /** Loads the board for a route's id param, or the error response to return instead. */
-export function boardOrErrorResponse(id: string): CastingCallBoard | Response {
-  return getBoard(id) ?? errorResponse(404, "There is no such board.");
+export async function boardOrErrorResponse(id: string): Promise<CastingCallBoard | Response> {
+  return (await getBoard(id)) ?? errorResponse(404, "There is no such board.");
 }
 
 export function boardResponse(board: CastingCallBoard): Response {
   const body: PublicCastingBoard = {
     id: board.id,
-    name: board.name,
+    date: board.date,
     faces: faceIds(board).map((id) => ({ id, imageUrl: faceUrl(board, id) })),
   };
   return Response.json(body, { headers: noStore });
@@ -74,12 +78,34 @@ export async function solutionResponse(board: CastingCallBoard): Promise<Respons
   }
 }
 
+/**
+ * The board's best route: the lesser-known film each pair shares. Called when
+ * the game is over; calling it early only spoils the caller's own game.
+ */
+export async function bestRouteResponse(board: CastingCallBoard): Promise<Response> {
+  try {
+    const films = await Promise.all(board.pairs.map((p) => getMovieWithCast(p.filmId)));
+    const body: CastingBestRoute = {
+      films: films.map((film, i) => ({
+        tmdbId: film.tmdbId,
+        title: film.title,
+        year: film.year,
+        faceIds: board.pairs[i].faces.map(String),
+      })),
+    };
+    return Response.json(body, { headers: noStore });
+  } catch (error) {
+    console.error("Casting call best route failed", error);
+    return errorResponse(502, "The best route couldn't be loaded right now.");
+  }
+}
+
 const SILHOUETTE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c3038"/><circle cx="50" cy="40" r="18" fill="#525a67"/><path d="M14 100c4-24 18-34 36-34s32 10 36 34z" fill="#525a67"/></svg>`;
 
 /**
  * A face as a square picture made here, so the client never learns the TMDB
- * file path. Cached for a day only, since face ids are positions and a board
- * edit would put a different actor under the same address.
+ * file path. Cached for a day: a board's id and faces never change, but the
+ * people's photos on TMDB may.
  */
 export async function faceImageResponse(board: CastingCallBoard, faceId: string): Promise<Response> {
   const personId = board.personIds[Number(faceId)];

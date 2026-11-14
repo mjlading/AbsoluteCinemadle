@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
       { source: "/daily", destination: "/", permanent: true },
       { source: "/keyword-collage", destination: "/close-ups", permanent: true },
       { source: "/keyword-collage/:puzzleId", destination: "/close-ups/:puzzleId", permanent: true },
+      // Casting call's fixed boards (1 to 6) gave way to a daily board.
+      { source: "/casting-call/:board(\\d{1,2})", destination: "/casting-call", permanent: true },
     ];
   },
   turbopack: {

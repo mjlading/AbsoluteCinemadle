@@ -6,16 +6,19 @@ Three film games, each with its own route, code folders and design notes:
   `/close-ups` is today's puzzle and `/close-ups/archive` lists earlier days; puzzles are curated in `tools/collage-lab` and loaded with `npm run db:import-collage`.
 - Soundbytes (`/soundbytes`, docs/SOUNDBYTES.md): a daily; name the film from lines of dialogue that get easier, then its theme.
   Boards are built on the owner's PC by `tools/soundbytes-lab` and loaded with `npm run db:import-soundbytes`.
-- Casting call (`/casting-call`, docs/CASTING-CALL.md): cross out 8 actors by naming films, within 5 guesses and a 40-second bar, on a fixed list of boards in `src/lib/casting-call/boards.ts`.
+- Casting call (`/casting-call`, docs/CASTING-CALL.md): a daily; cross out 8 actors by naming films, within 5 guesses and a 40-second bar.
+  `/casting-call` is today's board and `/casting-call/archive` lists earlier days; boards are built by the server from TMDB (`src/lib/casting-call/generate.ts`), by a daily Vercel Cron job or on a day's first visit.
 
 Decisions taken where the owner's briefs are silent live in [ASSUMPTIONS.md](ASSUMPTIONS.md); add to it instead of stopping to ask.
-None of the games has an admin editor; the labs make the content.
+None of the games has an admin editor; the labs make Close-Ups and Soundbytes content, and Casting call builds its own.
 
 ## Status
 
 All three games are live at absolutecinemadle.fun (Vercel Hobby with a Neon free database; see "Deploy" in README.md).
-Close-Ups and Soundbytes need a new week of content before the last imported day runs out.
+Close-Ups and Soundbytes need a new week of content before the last imported day runs out; Casting call fills itself.
+Casting call's daily cron job needs `CRON_SECRET` set in the Vercel project.
 Collage puzzles and Soundbytes answers are TMDB data: rows older than about 5 months (`synced_at`) must be re-exported or deleted.
+Casting call's cron job refreshes its own boards' TMDB data after 5 months.
 Update this section as that work lands.
 
 ## Stack

@@ -17,9 +17,11 @@ npm run db:import-soundbytes -- e2e/fixtures/soundbytes/boards.json --days=0    
 npm run dev
 ```
 
+Casting call needs no import: the first visit to a day without a board builds one from TMDB (a few seconds).
+
 In `.env.local`, the TMDB token is the "API Read Access Token" from your own free TMDB account (Settings → API).
 The game gallery runs at http://localhost:3000.
-Real puzzles are made on the owner's PC by the labs in `tools/` (see their READMEs).
+Real Close-Ups and Soundbytes puzzles are made on the owner's PC by the labs in `tools/` (see their READMEs); Casting call's boards are built by the server.
 
 On a network that inspects TLS traffic (common on work laptops), Node cannot reach TMDB until it trusts the system's certificates.
 Set `NODE_USE_SYSTEM_CA=1` in your environment (on Windows: `setx NODE_USE_SYSTEM_CA 1`, then open a new terminal).
@@ -50,6 +52,9 @@ The site runs on Vercel with a Neon Postgres database, connected through Neon's 
 - Each build runs `npm run db:migrate` first (see `vercel.json`), against the direct connection in `DATABASE_URL_UNPOOLED`.
 - Functions run in Frankfurt (`fra1` in `vercel.json`), next to the Neon database (`aws-eu-central-1`).
 - Secrets live in the Vercel project's environment variables, never in the repo.
+- A Vercel Cron job (`crons` in `vercel.json`, daily at 04:00 UTC, production only) calls `/api/cron/casting-call`, which builds the coming week's Casting call boards.
+  It needs `CRON_SECRET` (any long random string) in the project's environment variables; Vercel sends it with the call, and without it the route refuses everyone.
+  If a run is missed, the first player of a day without a board gets one built on the spot.
 
 Film data and images come from [TMDB](https://www.themoviedb.org/).
 This product uses the TMDB API but is not endorsed or certified by TMDB.

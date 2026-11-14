@@ -4,6 +4,7 @@ import { RULES } from "@/config/rules";
 import {
   alreadyGuessed,
   castingCallReducer,
+  castingShareText,
   guessesLeft,
   initialCastingCallState,
   msLeft,
@@ -107,5 +108,12 @@ describe("casting call state", () => {
     expect(reviveCastingCallState(running)).toBe(running);
     const finished = play(start, { type: "timeUp" });
     expect(reviveCastingCallState(finished)).toBe(finished);
+  });
+
+  it("shares the guesses used and a square per guess", () => {
+    const won = play(start, guess(1, "0", "1"), guess(2), guess(3, "1"), guess(4, "2", "3"));
+    expect(castingShareText("Casting call #6", won)).toBe("Casting call #6 4/5\n🟩🟥🟥🟩⬛");
+    const lost = play(start, guess(1, "0"), { type: "timeUp" });
+    expect(castingShareText("Casting call #7", lost)).toBe("Casting call #7 X/5\n🟩⬛⬛⬛⬛");
   });
 });
