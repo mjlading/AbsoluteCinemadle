@@ -34,10 +34,6 @@ export const initialCastingCallState = (): CastingCallState => ({
   timedOut: false,
 });
 
-/** A game left in progress before the clock existed has no deadline; it starts over. */
-export const reviveCastingCallState = (stored: CastingCallState): CastingCallState =>
-  stored.status === "playing" && typeof stored.deadline !== "number" ? initialCastingCallState() : stored;
-
 export function castingCallReducer(faceCount: number = RULES.castingCall.faceCount) {
   return (state: CastingCallState, action: CastingCallAction): CastingCallState => {
     switch (action.type) {

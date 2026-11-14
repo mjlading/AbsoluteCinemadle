@@ -37,7 +37,7 @@ export const RULES = {
     board: {
       /**
        * The group sizes a board can have, and how often each comes up (3 in 4 days are 3+3+2).
-       * Each adds up to faceCount; if the day's layout can't be built, the next is tried, all pairs last.
+       * Each adds up to faceCount; if the day's layout can't be built, the other is tried.
        * A board must take as many films to clear as it has groups, counting every film the actors are in.
        */
       layouts: [

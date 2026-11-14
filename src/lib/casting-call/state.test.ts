@@ -9,7 +9,6 @@ import {
   initialCastingCallState,
   msLeft,
   newlyCrossed,
-  reviveCastingCallState,
   type CastingCallAction,
 } from "./state";
 
@@ -99,15 +98,6 @@ describe("casting call state", () => {
     const state = play(start);
     expect(msLeft(state, 1000)).toBe(LIMIT - 1000);
     expect(msLeft(state, LIMIT + 5000)).toBe(0);
-  });
-
-  it("restarts a game saved in progress before the clock existed, but keeps finished ones", () => {
-    const legacy = { status: "playing", guesses: [], names: {}, crossed: ["0"] } as never;
-    expect(reviveCastingCallState(legacy).status).toBe("ready");
-    const running = play(start);
-    expect(reviveCastingCallState(running)).toBe(running);
-    const finished = play(start, { type: "timeUp" });
-    expect(reviveCastingCallState(finished)).toBe(finished);
   });
 
   it("shares the guesses used and a square per guess", () => {

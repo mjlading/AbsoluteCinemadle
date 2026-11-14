@@ -26,7 +26,6 @@ import {
   initialCastingCallState,
   msLeft,
   newlyCrossed,
-  reviveCastingCallState,
   type CastingCallState,
 } from "@/lib/casting-call/state";
 import type { CastingBestRoute, PublicCastingBoard } from "@/lib/casting-call/types";
@@ -116,7 +115,6 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
     reducer,
     undefined,
     initialCastingCallState,
-    reviveCastingCallState,
   );
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);

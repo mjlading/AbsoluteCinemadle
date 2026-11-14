@@ -312,7 +312,7 @@ test.describe("answer protection on the real server", () => {
   });
 
   test("unknown boards, faces and far-off days are refused", async ({ request }) => {
-    expect((await request.get("/api/casting-call/nope")).status()).toBe(404);
+    expect((await request.get("/api/casting-call/nope/solution")).status()).toBe(404);
     expect((await request.get("/api/casting-call/fixture1/faces/8/image")).status()).toBe(404);
     expect((await request.get("/api/casting-call/fixture1/faces/-1/image")).status()).toBe(404);
     expect((await request.get("/api/casting-call/day/2999-01-01")).status()).toBe(404);
