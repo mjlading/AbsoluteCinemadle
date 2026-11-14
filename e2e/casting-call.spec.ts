@@ -121,7 +121,7 @@ test.describe("with TMDB stubbed", () => {
     await start(page);
     await expect(page.getByRole("img", { name: "Ada Archer", exact: true })).not.toHaveClass(/blur-xl/);
     await expect(page.getByText("Hal Hayes")).toBeVisible();
-    await expect(timer(page)).toHaveAttribute("aria-label", /^(39|40) seconds left$/);
+    await expect(timer(page)).toHaveAttribute("aria-label", /^(49|50) seconds left$/);
     expect(solutionCalls).toHaveLength(1);
   });
 
@@ -220,13 +220,13 @@ test.describe("with TMDB stubbed", () => {
     await openBoard(page);
     await start(page);
 
-    await page.clock.fastForward(30_000);
+    await page.clock.fastForward(40_000);
     await expect(timer(page)).toHaveAttribute("aria-label", /^(9|10) seconds left$/);
     await guess(page, "Alpha Heist");
     await hit(page, "Alpha Heist", "Ada Archer, Ben Bright, Cleo Crane");
-    await expect(timer(page)).toHaveAttribute("aria-label", /^(39|40) seconds left$/);
+    await expect(timer(page)).toHaveAttribute("aria-label", /^(49|50) seconds left$/);
 
-    await page.clock.fastForward(30_000);
+    await page.clock.fastForward(40_000);
     await guess(page, "Empty One");
     await miss(page, "Empty One");
     await expect(timer(page)).toHaveAttribute("aria-label", /^\d seconds left$|^10 seconds left$/);

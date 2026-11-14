@@ -6,7 +6,7 @@ Rules decided where the brief is silent are in [ASSUMPTIONS.md](../ASSUMPTIONS.m
 ## Game
 
 - A daily: one board a day, numbered like Close-Ups and Soundbytes (#1 is 2026-11-10), with an archive of earlier days.
-- A board shows 8 blurred faces. A Start button unblurs them, reveals all 8 names and starts a 40-second countdown bar.
+- A board shows 8 blurred faces. A Start button unblurs them, reveals all 8 names and starts a 50-second countdown bar (40 until the owner's playtest of 2026-11-14).
 - The player guesses films, picked from the title suggestions.
   Every actor on the board who is in a guessed film's cast is crossed out (a red marker cross on the face, a line through the name).
 - Any film with at least one actor from the board refills the bar, even if they were already crossed out.

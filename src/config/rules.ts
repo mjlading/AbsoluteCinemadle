@@ -27,7 +27,7 @@ export const RULES = {
     /** Film guesses per board; crossing out every face within them wins. */
     maxGuesses: 6,
     /** The bar's length; it starts on Start and refills on any film with someone from the board. */
-    timeLimitSeconds: 40,
+    timeLimitSeconds: 50,
     /**
      * How the daily board is built (src/lib/casting-call/generate.ts): well-known actors in groups,
      * each group sharing a lesser-known film, so the best route takes one film per group.
