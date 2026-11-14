@@ -202,13 +202,14 @@ export async function getPersonFilmCredits(personId: number): Promise<PersonFilm
 }
 
 /** One page (20 films) of the films with the most TMDB votes, animation and documentaries left out. */
-export async function getMostVotedFilms(page: number): Promise<number[]> {
-  const { results } = await tmdb("/discover/movie", z.object({ results: z.array(z.object({ id: z.number() })) }), {
+export async function getMostVotedFilms(page: number): Promise<{ tmdbId: number; voteCount: number }[]> {
+  const Results = z.object({ results: z.array(z.object({ id: z.number(), vote_count: z.number().default(0) })) });
+  const { results } = await tmdb("/discover/movie", Results, {
     sort_by: "vote_count.desc",
     include_adult: "false",
     without_genres: "16,99",
     language: "en-US",
     page: String(page),
   });
-  return results.map((r) => r.id);
+  return results.map((r) => ({ tmdbId: r.id, voteCount: r.vote_count }));
 }

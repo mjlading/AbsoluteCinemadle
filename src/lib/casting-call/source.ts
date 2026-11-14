@@ -53,8 +53,6 @@ const BoardRowSchema = z.object({
   ),
 });
 
-/** Pages of 20 most-voted films that actors are found through: the 400 best-known films. */
-const WELL_KNOWN_PAGES = 20;
 /** TMDB data may be kept 6 months; rows are refreshed a month before that. */
 const REFRESH_AFTER_DAYS = 150;
 
@@ -88,10 +86,21 @@ export function canBuildOnDemand(date: string, now: Date = new Date()): boolean 
   return date >= addDays(today, -1) && date <= addDays(today, 1);
 }
 
+/** TMDB's most-voted list comes 20 films a page, and stops at page 500. */
+const PAGE = 20;
+
 const tmdbSource: BoardSource = {
-  async wellKnownFilms() {
-    const pages = await Promise.all(Array.from({ length: WELL_KNOWN_PAGES }, (_, i) => getMostVotedFilms(i + 1)));
-    return [...new Set(pages.flat())];
+  async mostVotedFilms(count) {
+    const pages = await Promise.all(
+      Array.from({ length: Math.ceil(count / PAGE) }, (_, i) => getMostVotedFilms(i + 1)),
+    );
+    return [...new Set(pages.flat().map((f) => f.tmdbId))].slice(0, count);
+  },
+  async votesAtRank(rank) {
+    const page = await getMostVotedFilms(Math.ceil(rank / PAGE));
+    const film = page[(rank - 1) % PAGE] ?? page.at(-1);
+    if (!film) throw new Error(`TMDB has no film ranked ${rank} by votes.`);
+    return film.voteCount;
   },
   async filmCast(tmdbId) {
     const film = await getMovieWithCast(tmdbId);

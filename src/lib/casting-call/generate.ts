@@ -28,8 +28,10 @@ export interface FilmCredit {
 }
 
 export interface BoardSource {
-  /** Well-known films, by TMDB id, to find actors through. */
-  wellKnownFilms(): Promise<number[]>;
+  /** The films with the most TMDB votes, by id, most first. */
+  mostVotedFilms(count: number): Promise<number[]>;
+  /** The vote count of the film at this rank (1 is the most voted), now. */
+  votesAtRank(rank: number): Promise<number>;
   filmCast(tmdbId: number): Promise<CastEntry[]>;
   personFilms(personId: number): Promise<FilmCredit[]>;
 }
@@ -77,15 +79,30 @@ function shuffled<T>(items: readonly T[], random: () => number): T[] {
 const isRole = (c: FilmCredit) =>
   !c.video && !c.asSelf && !c.asVoice && c.hasReleaseDate && !c.genreIds.some((g) => LEFT_OUT_GENRES.has(g));
 
-export const isWellKnownActor = (films: readonly FilmCredit[]) =>
-  films.filter((c) => isRole(c) && c.voteCount >= B.wellKnownVotes && c.order <= B.starringOrder).length >=
+/** The ranks in RULES.castingCall.board as vote counts today. */
+export interface VoteThresholds {
+  /** A film with at least this many votes is well known. */
+  wellKnown: number;
+  /** A pair's shared film has at least `sharedMin` votes and fewer than `sharedMax`. */
+  sharedMin: number;
+  sharedMax: number;
+}
+
+export async function voteThresholds(source: BoardSource): Promise<VoteThresholds> {
+  const [wellKnown, sharedMax, sharedMin] = await Promise.all([
+    source.votesAtRank(B.wellKnownRank),
+    source.votesAtRank(B.sharedFilmRanks.from),
+    source.votesAtRank(B.sharedFilmRanks.to),
+  ]);
+  return { wellKnown, sharedMin, sharedMax };
+}
+
+export const isWellKnownActor = (films: readonly FilmCredit[], votes: VoteThresholds) =>
+  films.filter((c) => isRole(c) && c.voteCount >= votes.wellKnown && c.order <= B.starringOrder).length >=
   B.wellKnownRoles;
 
-const isLesserKnown = (c: FilmCredit) =>
-  isRole(c) &&
-  c.voteCount >= B.sharedFilmVotes.min &&
-  c.voteCount < B.sharedFilmVotes.max &&
-  c.order <= B.sharedFilmOrder;
+const isLesserKnown = (c: FilmCredit, votes: VoteThresholds) =>
+  isRole(c) && c.voteCount >= votes.sharedMin && c.voteCount < votes.sharedMax && c.order <= B.sharedFilmOrder;
 
 /**
  * The fewest films that cross out every face, where each film is the set of
@@ -118,7 +135,12 @@ export function fewestFilmsToClear(filmsByFace: readonly (readonly number[])[], 
   return Infinity;
 }
 
-async function attempt(source: BoardSource, random: () => number, options: BuildOptions): Promise<BuiltBoard | null> {
+async function attempt(
+  source: BoardSource,
+  random: () => number,
+  votes: VoteThresholds,
+  options: BuildOptions,
+): Promise<BuiltBoard | null> {
   const avoidPeople = options.avoidPeople ?? new Set<number>();
   const avoidFilms = options.avoidFilms ?? new Set<number>();
   const used = new Set<number>();
@@ -126,18 +148,18 @@ async function attempt(source: BoardSource, random: () => number, options: Build
   const pairFilms: number[] = [];
   const free = (personId: number) => !used.has(personId) && !avoidPeople.has(personId);
 
-  for (const film of shuffled(await source.wellKnownFilms(), random)) {
+  for (const film of shuffled(await source.mostVotedFilms(B.leadFilmRank), random)) {
     if (pairFilms.length === B.pairs) break;
     // An actor from the top of a well-known film's billing...
     const leads = (await source.filmCast(film)).filter((c) => c.order <= 2 && c.hasPhoto && free(c.personId));
     const lead = shuffled(leads, random)[0];
     if (!lead) continue;
     const leadFilms = await source.personFilms(lead.personId);
-    if (!isWellKnownActor(leadFilms)) continue;
+    if (!isWellKnownActor(leadFilms, votes)) continue;
     // ...and a well-known co-star from one of their lesser-known films, with no well-known film in common.
-    const leadKnown = new Set(leadFilms.filter((c) => c.voteCount >= B.sharedFilmVotes.max).map((c) => c.tmdbId));
+    const leadKnown = new Set(leadFilms.filter((c) => c.voteCount >= votes.sharedMax).map((c) => c.tmdbId));
     const shared = shuffled(
-      leadFilms.filter((c) => isLesserKnown(c) && !avoidFilms.has(c.tmdbId)),
+      leadFilms.filter((c) => isLesserKnown(c, votes) && !avoidFilms.has(c.tmdbId)),
       random,
     ).slice(0, SHARED_FILMS_TRIED);
     let pair: { personId: number; films: FilmCredit[]; filmId: number } | null = null;
@@ -147,7 +169,7 @@ async function attempt(source: BoardSource, random: () => number, options: Build
       );
       for (const coStar of shuffled(coStars, random)) {
         const films = await source.personFilms(coStar.personId);
-        if (!isWellKnownActor(films) || films.some((c) => leadKnown.has(c.tmdbId))) continue;
+        if (!isWellKnownActor(films, votes) || films.some((c) => leadKnown.has(c.tmdbId))) continue;
         pair = { personId: coStar.personId, films, filmId: sharedFilm.tmdbId };
         break;
       }
@@ -185,8 +207,9 @@ async function attempt(source: BoardSource, random: () => number, options: Build
 export async function buildBoard(source: BoardSource, options: BuildOptions): Promise<BuiltBoard> {
   if (B.pairs * 2 !== RULES.castingCall.faceCount) throw new BoardBuildError("Pairs must fill the board.");
   const random = seededRandom(options.seed);
+  const votes = await voteThresholds(source);
   for (let i = 0; i < ATTEMPTS; i++) {
-    const board = await attempt(source, random, options);
+    const board = await attempt(source, random, votes, options);
     if (board) return board;
   }
   throw new BoardBuildError(`No board could be built for seed ${options.seed}.`);

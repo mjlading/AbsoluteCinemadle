@@ -31,14 +31,18 @@ export const RULES = {
     /**
      * How the daily board is built (src/lib/casting-call/generate.ts): well-known actors in pairs,
      * each pair sharing a lesser-known film, so the best route takes one film per pair.
+     * How well known a film is goes by its rank among all films by TMDB vote count (animation and
+     * documentaries left out), not by a fixed vote count, since every film's votes keep growing.
      */
     board: {
       /** Pairs on a board; times two it must equal faceCount. */
       pairs: 4,
       /** The fewest films that may clear a board, counting every film the eight are in. */
       minFilmsToClear: 4,
-      /** A film counts as well known from this many TMDB votes. */
-      wellKnownVotes: 3000,
+      /** Pairs are found through the leads of the films ranked this high. */
+      leadFilmRank: 400,
+      /** A film counts as well known when ranked this high (about 3,000 votes in November 2026). */
+      wellKnownRank: 1750,
       /** Billed this high (TMDB cast order from 0) counts as a starring role. */
       starringOrder: 3,
       /**
@@ -46,8 +50,11 @@ export const RULES = {
        * Measured on 2026-11-14: Kevin Dunn and Clea DuVall have 1, Rebecca Hall 7, Michelle Pfeiffer 9, Tom Hanks 26.
        */
       wellKnownRoles: 8,
-      /** The film a pair shares has at least `min` TMDB votes (so it can be found) and fewer than `max`. */
-      sharedFilmVotes: { min: 2500, max: 10000 },
+      /**
+       * The film a pair shares ranks below `from` and no lower than `to`: widely seen, but not a top
+       * blockbuster (about 10,000 to 2,500 votes in November 2026). A pair may share no film ranked above `from`.
+       */
+      sharedFilmRanks: { from: 350, to: 2100 },
       /** Both actors are billed this high (TMDB cast order from 0) in the film they share. */
       sharedFilmOrder: 5,
       /** Actors and films used on a board aren't used again within this many days either side. */

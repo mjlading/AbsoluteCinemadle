@@ -23,11 +23,13 @@ The owner's brief: obscure films, well-known actors; playtests then moved the fi
 - A board is 4 pairs of well-known actors, each pair sharing a lesser-known film and no well-known one.
   The best route is one film per pair, 4 guesses; the 5th guess is slack, so a player can still win on a less clever route.
   Naming each actor's famous films instead crosses out one face a guess and runs out of guesses.
-- How a pair is found: a lead from the top of the billing of one of TMDB's 400 most-voted films (no animation or documentaries); one of their lesser-known films; a well-known co-star from its billing.
-- Well known: at least 8 starring roles (billed in the top 4) in films with 3,000+ TMDB votes, counting only on-screen roles in proper films (no cameos as themselves, voice parts, TV films, animation or documentaries).
+- How well known a film is goes by its rank among all films by TMDB vote count (no animation or documentaries), not by a fixed vote count: every film's votes keep growing, so fixed counts would slowly make the game easier.
+  Each build looks up how many votes the film at each rank has that day (one cached TMDB request per rank).
+- How a pair is found: a lead from the top of the billing of one of the 400 most-voted films; one of their lesser-known films; a well-known co-star from its billing.
+- Well known: at least 8 starring roles (billed in the top 4) in films ranked in the top 1,750 (about 3,000 votes in November 2026), counting only on-screen roles in proper films (no cameos as themselves, voice parts, TV films, animation or documentaries).
   It was 6 roles in films with 1,000+ votes until the owner's first playtest (2026-11-14) found faces such as Kevin Dunn and Clea DuVall too little known.
-- The shared film: one with 2,500 to 9,999 TMDB votes where both are billed in the top 6: widely seen, but not a top blockbuster.
-  It was 40 to 799, then 300 to 2,499, then 1,500 to 5,999; the owner's playtests on 2026-11-14 found each too hard.
+- The shared film: one ranked #351 to #2,100 (about 10,000 to 2,500 votes in November 2026) where both are billed in the top 6: widely seen, but not a top blockbuster.
+  The pair may share no film ranked higher. It was 40 to 799 votes, then 300 to 2,499, then 1,500 to 5,999; the owner's playtests on 2026-11-14 found each too hard.
 - Every board is checked against every film the 8 are credited in: if fewer than 4 films could clear it, it is thrown away and another is built.
 - Actors and films used on a board aren't used again within 60 days either side.
 - The faces are shuffled, so a pair never sits in a known place on the board.

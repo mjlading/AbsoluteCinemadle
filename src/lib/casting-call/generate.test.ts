@@ -6,14 +6,24 @@ import {
   buildBoard,
   fewestFilmsToClear,
   isWellKnownActor,
+  voteThresholds,
   type BoardSource,
   type CastEntry,
   type FilmCredit,
 } from "./generate";
 
 const B = RULES.castingCall.board;
-const WELL_KNOWN = B.wellKnownVotes * 5;
-const LESSER = B.sharedFilmVotes.min + 100;
+/** The made-up TMDB's vote counts by rank: the film ranked n has 10,000,000 / n votes. */
+const votesAtRank = (rank: number) => Math.round(10_000_000 / rank);
+const VOTES = {
+  wellKnown: votesAtRank(B.wellKnownRank),
+  sharedMax: votesAtRank(B.sharedFilmRanks.from),
+  sharedMin: votesAtRank(B.sharedFilmRanks.to),
+};
+/** Above every limit: a blockbuster. */
+const WELL_KNOWN = VOTES.sharedMax * 2;
+/** Right for a pair's shared film. */
+const LESSER = Math.round((VOTES.sharedMin + VOTES.sharedMax) / 2);
 
 /*
  * A small made-up TMDB: actors 1-8 are well known, each with their own
@@ -62,7 +72,8 @@ function world(): World {
 }
 
 const sourceOf = (w: World): BoardSource => ({
-  wellKnownFilms: async () => w.wellKnownFilms,
+  mostVotedFilms: async () => w.wellKnownFilms,
+  votesAtRank: async (rank) => votesAtRank(rank),
   filmCast: async (id) => w.casts.get(id) ?? [],
   personFilms: async (id) => w.credits.get(id) ?? [],
 });
@@ -79,21 +90,34 @@ describe("fewestFilmsToClear", () => {
   });
 });
 
+describe("voteThresholds", () => {
+  it("turns the ranks in the rules into today's vote counts, so they keep up as votes grow", async () => {
+    const source = sourceOf(world());
+    expect(await voteThresholds(source)).toEqual(VOTES);
+    const doubled = { ...source, votesAtRank: async (rank: number) => votesAtRank(rank) * 2 };
+    expect(await voteThresholds(doubled)).toEqual({
+      wellKnown: VOTES.wellKnown * 2,
+      sharedMin: VOTES.sharedMin * 2,
+      sharedMax: VOTES.sharedMax * 2,
+    });
+  });
+});
+
 describe("isWellKnownActor", () => {
   const roles = (n: number, override: Partial<FilmCredit> = {}) =>
     Array.from({ length: n }, (_, i) => ({ ...credit(i, WELL_KNOWN), ...override }));
 
   it("needs enough starring roles in well-known films", () => {
-    expect(isWellKnownActor(roles(B.wellKnownRoles))).toBe(true);
-    expect(isWellKnownActor(roles(B.wellKnownRoles - 1))).toBe(false);
+    expect(isWellKnownActor(roles(B.wellKnownRoles), VOTES)).toBe(true);
+    expect(isWellKnownActor(roles(B.wellKnownRoles - 1), VOTES)).toBe(false);
   });
 
   it("doesn't count small parts, cameos as themselves, voice parts, animation or lesser-known films", () => {
-    expect(isWellKnownActor(roles(B.wellKnownRoles, { order: B.starringOrder + 1 }))).toBe(false);
-    expect(isWellKnownActor(roles(B.wellKnownRoles, { asSelf: true }))).toBe(false);
-    expect(isWellKnownActor(roles(B.wellKnownRoles, { asVoice: true }))).toBe(false);
-    expect(isWellKnownActor(roles(B.wellKnownRoles, { genreIds: [16] }))).toBe(false);
-    expect(isWellKnownActor(roles(B.wellKnownRoles, { voteCount: B.wellKnownVotes - 1 }))).toBe(false);
+    expect(isWellKnownActor(roles(B.wellKnownRoles, { order: B.starringOrder + 1 }), VOTES)).toBe(false);
+    expect(isWellKnownActor(roles(B.wellKnownRoles, { asSelf: true }), VOTES)).toBe(false);
+    expect(isWellKnownActor(roles(B.wellKnownRoles, { asVoice: true }), VOTES)).toBe(false);
+    expect(isWellKnownActor(roles(B.wellKnownRoles, { genreIds: [16] }), VOTES)).toBe(false);
+    expect(isWellKnownActor(roles(B.wellKnownRoles, { voteCount: VOTES.wellKnown - 1 }), VOTES)).toBe(false);
   });
 });
 
