@@ -2,10 +2,11 @@ import { RULES } from "@/config/rules";
 import { seededRandom } from "@/lib/random";
 
 /*
- * Builds a daily Casting call board: well-known actors in pairs, each pair
- * sharing a lesser-known film and no well-known one. Clearing the board in
- * few guesses means knowing those films; naming each actor's famous films
- * one at a time crosses out one face per guess and runs out of guesses.
+ * Builds a daily Casting call board: well-known actors in groups (3+3+2 on
+ * most days, 2+2+2+2 on others), each group sharing a lesser-known film and
+ * no two of them a well-known one. Clearing the board in few guesses means
+ * knowing those films; naming each actor's famous films one at a time crosses
+ * out one face per guess and runs out of guesses.
  *
  * It only sees TMDB through `BoardSource`, so it can be tested without the network.
  */
@@ -36,18 +37,18 @@ export interface BoardSource {
   personFilms(personId: number): Promise<FilmCredit[]>;
 }
 
-export interface BoardPair {
-  /** The lesser-known film the two share. */
+export interface BoardGroup {
+  /** The lesser-known film the group shares. */
   filmId: number;
-  /** The two faces, as positions on the board. */
-  faces: [number, number];
+  /** Its faces, as positions on the board. */
+  faces: number[];
 }
 
 export interface BuiltBoard {
-  /** In board order, shuffled so a pair doesn't sit side by side. */
+  /** In board order, shuffled so a group doesn't sit side by side. */
   personIds: number[];
-  /** The best route: one film per pair. */
-  pairs: BoardPair[];
+  /** The best route: one film per group. */
+  groups: BoardGroup[];
 }
 
 export interface BuildOptions {
@@ -60,8 +61,14 @@ export interface BuildOptions {
 const B = RULES.castingCall.board;
 /** Animation (voices, not faces), documentary and TV film. */
 const LEFT_OUT_GENRES = new Set([16, 99, 10770]);
-/** Lesser-known films tried per actor before moving to another actor. */
+/** Lesser-known films tried per lead before moving to another lead. */
 const SHARED_FILMS_TRIED = 6;
+/** Lead actors tried for one group before the attempt gives up, so a build never walks every film. */
+const LEADS_PER_GROUP = 40;
+/**
+ * Tries at the day's layout before falling back to the next. A layout with a trio tries this
+ * many times for a board that can also be cleared in pairs, then settles for its first valid board.
+ */
 const ATTEMPTS = 3;
 
 export class BoardBuildError extends Error {}
@@ -83,7 +90,7 @@ const isRole = (c: FilmCredit) =>
 export interface VoteThresholds {
   /** A film with at least this many votes is well known. */
   wellKnown: number;
-  /** A pair's shared film has at least `sharedMin` votes and fewer than `sharedMax`. */
+  /** A group's shared film has at least `sharedMin` votes and fewer than `sharedMax`; no two in a group share a film above it. */
   sharedMin: number;
   sharedMax: number;
 }
@@ -135,82 +142,154 @@ export function fewestFilmsToClear(filmsByFace: readonly (readonly number[])[], 
   return Infinity;
 }
 
-async function attempt(
+interface Member {
+  personId: number;
+  films: FilmCredit[];
+}
+
+/** Picks lead films off a shuffled list, shared by every group on the board. */
+type LeadFilms = { next(): number | undefined };
+
+/**
+ * One group: a well-known lead from the top of a well-known film's billing, and
+ * well-known co-stars from one of the lead's lesser-known films, where no two
+ * of them share a well-known film.
+ */
+async function findGroup(
+  size: number,
   source: BoardSource,
   random: () => number,
   votes: VoteThresholds,
-  options: BuildOptions,
-): Promise<BuiltBoard | null> {
-  const avoidPeople = options.avoidPeople ?? new Set<number>();
-  const avoidFilms = options.avoidFilms ?? new Set<number>();
-  const used = new Set<number>();
-  const chosen: { personId: number; films: FilmCredit[] }[] = [];
-  const pairFilms: number[] = [];
-  const free = (personId: number) => !used.has(personId) && !avoidPeople.has(personId);
-
-  for (const film of shuffled(await source.mostVotedFilms(B.leadFilmRank), random)) {
-    if (pairFilms.length === B.pairs) break;
-    // An actor from the top of a well-known film's billing...
+  leadFilms: LeadFilms,
+  free: (personId: number) => boolean,
+  avoidFilms: ReadonlySet<number>,
+): Promise<{ filmId: number; members: Member[] } | null> {
+  const knownTogether = (a: FilmCredit[], b: FilmCredit[]) => {
+    const known = new Set(a.filter((c) => c.voteCount >= votes.sharedMax).map((c) => c.tmdbId));
+    return b.some((c) => known.has(c.tmdbId));
+  };
+  for (let tried = 0, film = leadFilms.next(); film !== undefined && tried < LEADS_PER_GROUP; film = leadFilms.next()) {
+    tried++;
     const leads = (await source.filmCast(film)).filter((c) => c.order <= 2 && c.hasPhoto && free(c.personId));
     const lead = shuffled(leads, random)[0];
     if (!lead) continue;
-    const leadFilms = await source.personFilms(lead.personId);
-    if (!isWellKnownActor(leadFilms, votes)) continue;
-    // ...and a well-known co-star from one of their lesser-known films, with no well-known film in common.
-    const leadKnown = new Set(leadFilms.filter((c) => c.voteCount >= votes.sharedMax).map((c) => c.tmdbId));
+    const lead_ = { personId: lead.personId, films: await source.personFilms(lead.personId) };
+    if (!isWellKnownActor(lead_.films, votes)) continue;
     const shared = shuffled(
-      leadFilms.filter((c) => isLesserKnown(c, votes) && !avoidFilms.has(c.tmdbId)),
+      lead_.films.filter((c) => isLesserKnown(c, votes) && !avoidFilms.has(c.tmdbId)),
       random,
     ).slice(0, SHARED_FILMS_TRIED);
-    let pair: { personId: number; films: FilmCredit[]; filmId: number } | null = null;
     for (const sharedFilm of shared) {
       const coStars = (await source.filmCast(sharedFilm.tmdbId)).filter(
         (c) => c.personId !== lead.personId && c.order <= B.sharedFilmOrder && c.hasPhoto && free(c.personId),
       );
+      const members: Member[] = [lead_];
       for (const coStar of shuffled(coStars, random)) {
         const films = await source.personFilms(coStar.personId);
-        if (!isWellKnownActor(films, votes) || films.some((c) => leadKnown.has(c.tmdbId))) continue;
-        pair = { personId: coStar.personId, films, filmId: sharedFilm.tmdbId };
-        break;
+        if (!isWellKnownActor(films, votes) || members.some((m) => knownTogether(m.films, films))) continue;
+        members.push({ personId: coStar.personId, films });
+        if (members.length === size) return { filmId: sharedFilm.tmdbId, members };
       }
-      if (pair) break;
     }
-    if (!pair) continue;
-    chosen.push({ personId: lead.personId, films: leadFilms }, { personId: pair.personId, films: pair.films });
-    used.add(lead.personId).add(pair.personId);
-    pairFilms.push(pair.filmId);
   }
-  if (pairFilms.length < B.pairs) return null;
+  return null;
+}
 
+async function attempt(
+  layout: readonly number[],
+  source: BoardSource,
+  random: () => number,
+  votes: VoteThresholds,
+  options: BuildOptions,
+): Promise<(BuiltBoard & { pairRoute: boolean }) | null> {
+  const avoidPeople = options.avoidPeople ?? new Set<number>();
+  const avoidFilms = options.avoidFilms ?? new Set<number>();
+  const used = new Set<number>();
+  const free = (personId: number) => !used.has(personId) && !avoidPeople.has(personId);
+  const films = shuffled(await source.mostVotedFilms(B.leadFilmRank), random);
+  const leadFilms: LeadFilms = { next: () => films.shift() };
+
+  const chosen: Member[] = [];
+  const groups: { filmId: number; from: number; size: number }[] = [];
+  // The biggest groups are the hardest to find, so they get the first pick of actors.
+  for (const size of [...layout].sort((a, b) => b - a)) {
+    const group = await findGroup(size, source, random, votes, leadFilms, free, avoidFilms);
+    if (!group) return null;
+    groups.push({ filmId: group.filmId, from: chosen.length, size });
+    for (const m of group.members) used.add(m.personId);
+    chosen.push(...group.members);
+  }
+
+  // No shortcut: clearing the board must take a film per group, counting every film anyone is in.
   const fewest = fewestFilmsToClear(
     chosen.map((c) => c.films.map((f) => f.tmdbId)),
     RULES.castingCall.maxGuesses,
   );
-  if (fewest < B.minFilmsToClear) return null;
+  if (fewest < groups.length) return null;
 
-  // Shuffle the faces so the board's layout says nothing about who pairs with whom.
+  // Shuffle the faces so the board's layout says nothing about who goes with whom.
   const order = shuffled(
     chosen.map((_, i) => i),
     random,
   );
   const position = new Map(order.map((from, to) => [from, to]));
   return {
+    pairRoute: hasPairRoute(chosen.map((c) => c.films)),
     personIds: order.map((from) => chosen[from].personId),
-    pairs: pairFilms.map((filmId, i) => ({
+    groups: groups.map(({ filmId, from, size }) => ({
       filmId,
-      faces: [position.get(2 * i)!, position.get(2 * i + 1)!].sort((a, b) => a - b) as [number, number],
+      faces: Array.from({ length: size }, (_, k) => position.get(from + k)!).sort((a, b) => a - b),
     })),
   };
 }
 
+/**
+ * Whether the faces can also be split into pairs that each share an on-screen
+ * film where both are billed high, so a board with trios has a second,
+ * longer route: the player who doesn't spot a trio can still clear it in pairs.
+ */
+export function hasPairRoute(filmsByFace: readonly (readonly FilmCredit[])[]): boolean {
+  const billed = filmsByFace.map(
+    (films) => new Set(films.filter((c) => isRole(c) && c.order <= B.sharedFilmOrder).map((c) => c.tmdbId)),
+  );
+  const together = (a: number, b: number) => [...billed[a]].some((film) => billed[b].has(film));
+  const pairUp = (left: number[]): boolean => {
+    if (left.length === 0) return true;
+    const [first, ...rest] = left;
+    return rest.some((other, i) => together(first, other) && pairUp(rest.filter((_, k) => k !== i)));
+  };
+  return filmsByFace.length % 2 === 0 && pairUp(filmsByFace.map((_, i) => i));
+}
+
+/** The day's layout, picked by weight; the others follow as fallbacks. */
+export function layoutsInOrder(random: () => number): (readonly number[])[] {
+  const layouts = B.layouts;
+  const total = layouts.reduce((sum, l) => sum + l.weight, 0);
+  let roll = random() * total;
+  const picked = layouts.find((l) => (roll -= l.weight) < 0) ?? layouts[0];
+  return [picked, ...layouts.filter((l) => l !== picked)].map((l) => l.groups);
+}
+
 /** Builds a board, the same one for the same seed and TMDB data. */
 export async function buildBoard(source: BoardSource, options: BuildOptions): Promise<BuiltBoard> {
-  if (B.pairs * 2 !== RULES.castingCall.faceCount) throw new BoardBuildError("Pairs must fill the board.");
+  for (const layout of B.layouts) {
+    if (layout.groups.reduce((a, b) => a + b, 0) !== RULES.castingCall.faceCount || layout.groups.some((g) => g < 2)) {
+      throw new BoardBuildError(`Layout ${layout.groups.join("+")} must fill the board with groups of 2 or more.`);
+    }
+  }
   const random = seededRandom(options.seed);
   const votes = await voteThresholds(source);
-  for (let i = 0; i < ATTEMPTS; i++) {
-    const board = await attempt(source, random, votes, options);
-    if (board) return board;
+  for (const layout of layoutsInOrder(random)) {
+    let settle: BuiltBoard | null = null;
+    for (let i = 0; i < ATTEMPTS; i++) {
+      const built = await attempt(layout, source, random, votes, options);
+      if (!built) continue;
+      const { pairRoute, ...board } = built;
+      // A board with a trio is best when it can also be cleared in pairs; otherwise keep it in reserve.
+      if (pairRoute || layout.every((size) => size === 2)) return board;
+      settle ??= board;
+    }
+    if (settle) return settle;
   }
   throw new BoardBuildError(`No board could be built for seed ${options.seed}.`);
 }

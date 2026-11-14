@@ -29,17 +29,22 @@ export const RULES = {
     /** The bar's length; it starts on Start and refills on any film with someone from the board. */
     timeLimitSeconds: 40,
     /**
-     * How the daily board is built (src/lib/casting-call/generate.ts): well-known actors in pairs,
-     * each pair sharing a lesser-known film, so the best route takes one film per pair.
+     * How the daily board is built (src/lib/casting-call/generate.ts): well-known actors in groups,
+     * each group sharing a lesser-known film, so the best route takes one film per group.
      * How well known a film is goes by its rank among all films by TMDB vote count (animation and
      * documentaries left out), not by a fixed vote count, since every film's votes keep growing.
      */
     board: {
-      /** Pairs on a board; times two it must equal faceCount. */
-      pairs: 4,
-      /** The fewest films that may clear a board, counting every film the eight are in. */
-      minFilmsToClear: 4,
-      /** Pairs are found through the leads of the films ranked this high. */
+      /**
+       * The group sizes a board can have, and how often each comes up (3 in 4 days are 3+3+2).
+       * Each adds up to faceCount; if the day's layout can't be built, the next is tried, all pairs last.
+       * A board must take as many films to clear as it has groups, counting every film the actors are in.
+       */
+      layouts: [
+        { groups: [3, 3, 2], weight: 3 },
+        { groups: [2, 2, 2, 2], weight: 1 },
+      ],
+      /** Groups are found through the leads of the films ranked this high. */
       leadFilmRank: 400,
       /** A film counts as well known when ranked this high (about 3,000 votes in November 2026). */
       wellKnownRank: 1750,
@@ -51,11 +56,11 @@ export const RULES = {
        */
       wellKnownRoles: 8,
       /**
-       * The film a pair shares ranks below `from` and no lower than `to`: widely seen, but not a top
-       * blockbuster (about 10,000 to 2,500 votes in November 2026). A pair may share no film ranked above `from`.
+       * The film a group shares ranks below `from` and no lower than `to`: widely seen, but not a top
+       * blockbuster (about 10,000 to 2,500 votes in November 2026). No two in a group may share a film ranked above `from`.
        */
       sharedFilmRanks: { from: 350, to: 2100 },
-      /** Both actors are billed this high (TMDB cast order from 0) in the film they share. */
+      /** Everyone in a group is billed this high (TMDB cast order from 0) in the film they share. */
       sharedFilmOrder: 5,
       /** Actors and films used on a board aren't used again within this many days either side. */
       cooldownDays: 60,

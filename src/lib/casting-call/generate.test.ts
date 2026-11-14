@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { RULES } from "@/config/rules";
+import { seededRandom } from "@/lib/random";
 import {
   BoardBuildError,
   buildBoard,
   fewestFilmsToClear,
+  hasPairRoute,
   isWellKnownActor,
+  layoutsInOrder,
   voteThresholds,
   type BoardSource,
   type CastEntry,
@@ -22,13 +25,14 @@ const VOTES = {
 };
 /** Above every limit: a blockbuster. */
 const WELL_KNOWN = VOTES.sharedMax * 2;
-/** Right for a pair's shared film. */
+/** Right for a group's shared film. */
 const LESSER = Math.round((VOTES.sharedMin + VOTES.sharedMax) / 2);
 
 /*
  * A small made-up TMDB: actors 1-8 are well known, each with their own
- * well-known films, and pair up through lesser-known films 901-904
- * (1 with 2, 3 with 4, ...). Actor 50 is in film 901 but well known for nothing.
+ * well-known films, and share lesser-known films in the groups given
+ * (film 901 for the first group, 902 for the next, ...).
+ * Actor 50 is in film 901 too but well known for nothing.
  */
 interface World {
   credits: Map<number, FilmCredit[]>;
@@ -47,7 +51,19 @@ const credit = (tmdbId: number, voteCount: number, order = 0): FilmCredit => ({
   hasReleaseDate: true,
 });
 
-function world(): World {
+const PAIRS = [
+  [1, 2],
+  [3, 4],
+  [5, 6],
+  [7, 8],
+];
+const TRIOS = [
+  [1, 2, 3],
+  [4, 5, 6],
+  [7, 8],
+];
+
+function world(groups: number[][] = PAIRS): World {
   const credits = new Map<number, FilmCredit[]>();
   const casts = new Map<number, CastEntry[]>();
   const wellKnownFilms: number[] = [];
@@ -62,11 +78,8 @@ function world(): World {
       if (k === 0) wellKnownFilms.push(film);
     }
   }
-  for (let pair = 0; pair < 4; pair++) {
-    addRole(2 * pair + 1, credit(901 + pair, LESSER, 0));
-    addRole(2 * pair + 2, credit(901 + pair, LESSER, 1));
-  }
-  addRole(50, credit(901, LESSER, 2));
+  groups.forEach((group, g) => group.forEach((actor, order) => addRole(actor, credit(901 + g, LESSER, order))));
+  addRole(50, credit(901, LESSER, 3));
   addRole(50, credit(950, WELL_KNOWN, 0));
   return { credits, casts, wellKnownFilms };
 }
@@ -103,6 +116,25 @@ describe("voteThresholds", () => {
   });
 });
 
+describe("hasPairRoute", () => {
+  const films = (...ids: number[]) => ids.map((id) => credit(id, LESSER, 1));
+
+  it("finds a way to split the faces into pairs that each share a film", () => {
+    // Faces 0-1-2 share film 1; 2 and 3 share film 2: pairs 0+1 and 2+3.
+    expect(hasPairRoute([films(1), films(1), films(1, 2), films(2)])).toBe(true);
+  });
+
+  it("finds none when someone has nobody left to pair with", () => {
+    // A trio and a lone pair: whoever pairs inside the trio leaves the third alone.
+    expect(hasPairRoute([films(1), films(1), films(1), films(2)])).toBe(false);
+  });
+
+  it("only counts films where both are billed high", () => {
+    const low = (id: number) => [credit(id, LESSER, B.sharedFilmOrder + 1)];
+    expect(hasPairRoute([films(1), low(1), films(2), films(2)])).toBe(false);
+  });
+});
+
 describe("isWellKnownActor", () => {
   const roles = (n: number, override: Partial<FilmCredit> = {}) =>
     Array.from({ length: n }, (_, i) => ({ ...credit(i, WELL_KNOWN), ...override }));
@@ -121,37 +153,60 @@ describe("isWellKnownActor", () => {
   });
 });
 
-describe("buildBoard", () => {
-  it("pairs eight well-known actors through the lesser-known films they share", async () => {
-    const w = world();
-    const board = await buildBoard(sourceOf(w), { seed: "2026-11-20" });
+/** Every group's faces are in its film, and the groups cover the board once. */
+function expectSound(w: World, board: Awaited<ReturnType<typeof buildBoard>>) {
+  expect(board.personIds).toHaveLength(RULES.castingCall.faceCount);
+  expect(new Set(board.personIds).size).toBe(RULES.castingCall.faceCount);
+  expect(board.personIds).not.toContain(50);
+  for (const { filmId, faces } of board.groups) {
+    const cast = w.casts.get(filmId)!.map((c) => c.personId);
+    for (const face of faces) expect(cast).toContain(board.personIds[face]);
+  }
+  expect(board.groups.flatMap((g) => g.faces).sort()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+}
 
-    expect(board.personIds).toHaveLength(RULES.castingCall.faceCount);
-    expect(new Set(board.personIds).size).toBe(RULES.castingCall.faceCount);
-    expect(board.personIds).not.toContain(50);
-    expect(board.pairs).toHaveLength(B.pairs);
-    for (const { filmId, faces } of board.pairs) {
-      const cast = w.casts.get(filmId)!.map((c) => c.personId);
-      for (const face of faces) expect(cast).toContain(board.personIds[face]);
-    }
-    expect(board.pairs.flatMap((p) => p.faces).sort()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+const sizes = (board: Awaited<ReturnType<typeof buildBoard>>) =>
+  board.groups.map((g) => g.faces.length).sort((a, b) => b - a);
+
+describe("buildBoard", () => {
+  it("groups eight well-known actors as 3+3+2 through the lesser-known films they share", async () => {
+    const w = world(TRIOS);
+    const board = await buildBoard(sourceOf(w), { seed: "2026-11-20" });
+    expectSound(w, board);
+    expect(sizes(board)).toEqual([3, 3, 2]);
+  });
+
+  it("falls back to pairs when no trios can be found", async () => {
+    const w = world(PAIRS);
+    const board = await buildBoard(sourceOf(w), { seed: "2026-11-20" });
+    expectSound(w, board);
+    expect(sizes(board)).toEqual([2, 2, 2, 2]);
+  });
+
+  it("picks the day's layout by weight, mostly 3+3+2, with the others as fallbacks", () => {
+    const random = seededRandom("layouts");
+    const firsts = Array.from({ length: 400 }, () => layoutsInOrder(random));
+    const trios = firsts.filter((order) => order[0].length === 3).length;
+    expect(trios / firsts.length).toBeGreaterThan(0.65);
+    expect(trios / firsts.length).toBeLessThan(0.85);
+    for (const order of firsts) expect(order).toHaveLength(B.layouts.length);
   });
 
   it("builds the same board for the same seed", async () => {
-    const one = await buildBoard(sourceOf(world()), { seed: "2026-11-20" });
-    const two = await buildBoard(sourceOf(world()), { seed: "2026-11-20" });
+    const one = await buildBoard(sourceOf(world(TRIOS)), { seed: "2026-11-20" });
+    const two = await buildBoard(sourceOf(world(TRIOS)), { seed: "2026-11-20" });
     expect(two).toEqual(one);
   });
 
-  it("refuses a pair that also shares a well-known film", async () => {
-    const w = world();
+  it("refuses a group where two also share a well-known film", async () => {
+    const w = world(PAIRS);
     w.credits.get(1)!.push(credit(999, WELL_KNOWN, 3));
     w.credits.get(2)!.push(credit(999, WELL_KNOWN, 3));
     await expect(buildBoard(sourceOf(w), { seed: "x" })).rejects.toThrow(BoardBuildError);
   });
 
-  it("refuses a board some film clears too quickly", async () => {
-    const w = world();
+  it("refuses a board some films clear in fewer guesses than it has groups", async () => {
+    const w = world(PAIRS);
     // Two small films, each with one actor from every pair: two guesses would clear the board.
     for (const actor of [1, 3, 5, 7]) w.credits.get(actor)!.push(credit(990, 5, 20));
     for (const actor of [2, 4, 6, 8]) w.credits.get(actor)!.push(credit(991, 5, 20));

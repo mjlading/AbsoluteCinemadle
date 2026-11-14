@@ -13,26 +13,30 @@ Rules decided where the brief is silent are in [ASSUMPTIONS.md](../ASSUMPTIONS.m
 - Crossing out all 8 wins; the score is the number of guesses used, fewer is better.
 - The bar running out, or 5 guesses without crossing out all 8, loses; the missed actors are then shown in red.
 - A guess that crosses out nobody new still counts; repeating a film is turned away for free.
-- Once the game is over, win or lose, the board's best route is shown: the 4 films it was built from, each with its pair of actors.
+- Once the game is over, win or lose, the board's best route is shown: the films it was built from (3 or 4), each with its group of actors.
 - Share copies `Casting call #5 4/5` and one square per guess: green crossed someone new, red didn't, black unused.
 
 ## Daily boards
 
 The owner's brief: obscure films, well-known actors; playtests then moved the films towards known but not famous.
 
-- A board is 4 pairs of well-known actors, each pair sharing a lesser-known film and no well-known one.
-  The best route is one film per pair, 4 guesses; the 5th guess is slack, so a player can still win on a less clever route.
+- A board is well-known actors in groups, each group sharing a lesser-known film and no two of them a well-known one.
+  On 3 days in 4 the groups are 3+3+2 (best route: 3 films), otherwise 2+2+2+2 (4 films); the layouts and their weights are in `RULES.castingCall.board.layouts`.
+  The guesses left over are slack, so a player can still win on a less clever route.
+- A 3+3+2 board should also be clearable in pairs, each sharing a film where both are billed in the top 6 (the owner's idea, 2026-11-14), so a player who misses a trio has a second, longer route; the best route shown is still the 3+3+2 one.
+  About 4 boards in 5 have one anyway. The generator tries up to 3 boards for one that does, then settles for the first valid one.
+- Building is bounded: at most 40 lead actors per group and 3 tries per layout; if the day's layout can't be built, the other one is tried, and only then does the build fail (a player would see "couldn't be made right now" and the next try or cron run builds again).
   Naming each actor's famous films instead crosses out one face a guess and runs out of guesses.
 - How well known a film is goes by its rank among all films by TMDB vote count (no animation or documentaries), not by a fixed vote count: every film's votes keep growing, so fixed counts would slowly make the game easier.
   Each build looks up how many votes the film at each rank has that day (one cached TMDB request per rank).
-- How a pair is found: a lead from the top of the billing of one of the 400 most-voted films; one of their lesser-known films; a well-known co-star from its billing.
+- How a group is found: a lead from the top of the billing of one of the 400 most-voted films; one of their lesser-known films; well-known co-stars from its billing (the biggest groups are found first).
 - Well known: at least 8 starring roles (billed in the top 4) in films ranked in the top 1,750 (about 3,000 votes in November 2026), counting only on-screen roles in proper films (no cameos as themselves, voice parts, TV films, animation or documentaries).
   It was 6 roles in films with 1,000+ votes until the owner's first playtest (2026-11-14) found faces such as Kevin Dunn and Clea DuVall too little known.
 - The shared film: one ranked #351 to #2,100 (about 10,000 to 2,500 votes in November 2026) where both are billed in the top 6: widely seen, but not a top blockbuster.
-  The pair may share no film ranked higher. It was 40 to 799 votes, then 300 to 2,499, then 1,500 to 5,999; the owner's playtests on 2026-11-14 found each too hard.
-- Every board is checked against every film the 8 are credited in: if fewer than 4 films could clear it, it is thrown away and another is built.
+  No two in a group may share a film ranked higher. It was 40 to 799 votes, then 300 to 2,499, then 1,500 to 5,999; the owner's playtests on 2026-11-14 found each too hard.
+- Every board is checked against every film the 8 are credited in: if fewer films than it has groups could clear it, it is thrown away and another is built.
 - Actors and films used on a board aren't used again within 60 days either side.
-- The faces are shuffled, so a pair never sits in a known place on the board.
+- The faces are shuffled, so a group never sits in a known place on the board.
 - All these numbers are in `RULES.castingCall.board` (`src/config/rules.ts`).
 
 Boards are built on the server, never by hand, and stored in the `casting_call_boards` table:

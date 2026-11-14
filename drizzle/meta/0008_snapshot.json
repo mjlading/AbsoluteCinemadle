@@ -1,5 +1,5 @@
 {
-  "id": "25f45471-29d9-4fcb-b870-53526a7d258d",
+  "id": "8d516833-fced-404d-b5b5-6c933fc92571",
   "prevId": "38353334-794f-401c-8007-d4d720a8d8ac",
   "version": "7",
   "dialect": "postgresql",
@@ -26,8 +26,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "pairs": {
-          "name": "pairs",
+        "groups": {
+          "name": "groups",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true

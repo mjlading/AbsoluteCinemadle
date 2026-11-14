@@ -1,6 +1,6 @@
 import { customType, date, jsonb, pgTable, smallint, text, timestamp } from "drizzle-orm/pg-core";
 
-import type { BoardPair } from "@/lib/casting-call/generate";
+import type { BoardGroup } from "@/lib/casting-call/generate";
 import type { CollageKeyword, CollagePuzzle } from "@/lib/collage/types";
 import type { SoundbytesBoard, StoredSoundNode } from "@/lib/soundbytes/types";
 
@@ -69,7 +69,7 @@ export const castingCallBoards = pgTable("casting_call_boards", {
   date: date("date", { mode: "string" }).notNull().unique(),
   /** TMDB person ids in board order; a face's id is its position here. */
   personIds: jsonb("person_ids").$type<number[]>().notNull(),
-  /** The best route, shown once the game is over: one lesser-known film per pair of faces. */
-  pairs: jsonb("pairs").$type<BoardPair[]>().notNull(),
+  /** The best route, shown once the game is over: one lesser-known film per group of faces. */
+  groups: jsonb("groups").$type<BoardGroup[]>().notNull(),
   syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
 });

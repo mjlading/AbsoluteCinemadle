@@ -32,7 +32,7 @@ const FileSchema = z.object({
     z.object({
       id: z.string().min(1),
       personIds: z.array(z.number().int().positive()).length(FACES),
-      pairs: z.array(z.object({ filmId: z.number().int().positive(), faces: z.tuple([Face, Face]) })),
+      groups: z.array(z.object({ filmId: z.number().int().positive(), faces: z.array(Face).min(2) })),
     }),
   ),
 });

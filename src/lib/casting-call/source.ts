@@ -26,7 +26,8 @@ export interface CastingCallBoard {
   date: string;
   /** Exactly RULES.castingCall.faceCount ids; a face's id is its position here. */
   personIds: number[];
-  pairs: { filmId: number; faces: [number, number] }[];
+  /** The best route: one film per group of faces. */
+  groups: { filmId: number; faces: number[] }[];
 }
 
 const FACES = RULES.castingCall.faceCount;
@@ -34,21 +35,18 @@ const BoardRowSchema = z.object({
   id: z.string(),
   date: z.string(),
   personIds: z.array(z.number().int().positive()).length(FACES),
-  pairs: z.array(
+  groups: z.array(
     z.object({
       filmId: z.number().int().positive(),
-      faces: z.tuple([
-        z
-          .number()
-          .int()
-          .min(0)
-          .max(FACES - 1),
-        z
-          .number()
-          .int()
-          .min(0)
-          .max(FACES - 1),
-      ]),
+      faces: z
+        .array(
+          z
+            .number()
+            .int()
+            .min(0)
+            .max(FACES - 1),
+        )
+        .min(2),
     }),
   ),
 });
@@ -113,12 +111,12 @@ const tmdbSource: BoardSource = {
 async function nearbyUse(date: string) {
   const days = RULES.castingCall.board.cooldownDays;
   const rows = await db()
-    .select({ personIds: castingCallBoards.personIds, pairs: castingCallBoards.pairs })
+    .select({ personIds: castingCallBoards.personIds, groups: castingCallBoards.groups })
     .from(castingCallBoards)
     .where(and(gte(castingCallBoards.date, addDays(date, -days)), lte(castingCallBoards.date, addDays(date, days))));
   return {
     avoidPeople: new Set(rows.flatMap((r) => r.personIds)),
-    avoidFilms: new Set(rows.flatMap((r) => r.pairs.map((p) => p.filmId))),
+    avoidFilms: new Set(rows.flatMap((r) => r.groups.map((g) => g.filmId))),
   };
 }
 

@@ -79,18 +79,18 @@ export async function solutionResponse(board: CastingCallBoard): Promise<Respons
 }
 
 /**
- * The board's best route: the lesser-known film each pair shares. Called when
+ * The board's best route: the lesser-known film each group shares. Called when
  * the game is over; calling it early only spoils the caller's own game.
  */
 export async function bestRouteResponse(board: CastingCallBoard): Promise<Response> {
   try {
-    const films = await Promise.all(board.pairs.map((p) => getMovieWithCast(p.filmId)));
+    const films = await Promise.all(board.groups.map((g) => getMovieWithCast(g.filmId)));
     const body: CastingBestRoute = {
       films: films.map((film, i) => ({
         tmdbId: film.tmdbId,
         title: film.title,
         year: film.year,
-        faceIds: board.pairs[i].faces.map(String),
+        faceIds: board.groups[i].faces.map(String),
       })),
     };
     return Response.json(body, { headers: noStore });

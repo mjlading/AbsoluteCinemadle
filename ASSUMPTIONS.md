@@ -130,8 +130,9 @@ Each entry says what was decided and why, so it can be revisited.
 - Boards build themselves with no computer of the owner's switched on (the owner's requirement): by a daily Vercel Cron job, or on a day's first visit when the job hasn't run.
   An LLM was considered and left out: building and checking a board is plain logic over TMDB data, and keyed APIs need the owner's approval.
   A player may only cause a board to be built for a day that is today somewhere on Earth, so the past and future can't be filled by request.
-- The owner wants obscure films and well-known actors: boards pair well-known actors through lesser-known films they share (see "Daily boards" in docs/CASTING-CALL.md for the thresholds).
-- The best route (the board's 4 films) is shown when the game ends, won or lost (the owner's request), from its own route, since the names route is called at Start.
+- The owner wants obscure films and well-known actors: boards group well-known actors through lesser-known films they share (see "Daily boards" in docs/CASTING-CALL.md for the thresholds).
+  The owner asked for groups of 3+3+2 most days instead of always 4 pairs, and for those boards to be clearable in pairs as well where possible.
+- The best route (the board's 3 or 4 films) is shown when the game ends, won or lost (the owner's request), from its own route, since the names route is called at Start.
 - The six fixed boards were retired from the app and kept in `tools/casting-call/legacy-boards.json`; their old addresses redirect to today's board.
 - Faces are blurred before Start and names are not sent at all; the names are only fetched when Start is pressed, so the clock is running once they're known. The blur is CSS only, so the picture itself is still reachable by someone digging in the browser, which only spoils their own game.
 - The 5-guess limit stayed when the 40-second bar was added; the owner's brief for the bar didn't remove it.
@@ -144,5 +145,5 @@ Each entry says what was decided and why, so it can be revisited.
 - Progress is saved per board in localStorage under `casting-call:<id>`, so a reload resumes; the archive shows "Solved in N" or "Missed".
   Games saved on the old fixed boards are simply never read again.
 - Faces are 320-pixel squares cropped from the top of the TMDB profile photo, cached for a day.
-- A board must need at least 4 films counting every film its actors are credited in, so even a collage film like "Final Cut: Ladies and Gentlemen" can't make one easy.
+- A board must need as many films as it has groups, counting every film its actors are credited in, so even a collage film like "Final Cut: Ladies and Gentlemen" can't make one easy.
 - Boards keep only TMDB ids; the cron job re-fetches the people on boards older than 5 months and dates them again, and deletes a board whose people TMDB no longer has.

@@ -468,7 +468,11 @@ function EndPanel({ board, state }: { board: PublicCastingBoard; state: CastingC
   );
 }
 
-/** The films the board was built from, one per pair of faces: the fewest guesses that clear it. */
+/** "A and B", "A, B and C". */
+const listNames = (names: string[]) =>
+  names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+
+/** The films the board was built from, one per group of faces: the fewest guesses that clear it. */
 function BestRoute({ board, names }: { board: PublicCastingBoard; names: Record<string, string> }) {
   const [route, setRoute] = useState<CastingBestRoute | null>(null);
   const [failed, setFailed] = useState(false);
@@ -493,7 +497,8 @@ function BestRoute({ board, names }: { board: PublicCastingBoard; names: Record<
         <ul className="mt-2 flex flex-col gap-2">
           {route.films.map((film) => (
             <li key={film.tmdbId} className="flex items-center gap-3">
-              <span className="flex shrink-0 -space-x-2">
+              {/* Wide enough for a trio's three faces, so the titles line up. */}
+              <span className="flex w-20 shrink-0 -space-x-2">
                 {film.faceIds.map((faceId) => {
                   const face = board.faces.find((f) => f.id === faceId);
                   return face ? (
@@ -507,7 +512,7 @@ function BestRoute({ board, names }: { board: PublicCastingBoard; names: Record<
                 <span className="font-semibold">{film.title}</span>
                 {film.year && <span className="ml-1.5 text-ink-soft">{film.year}</span>}
                 <span className="block text-sm text-ink-soft">
-                  {film.faceIds.map((id) => names[id] ?? "?").join(" and ")}
+                  {listNames(film.faceIds.map((id) => names[id] ?? "?"))}
                 </span>
               </span>
             </li>

@@ -286,7 +286,7 @@ test.describe("answer protection on the real server", () => {
     const text = await response.text();
     expect(text).not.toContain("tmdb");
     expect(text).not.toContain("personId");
-    expect(text).not.toContain("pairs");
+    expect(text).not.toContain("groups");
     // The fixture's first actor, by TMDB person id and by name.
     expect(text).not.toContain("2524");
     expect(text).not.toContain("Hardy");
