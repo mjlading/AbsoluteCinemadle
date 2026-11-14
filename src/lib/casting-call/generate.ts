@@ -85,7 +85,7 @@ const isLesserKnown = (c: FilmCredit) =>
   isRole(c) &&
   c.voteCount >= B.sharedFilmVotes.min &&
   c.voteCount < B.sharedFilmVotes.max &&
-  c.order <= B.starringOrder;
+  c.order <= B.sharedFilmOrder;
 
 /**
  * The fewest films that cross out every face, where each film is the set of
@@ -143,7 +143,7 @@ async function attempt(source: BoardSource, random: () => number, options: Build
     let pair: { personId: number; films: FilmCredit[]; filmId: number } | null = null;
     for (const sharedFilm of shared) {
       const coStars = (await source.filmCast(sharedFilm.tmdbId)).filter(
-        (c) => c.personId !== lead.personId && c.order <= B.starringOrder && c.hasPhoto && free(c.personId),
+        (c) => c.personId !== lead.personId && c.order <= B.sharedFilmOrder && c.hasPhoto && free(c.personId),
       );
       for (const coStar of shuffled(coStars, random)) {
         const films = await source.personFilms(coStar.personId);

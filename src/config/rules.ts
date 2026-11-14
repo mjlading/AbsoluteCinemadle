@@ -38,13 +38,18 @@ export const RULES = {
       /** The fewest films that may clear a board, counting every film the eight are in. */
       minFilmsToClear: 4,
       /** A film counts as well known from this many TMDB votes. */
-      wellKnownVotes: 1000,
+      wellKnownVotes: 3000,
       /** Billed this high (TMDB cast order from 0) counts as a starring role. */
-      starringOrder: 5,
-      /** An actor is well known with at least this many starring roles in well-known films. */
-      wellKnownRoles: 6,
+      starringOrder: 3,
+      /**
+       * An actor is well known with at least this many starring roles in well-known films.
+       * Measured on 2026-11-14: Kevin Dunn and Clea DuVall have 1, Rebecca Hall 7, Michelle Pfeiffer 9, Tom Hanks 26.
+       */
+      wellKnownRoles: 8,
       /** The film a pair shares has at least `min` TMDB votes (so it can be found) and fewer than `max`. */
       sharedFilmVotes: { min: 40, max: 800 },
+      /** Both actors are billed this high (TMDB cast order from 0) in the film they share. */
+      sharedFilmOrder: 5,
       /** Actors and films used on a board aren't used again within this many days either side. */
       cooldownDays: 60,
     },
