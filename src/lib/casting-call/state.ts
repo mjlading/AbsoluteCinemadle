@@ -34,10 +34,6 @@ export const initialCastingCallState = (): CastingCallState => ({
   timedOut: false,
 });
 
-/** A game left in progress before the clock existed has no deadline; it starts over. */
-export const reviveCastingCallState = (stored: CastingCallState): CastingCallState =>
-  stored.status === "playing" && typeof stored.deadline !== "number" ? initialCastingCallState() : stored;
-
 export function castingCallReducer(faceCount: number = RULES.castingCall.faceCount) {
   return (state: CastingCallState, action: CastingCallAction): CastingCallState => {
     switch (action.type) {
@@ -81,4 +77,16 @@ export function msLeft(state: CastingCallState, now: number): number {
 export function newlyCrossed(state: CastingCallState, guessIndex: number): string[] {
   const before = new Set(state.guesses.slice(0, guessIndex).flatMap((g) => g.faceIds));
   return (state.guesses[guessIndex]?.faceIds ?? []).filter((id) => !before.has(id));
+}
+
+/**
+ * The share text: the day's title and guesses used ("X" for a loss), then one
+ * square per guess (green crossed someone new, red didn't) and black for guesses left.
+ */
+export function castingShareText(title: string, state: CastingCallState): string {
+  const max = RULES.castingCall.maxGuesses;
+  const squares: string[] = state.guesses.map((_, i) => (newlyCrossed(state, i).length > 0 ? "🟩" : "🟥"));
+  while (squares.length < max) squares.push("⬛");
+  const result = state.status === "won" ? state.guesses.length : "X";
+  return `${title} ${result}/${max}\n${squares.join("")}`;
 }

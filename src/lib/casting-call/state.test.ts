@@ -4,11 +4,11 @@ import { RULES } from "@/config/rules";
 import {
   alreadyGuessed,
   castingCallReducer,
+  castingShareText,
   guessesLeft,
   initialCastingCallState,
   msLeft,
   newlyCrossed,
-  reviveCastingCallState,
   type CastingCallAction,
 } from "./state";
 
@@ -100,12 +100,10 @@ describe("casting call state", () => {
     expect(msLeft(state, LIMIT + 5000)).toBe(0);
   });
 
-  it("restarts a game saved in progress before the clock existed, but keeps finished ones", () => {
-    const legacy = { status: "playing", guesses: [], names: {}, crossed: ["0"] } as never;
-    expect(reviveCastingCallState(legacy).status).toBe("ready");
-    const running = play(start);
-    expect(reviveCastingCallState(running)).toBe(running);
-    const finished = play(start, { type: "timeUp" });
-    expect(reviveCastingCallState(finished)).toBe(finished);
+  it("shares the guesses used and a square per guess", () => {
+    const won = play(start, guess(1, "0", "1"), guess(2), guess(3, "1"), guess(4, "2", "3"));
+    expect(castingShareText("Casting call #6", won)).toBe("Casting call #6 4/6\n🟩🟥🟥🟩⬛⬛");
+    const lost = play(start, guess(1, "0"), { type: "timeUp" });
+    expect(castingShareText("Casting call #7", lost)).toBe("Casting call #7 X/6\n🟩⬛⬛⬛⬛⬛");
   });
 });

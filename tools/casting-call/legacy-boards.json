@@ -1,0 +1,41 @@
+{
+  "note": "The six fixed boards Casting call had before it became a daily (retired 2026-11-14). Not used by the app. Each lists eight TMDB person ids and the films they were drawn from.",
+  "boards": [
+    {
+      "id": "1",
+      "name": "Board 1",
+      "films": "Titanic, Forrest Gump, The Matrix",
+      "personIds": [6193, 204, 1954, 31, 32, 33, 6384, 2975]
+    },
+    {
+      "id": "2",
+      "name": "Board 2",
+      "films": "Jurassic Park, Back to the Future, Alien",
+      "personIds": [4783, 4784, 4785, 521, 1062, 1063, 10205, 4139]
+    },
+    {
+      "id": "3",
+      "name": "Board 3",
+      "films": "Pretty Woman, Se7en, La La Land, The Silence of the Lambs",
+      "personIds": [1204, 1205, 192, 287, 30614, 54693, 4173, 1038]
+    },
+    {
+      "id": "4",
+      "name": "Board 4",
+      "films": "Mad Max: Fury Road, Gladiator, The Shining, Kill Bill",
+      "personIds": [2524, 6885, 934, 73421, 514, 10409, 139, 141]
+    },
+    {
+      "id": "5",
+      "name": "Board 5",
+      "films": "The Terminator, Die Hard, Grease, Ghostbusters",
+      "personIds": [1100, 2713, 62, 4566, 8891, 8892, 1532, 707]
+    },
+    {
+      "id": "6",
+      "name": "Board 6",
+      "films": "Get Out, Black Swan, The Social Network, Whiplash",
+      "personIds": [206919, 1255540, 524, 18973, 44735, 37625, 996701, 18999]
+    }
+  ]
+}

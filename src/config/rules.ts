@@ -25,8 +25,46 @@ export const RULES = {
     /** Actors' faces on a board. */
     faceCount: 8,
     /** Film guesses per board; crossing out every face within them wins. */
-    maxGuesses: 5,
+    maxGuesses: 6,
     /** The bar's length; it starts on Start and refills on any film with someone from the board. */
-    timeLimitSeconds: 40,
+    timeLimitSeconds: 50,
+    /**
+     * How the daily board is built (src/lib/casting-call/generate.ts): well-known actors in groups,
+     * each group sharing a lesser-known film, so the best route takes one film per group.
+     * How well known a film is goes by its rank among all films by TMDB vote count (animation and
+     * documentaries left out), not by a fixed vote count, since every film's votes keep growing.
+     */
+    board: {
+      /**
+       * The group sizes a board can have, and how often each comes up (3 in 4 days are 3+3+2).
+       * Each adds up to faceCount; if the day's layout can't be built, the other is tried.
+       * A board must take as many films to clear as it has groups, counting every film the actors are in.
+       */
+      layouts: [
+        { groups: [3, 3, 2], weight: 3 },
+        { groups: [2, 2, 2, 2], weight: 1 },
+      ],
+      /** Groups are found through the leads of the films ranked this high. */
+      leadFilmRank: 400,
+      /** A film counts as well known when ranked this high (about 3,000 votes in November 2026). */
+      wellKnownRank: 1750,
+      /** Billed this high (TMDB cast order from 0) counts as a starring role. */
+      starringOrder: 3,
+      /**
+       * An actor is well known with at least this many starring roles in well-known films.
+       * Measured on 2026-11-14: Kevin Dunn and Clea DuVall have 1, Rebecca Hall 7, Michelle Pfeiffer 9, Tom Hanks 26.
+       */
+      wellKnownRoles: 8,
+      /**
+       * The film a group shares ranks below `from` and no lower than `to`: widely seen, but not a top
+       * blockbuster (about 16,800 to 5,200 votes in November 2026).
+       * No two in a group may share a film ranked above `from`.
+       */
+      sharedFilmRanks: { from: 120, to: 900 },
+      /** Everyone in a group is billed this high (TMDB cast order from 0) in the film they share. */
+      sharedFilmOrder: 5,
+      /** Actors and films used on a board aren't used again within this many days either side. */
+      cooldownDays: 60,
+    },
   },
 } as const;

@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 const hasTmdb = Boolean(process.env.TMDB_READ_ACCESS_TOKEN);
 
-// Board 1's faces get these made-up names. Everything TMDB would answer is stubbed, so the games below are
+// Today's fixture board (e2e/fixtures/casting-call.json, imported for today as "fixture1") gets these made-up names. Everything TMDB would answer is stubbed, so the games below are
 // the same with or without a token; the real server is covered by the last two groups.
 const NAMES = [
   "Ada Archer",
@@ -40,15 +40,25 @@ async function stubTmdbRoutes(page: Page) {
     }));
     return route.fulfill({ json: { results } });
   });
-  await page.route(/\/api\/casting-call\/1\/solution$/, (route) =>
+  await page.route(/\/api\/casting-call\/fixture1\/solution$/, (route) =>
     route.fulfill({ json: { faces: NAMES.map((_, i) => faceOf(i)) } }),
   );
-  await page.route(/\/api\/casting-call\/1\/guess$/, (route) => {
+  await page.route(/\/api\/casting-call\/fixture1\/guess$/, (route) => {
     const film = FILMS.find((f) => f.tmdbId === route.request().postDataJSON().tmdbId)!;
     const { faces, ...summary } = film;
     return route.fulfill({ json: { film: summary, found: faces.map(faceOf) } });
   });
-  await page.route(/\/api\/casting-call\/1\/faces\/\d+\/image$/, (route) =>
+  await page.route(/\/api\/casting-call\/fixture1\/best-route$/, (route) =>
+    route.fulfill({
+      json: {
+        films: [
+          { tmdbId: 1, title: "Alpha Heist", year: 2001, faceIds: ["0", "1"] },
+          { tmdbId: 2, title: "Bravo Run", year: 2002, faceIds: ["3", "4"] },
+        ],
+      },
+    }),
+  );
+  await page.route(/\/api\/casting-call\/fixture1\/faces\/\d+\/image$/, (route) =>
     route.fulfill({
       contentType: "image/svg+xml",
       body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect width="1" height="1" fill="#888"/></svg>',
@@ -58,12 +68,12 @@ async function stubTmdbRoutes(page: Page) {
 
 const guessBox = (page: Page) => page.getByRole("combobox", { name: "Guess a film" });
 const timer = (page: Page) => page.getByRole("timer");
-const guessesLeft = (page: Page, left: number) => page.getByLabel(`${left} of 5 guesses left`);
+const guessesLeft = (page: Page, left: number) => page.getByLabel(`${left} of 6 guesses left`);
 const crossedOut = (page: Page) => page.getByRole("img", { name: /, crossed out$/ });
 
 async function openBoard(page: Page) {
   await stubTmdbRoutes(page);
-  await page.goto("/casting-call/1");
+  await page.goto("/casting-call");
   await expect(page.getByRole("button", { name: "Start" })).toBeEnabled();
 }
 
@@ -111,12 +121,12 @@ test.describe("with TMDB stubbed", () => {
     await start(page);
     await expect(page.getByRole("img", { name: "Ada Archer", exact: true })).not.toHaveClass(/blur-xl/);
     await expect(page.getByText("Hal Hayes")).toBeVisible();
-    await expect(timer(page)).toHaveAttribute("aria-label", /^(39|40) seconds left$/);
+    await expect(timer(page)).toHaveAttribute("aria-label", /^(49|50) seconds left$/);
     expect(solutionCalls).toHaveLength(1);
   });
 
   test(
-    "a win crosses everyone out, survives a reload and is marked in the list",
+    "a win crosses everyone out, shows the best route, survives a reload and is marked in the archive",
     { tag: "@phone" },
     async ({ page }) => {
       await openBoard(page);
@@ -128,15 +138,19 @@ test.describe("with TMDB stubbed", () => {
       await expect(crossedOut(page)).toHaveCount(8);
       await expect(page.getByText("8", { exact: true })).toBeVisible();
       await expect(guessBox(page)).toBeDisabled();
+      await expect(page.getByText("Best route: 2 films")).toBeVisible();
+      await expect(page.getByText("Ada Archer and Ben Bright")).toBeVisible();
+      await expect(page.getByRole("button", { name: "Share" })).toBeVisible();
 
       await page.reload();
       await expect(page.getByRole("heading", { name: "That's a wrap!" })).toBeVisible();
       await expect(crossedOut(page)).toHaveCount(8);
 
-      await page.getByRole("link", { name: "Another board" }).click();
-      await expect(page.getByRole("link", { name: /^Board \d/ })).toHaveCount(6);
-      await expect(page.getByRole("link", { name: /^Board 1/ })).toContainText("Solved in 4");
-      await expect(page.getByRole("link", { name: /^Board 2/ })).toContainText("Play");
+      await page.getByRole("link", { name: "Previous days" }).last().click();
+      const todayRow = page.getByRole("list").getByRole("link", { name: /Today/ });
+      await expect(todayRow).toContainText("Solved in 4");
+      await expect(todayRow).toHaveAttribute("href", "/casting-call");
+      await expect(page.getByRole("list").getByRole("link").filter({ hasText: "Play" })).toHaveCount(1);
     },
   );
 
@@ -148,12 +162,12 @@ test.describe("with TMDB stubbed", () => {
 
     await guess(page, "Empty One");
     await miss(page, "Empty One");
-    await expect(guessesLeft(page, 4)).toBeVisible();
+    await expect(guessesLeft(page, 5)).toBeVisible();
     await expect(page.getByText("Nobody from the board")).toBeVisible();
 
     await guess(page, "Empty One");
     await expect(page.getByText("You already tried Empty One.")).toBeVisible();
-    await expect(guessesLeft(page, 4)).toBeVisible();
+    await expect(guessesLeft(page, 5)).toBeVisible();
 
     await guess(page, "Alpha Heist");
     await hit(page, "Alpha Heist", "Ada Archer, Ben Bright, Cleo Crane");
@@ -161,30 +175,44 @@ test.describe("with TMDB stubbed", () => {
 
     await guess(page, "Echo Street");
     await expect(page.getByText("Echo Street only has actors you've already crossed out.")).toBeVisible();
-    await expect(guessesLeft(page, 2)).toBeVisible();
+    await expect(guessesLeft(page, 3)).toBeVisible();
     await expect(crossedOut(page)).toHaveCount(3);
 
     await page.reload();
     await expect(crossedOut(page)).toHaveCount(3);
-    await expect(guessesLeft(page, 2)).toBeVisible();
+    await expect(guessesLeft(page, 3)).toBeVisible();
     await expect(timer(page)).toBeVisible();
     await expect(page.getByRole("button", { name: "Start" })).toHaveCount(0);
   });
 
-  test("five guesses without clearing the board loses and shows who was missed", async ({ page }) => {
+  test("six guesses without clearing the board loses and shows who was missed", async ({ page }) => {
     await openBoard(page);
     await start(page);
+    await guess(page, "Alpha Heist");
+    await hit(page, "Alpha Heist", "Ada Archer, Ben Bright, Cleo Crane");
+    await guess(page, "Bravo Run");
+    await hit(page, "Bravo Run", "Dov Dale, Eva Ellis");
     for (const title of ["Empty One", "Empty Two", "Empty Three", "Empty Four"]) {
       await guess(page, title);
       await miss(page, title);
     }
-    await guess(page, "Alpha Heist");
 
     await expect(page.getByRole("heading", { name: "Out of guesses" })).toBeVisible();
-    await expect(page.getByText("You found 3 of 8.")).toBeVisible();
+    await expect(page.getByText("You found 5 of 8. Better luck next time!")).toBeVisible();
     await expect(page.getByText("Hal Hayes")).toHaveClass(/text-marker/);
-    await expect(page.getByText("Ada Archer", { exact: true })).not.toHaveClass(/text-marker/);
+    await expect(page.getByText("Ada Archer", { exact: true }).first()).not.toHaveClass(/text-marker/);
     await expect(guessBox(page)).toBeDisabled();
+
+    // The last guess found nobody, so no cross is drawing; coming back to the board draws them all again.
+    const drawing = page.locator("svg.ccall-cross-draw");
+    await expect(drawing).toHaveCount(0);
+    await page.getByRole("link", { name: "Previous days" }).last().click();
+    await expect(page).toHaveURL(/archive$/);
+    await page.goBack();
+    await expect(page.getByRole("heading", { name: "Out of guesses" })).toBeVisible();
+    await expect(drawing).toHaveCount(5);
+    await page.reload();
+    await expect(drawing).toHaveCount(5);
   });
 
   test("the bar refills on a film with someone from the board, not on a miss, and ends the game", async ({ page }) => {
@@ -192,20 +220,20 @@ test.describe("with TMDB stubbed", () => {
     await openBoard(page);
     await start(page);
 
-    await page.clock.fastForward(30_000);
+    await page.clock.fastForward(40_000);
     await expect(timer(page)).toHaveAttribute("aria-label", /^(9|10) seconds left$/);
     await guess(page, "Alpha Heist");
     await hit(page, "Alpha Heist", "Ada Archer, Ben Bright, Cleo Crane");
-    await expect(timer(page)).toHaveAttribute("aria-label", /^(39|40) seconds left$/);
+    await expect(timer(page)).toHaveAttribute("aria-label", /^(49|50) seconds left$/);
 
-    await page.clock.fastForward(30_000);
+    await page.clock.fastForward(40_000);
     await guess(page, "Empty One");
     await miss(page, "Empty One");
     await expect(timer(page)).toHaveAttribute("aria-label", /^\d seconds left$|^10 seconds left$/);
 
     await page.clock.fastForward(11_000);
     await expect(page.getByRole("heading", { name: "Time's up" })).toBeVisible();
-    await expect(page.getByText("You found 3 of 8.")).toBeVisible();
+    await expect(page.getByText("You found 3 of 8. Better luck next time!")).toBeVisible();
     await expect(timer(page)).toHaveCount(0);
     await expect(guessBox(page)).toBeDisabled();
   });
@@ -217,12 +245,13 @@ test.describe("with TMDB stubbed", () => {
     await page.keyboard.press("Enter");
     await expect(guessBox(page)).toBeFocused();
 
-    // "empty" lists all five; the arrow moves off the top suggestion and Escape closes the list.
+    // "empty" lists all five with the top one selected; one arrow press moves to the next, and Escape closes the list.
     await page.keyboard.type("empty");
     await expect(page.getByRole("option")).toHaveCount(5);
-    await page.keyboard.press("ArrowDown");
+    await expect(page.getByRole("option", { name: /Empty One/ })).toHaveAttribute("aria-selected", "true");
     await page.keyboard.press("ArrowDown");
     await expect(page.getByRole("option", { name: /Empty Two/ })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("option", { name: /Empty One/ })).toHaveAttribute("aria-selected", "false");
     await page.keyboard.press("Enter");
     await miss(page, "Empty Two");
     await expect(guessBox(page)).toBeFocused();
@@ -243,33 +272,65 @@ test.describe("with TMDB stubbed", () => {
   });
 });
 
+test.describe("days and the archive", () => {
+  test("an earlier day is played from the archive under its own address", async ({ page }) => {
+    await page.goto("/casting-call/archive");
+    const rows = page.getByRole("list").getByRole("link");
+    await expect(rows).toHaveCount(2);
+    await expect(rows.first()).toContainText("Today");
+    await rows.nth(1).click();
+    await expect(page).toHaveURL(/\/casting-call\/\d{4}-\d{2}-\d{2}$/);
+    await expect(page.getByRole("button", { name: "Start" })).toBeEnabled();
+  });
+
+  test("a day that hasn't come yet stays closed", async ({ page }) => {
+    await page.goto("/casting-call/2999-01-01");
+    await expect(page.getByText("That day hasn't come yet.")).toBeVisible();
+  });
+});
+
 test.describe("answer protection on the real server", () => {
-  test("a board reveals only opaque face ids", async ({ request }) => {
-    const response = await request.get("/api/casting-call/1");
+  const today = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  };
+
+  test("a day's board reveals only opaque face ids", async ({ request }) => {
+    const response = await request.get(`/api/casting-call/day/${today()}`);
     expect(response.ok()).toBe(true);
     const text = await response.text();
     expect(text).not.toContain("tmdb");
     expect(text).not.toContain("personId");
-    // Board 1's first actor, by TMDB person id and by name.
-    expect(text).not.toContain("6193");
-    expect(text).not.toContain("DiCaprio");
+    expect(text).not.toContain("groups");
+    // The fixture's first actor, by TMDB person id and by name.
+    expect(text).not.toContain("2524");
+    expect(text).not.toContain("Hardy");
 
     const board = JSON.parse(text);
+    expect(board.id).toBe("fixture1");
     expect(board.faces.map((f: { id: string }) => f.id)).toEqual(["0", "1", "2", "3", "4", "5", "6", "7"]);
   });
 
-  test("unknown boards and faces are refused", async ({ request }) => {
-    expect((await request.get("/api/casting-call/nope")).status()).toBe(404);
-    expect((await request.get("/api/casting-call/1/faces/8/image")).status()).toBe(404);
-    expect((await request.get("/api/casting-call/1/faces/-1/image")).status()).toBe(404);
+  test("unknown boards, faces and far-off days are refused", async ({ request }) => {
+    expect((await request.get("/api/casting-call/nope/solution")).status()).toBe(404);
+    expect((await request.get("/api/casting-call/fixture1/faces/8/image")).status()).toBe(404);
+    expect((await request.get("/api/casting-call/fixture1/faces/-1/image")).status()).toBe(404);
+    expect((await request.get("/api/casting-call/day/2999-01-01")).status()).toBe(404);
+    expect((await request.get("/api/casting-call/day/2001-01-01")).status()).toBe(404);
+  });
+
+  test("the cron route refuses callers without the secret", async ({ request }) => {
+    expect((await request.get("/api/cron/casting-call")).status()).toBe(401);
+    const wrong = await request.get("/api/cron/casting-call", { headers: { Authorization: "Bearer nope" } });
+    expect(wrong.status()).toBe(401);
   });
 });
 
 test.describe("against TMDB", () => {
   test.skip(!hasTmdb, "Needs TMDB_READ_ACCESS_TOKEN in .env.local.");
 
-  test("board 4 can be cleared with four real films", async ({ page }) => {
-    await page.goto("/casting-call/4");
+  test("today's fixture can be cleared with four real films, and shows them as the best route", async ({ page }) => {
+    await page.goto("/casting-call");
     await page.getByRole("button", { name: "Start" }).click();
     await expect(page.getByText("Shelley Duvall")).toBeVisible({ timeout: 15_000 });
 
@@ -284,10 +345,12 @@ test.describe("against TMDB", () => {
     }
     await expect(page.getByRole("heading", { name: "That's a wrap!" })).toBeVisible();
     await expect(page.getByText("All 8 actors in 4 guesses.")).toBeVisible();
+    await expect(page.getByText("Best route: 4 films")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("Tom Hardy and Charlize Theron")).toBeVisible();
   });
 
   test("a face picture comes from our own route", async ({ request }) => {
-    const response = await request.get("/api/casting-call/4/faces/0/image");
+    const response = await request.get("/api/casting-call/fixture1/faces/0/image");
     expect(response.status()).toBe(200);
     expect(response.headers()["content-type"]).toBe("image/webp");
   });

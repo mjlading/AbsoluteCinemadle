@@ -1,5 +1,6 @@
 import { customType, date, jsonb, pgTable, smallint, text, timestamp } from "drizzle-orm/pg-core";
 
+import type { BoardGroup } from "@/lib/casting-call/generate";
 import type { CollageKeyword, CollagePuzzle } from "@/lib/collage/types";
 import type { SoundbytesBoard, StoredSoundNode } from "@/lib/soundbytes/types";
 
@@ -53,4 +54,22 @@ export const soundbytesClips = pgTable("soundbytes_clips", {
     .references(() => soundbytesBoards.id, { onDelete: "cascade" }),
   contentType: text("content_type").notNull(),
   data: bytea("data").notNull(),
+});
+
+/**
+ * Casting call's daily boards, one per date, built on the server
+ * (src/lib/casting-call/generate.ts) by the daily cron job or by the first
+ * player of a day that has none. Who is on a board is the puzzle, so these
+ * stay on the server. They hold TMDB ids, so `synced_at` dates them for the 6-month limit.
+ */
+export const castingCallBoards = pgTable("casting_call_boards", {
+  /** Opaque id, used in the board's API addresses. */
+  id: text("id").primaryKey(),
+  /** The day it is the daily board (YYYY-MM-DD). */
+  date: date("date", { mode: "string" }).notNull().unique(),
+  /** TMDB person ids in board order; a face's id is its position here. */
+  personIds: jsonb("person_ids").$type<number[]>().notNull(),
+  /** The best route, shown once the game is over: one lesser-known film per group of faces. */
+  groups: jsonb("groups").$type<BoardGroup[]>().notNull(),
+  syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
 });
