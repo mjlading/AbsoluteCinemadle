@@ -188,17 +188,31 @@ test.describe("with TMDB stubbed", () => {
   test("six guesses without clearing the board loses and shows who was missed", async ({ page }) => {
     await openBoard(page);
     await start(page);
-    for (const title of ["Empty One", "Empty Two", "Empty Three", "Empty Four", "Empty Five"]) {
+    await guess(page, "Alpha Heist");
+    await hit(page, "Alpha Heist", "Ada Archer, Ben Bright, Cleo Crane");
+    await guess(page, "Bravo Run");
+    await hit(page, "Bravo Run", "Dov Dale, Eva Ellis");
+    for (const title of ["Empty One", "Empty Two", "Empty Three", "Empty Four"]) {
       await guess(page, title);
       await miss(page, title);
     }
-    await guess(page, "Alpha Heist");
 
     await expect(page.getByRole("heading", { name: "Out of guesses" })).toBeVisible();
-    await expect(page.getByText("You found 3 of 8. Better luck next time!")).toBeVisible();
+    await expect(page.getByText("You found 5 of 8. Better luck next time!")).toBeVisible();
     await expect(page.getByText("Hal Hayes")).toHaveClass(/text-marker/);
     await expect(page.getByText("Ada Archer", { exact: true }).first()).not.toHaveClass(/text-marker/);
     await expect(guessBox(page)).toBeDisabled();
+
+    // The last guess found nobody, so no cross is drawing; coming back to the board draws them all again.
+    const drawing = page.locator("svg.ccall-cross-draw");
+    await expect(drawing).toHaveCount(0);
+    await page.getByRole("link", { name: "Previous days" }).last().click();
+    await expect(page).toHaveURL(/archive$/);
+    await page.goBack();
+    await expect(page.getByRole("heading", { name: "Out of guesses" })).toBeVisible();
+    await expect(drawing).toHaveCount(5);
+    await page.reload();
+    await expect(drawing).toHaveCount(5);
   });
 
   test("the bar refills on a film with someone from the board, not on a miss, and ends the game", async ({ page }) => {

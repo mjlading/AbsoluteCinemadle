@@ -144,6 +144,7 @@ Each entry says what was decided and why, so it can be revisited.
 - A guess that finds nobody new still uses a guess.
 - Firing an actor (once a game, taking them off the board without a guess) was tried on 2026-11-14 and dropped by the owner the same day.
 - There are no points: the result is the number of guesses used, so nothing needs adding to `scoring.ts`.
+- A cross draws itself when its actor is found; a finished game draws every cross again whenever it's opened or come back to (the owner's request), including when Next.js shows the kept page again on Back.
 - Progress is saved per board in localStorage under `casting-call:<id>`, so a reload resumes; the archive shows "Solved in N" or "Missed".
   Games saved on the old fixed boards are simply never read again.
 - Faces are 320-pixel squares cropped from the top of the TMDB profile photo, cached for a day.

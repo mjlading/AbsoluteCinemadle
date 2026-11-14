@@ -122,11 +122,21 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
   const [busy, setBusy] = useState(false);
   const [shakeKey, setShakeKey] = useState(0);
   const [feedback, setFeedback] = useState<Feedback>(null);
-  // Faces crossed by the latest guess get the stamp animation; a reload shows them already crossed.
-  const [fresh, setFresh] = useState<string[]>([]);
+  // Faces crossed by the latest guess draw their cross; a finished game opened again draws every cross.
+  const [fresh, setFresh] = useState<string[]>(() =>
+    state.status === "won" || state.status === "lost" ? state.crossed : [],
+  );
 
   const playing = state.status === "playing";
   const over = state.status === "won" || state.status === "lost";
+
+  // Next.js keeps a page alive when the player leaves it and shows it again on coming back, which
+  // restarts the cross animations. Leaving a finished game marks every cross, so they all draw again.
+  useEffect(() => {
+    if (!over) return;
+    const crossedNow = state.crossed;
+    return () => setFresh(crossedNow);
+  }, [over, state.crossed]);
   const crossed = new Set(state.crossed);
   const left = guessesLeft(state);
   const deadline = state.deadline;
