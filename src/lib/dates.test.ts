@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { addDays, formatPuzzleDate, isIsoDate, isPlayableDate, localIsoDate, utcIsoDate } from "./dates";
+import { addDays, dayNumber, formatPuzzleDate, isIsoDate, isPlayableDate, localIsoDate, utcIsoDate } from "./dates";
 
 describe("isIsoDate", () => {
   it("accepts real dates and rejects everything else", () => {
@@ -50,5 +50,17 @@ describe("addDays", () => {
 describe("utcIsoDate", () => {
   it("uses the UTC calendar day", () => {
     expect(utcIsoDate(new Date("2026-10-14T23:30:00-05:00"))).toBe("2026-10-15");
+  });
+});
+
+describe("dayNumber", () => {
+  it("is 1 on the launch date and counts up one per day, across months", () => {
+    expect(dayNumber("2026-11-10", "2026-11-10")).toBe(1);
+    expect(dayNumber("2026-11-14", "2026-11-10")).toBe(5);
+    expect(dayNumber("2026-12-01", "2026-11-10")).toBe(22);
+  });
+
+  it("has no number before the launch", () => {
+    expect(dayNumber("2026-11-09", "2026-11-10")).toBeNull();
   });
 });
