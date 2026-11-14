@@ -47,7 +47,7 @@ export const RULES = {
        */
       wellKnownRoles: 8,
       /** The film a pair shares has at least `min` TMDB votes (so it can be found) and fewer than `max`. */
-      sharedFilmVotes: { min: 300, max: 2500 },
+      sharedFilmVotes: { min: 1500, max: 6000 },
       /** Both actors are billed this high (TMDB cast order from 0) in the film they share. */
       sharedFilmOrder: 5,
       /** Actors and films used on a board aren't used again within this many days either side. */
