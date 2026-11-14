@@ -26,7 +26,8 @@ The owner's brief: obscure films, well-known actors.
 - How a pair is found: a lead from the top of the billing of one of TMDB's 400 most-voted films (no animation or documentaries); one of their lesser-known films; a well-known co-star from its billing.
 - Well known: at least 8 starring roles (billed in the top 4) in films with 3,000+ TMDB votes, counting only on-screen roles in proper films (no cameos as themselves, voice parts, TV films, animation or documentaries).
   It was 6 roles in films with 1,000+ votes until the owner's first playtest (2026-11-14) found faces such as Kevin Dunn and Clea DuVall too little known.
-- Lesser known: a film with 40 to 799 TMDB votes where both are billed in the top 6.
+- Lesser known: a film with 300 to 2,499 TMDB votes where both are billed in the top 6.
+  It was 40 to 799 until the owner's second playtest (2026-11-14) found the game too hard with the stricter actors.
 - Every board is checked against every film the 8 are credited in: if fewer than 4 films could clear it, it is thrown away and another is built.
 - Actors and films used on a board aren't used again within 60 days either side.
 - The faces are shuffled, so a pair never sits in a known place on the board.
