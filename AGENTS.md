@@ -6,7 +6,7 @@ Three film games, each with its own route, code folders and design notes:
   `/close-ups` is today's puzzle and `/close-ups/archive` lists earlier days; puzzles are curated in `tools/collage-lab` and loaded with `npm run db:import-collage`.
 - Soundbytes (`/soundbytes`, docs/SOUNDBYTES.md): a daily; name the film from lines of dialogue that get easier, then its theme.
   Boards are built on the owner's PC by `tools/soundbytes-lab` and loaded with `npm run db:import-soundbytes`.
-- Casting call (`/casting-call`, docs/CASTING-CALL.md): a daily; cross out 8 actors by naming films, within 6 guesses and a 40-second bar.
+- Casting call (`/casting-call`, docs/CASTING-CALL.md): a daily; cross out 8 actors by naming films, within 5 guesses and a 40-second bar.
   `/casting-call` is today's board and `/casting-call/archive` lists earlier days; boards are built by the server from TMDB (`src/lib/casting-call/generate.ts`), by a daily Vercel Cron job or on a day's first visit.
 
 Decisions taken where the owner's briefs are silent live in [ASSUMPTIONS.md](ASSUMPTIONS.md); add to it instead of stopping to ask.

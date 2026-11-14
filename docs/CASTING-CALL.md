@@ -11,10 +11,12 @@ Rules decided where the brief is silent are in [ASSUMPTIONS.md](../ASSUMPTIONS.m
   Every actor on the board who is in a guessed film's cast is crossed out (a red marker cross on the face, a line through the name).
 - Any film with at least one actor from the board refills the bar, even if they were already crossed out.
 - Crossing out all 8 wins; the score is the number of guesses used, fewer is better.
-- The bar running out, or 6 guesses without crossing out all 8, loses; the missed actors are then shown in red.
+- The bar running out, or 5 guesses without crossing out all 8, loses; the missed actors are then shown in red.
 - A guess that crosses out nobody new still counts; repeating a film is turned away for free.
+- Once a game, the player may fire an actor they can't place (the owner's idea, 2026-11-14): "Fire one" turns the faces still on the board into buttons, and the one picked is stamped FIRED and counts as done, without using a guess.
+  Firing doesn't touch the bar, and a fired actor is never crossed out by a later film. The number of fires is `RULES.castingCall.firesPerGame`.
 - Once the game is over, win or lose, the board's best route is shown: the films it was built from (3 or 4), each with its group of actors.
-- Share copies `Casting call #5 4/6` and one square per guess: green crossed someone new, red didn't, black unused.
+- Share copies `Casting call #5 4/5` (with a 🔥 when an actor was fired) and one square per guess: green crossed someone new, red didn't, black unused.
 
 ## Daily boards
 
@@ -32,8 +34,8 @@ The owner's brief: obscure films, well-known actors; playtests then moved the fi
 - How a group is found: a lead from the top of the billing of one of the 400 most-voted films; one of their lesser-known films; well-known co-stars from its billing (the biggest groups are found first).
 - Well known: at least 8 starring roles (billed in the top 4) in films ranked in the top 1,750 (about 3,000 votes in November 2026), counting only on-screen roles in proper films (no cameos as themselves, voice parts, TV films, animation or documentaries).
   It was 6 roles in films with 1,000+ votes until the owner's first playtest (2026-11-14) found faces such as Kevin Dunn and Clea DuVall too little known.
-- The shared film: one ranked #201 to #1,500 (about 13,000 to 3,500 votes in November 2026) where everyone in the group is billed in the top 6: widely seen, but not a top blockbuster.
-  No two in a group may share a film ranked higher. It was 40 to 799 votes, then 300 to 2,499, then 1,500 to 5,999, then ranks #351 to #2,100; the owner's playtests on 2026-11-14 found each too hard.
+- The shared film: one ranked #151 to #1,200 (about 15,000 to 4,250 votes in November 2026) where everyone in the group is billed in the top 6: widely seen, but not a top blockbuster.
+  No two in a group may share a film ranked higher. It was 40 to 799 votes, then 300 to 2,499, then 1,500 to 5,999, then ranks #351 to #2,100, then #201 to #1,500; the owner's playtests on 2026-11-14 found each too hard.
 - Every board is checked against every film the 8 are credited in: if fewer films than it has groups could clear it, it is thrown away and another is built.
 - Actors and films used on a board aren't used again within 60 days either side.
 - The faces are shuffled, so a group never sits in a known place on the board.

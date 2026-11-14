@@ -4,7 +4,7 @@ import "./casting-call.css";
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Confetti } from "@/components/game/Confetti";
 import { GameTopBar } from "@/components/game/GameTopBar";
@@ -22,6 +22,8 @@ import {
   alreadyGuessed,
   castingCallReducer,
   castingShareText,
+  firesLeft,
+  isDone,
   guessesLeft,
   initialCastingCallState,
   msLeft,
@@ -124,12 +126,37 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
   const [feedback, setFeedback] = useState<Feedback>(null);
   // Faces crossed by the latest guess get the stamp animation; a reload shows them already crossed.
   const [fresh, setFresh] = useState<string[]>([]);
+  // Picking who to fire: the faces still on the board turn into buttons until one is picked or it's cancelled.
+  const [firing, setFiring] = useState(false);
+  const facesRef = useRef<HTMLUListElement>(null);
+  const fireMessages = useRef(0);
 
   const playing = state.status === "playing";
   const over = state.status === "won" || state.status === "lost";
   const crossed = new Set(state.crossed);
+  const fired = new Set(state.fired);
   const left = guessesLeft(state);
   const deadline = state.deadline;
+  const canFire = playing && firesLeft(state) > 0;
+  const picking = firing && canFire && !busy;
+
+  // Entering pick mode moves focus to the first face that can be fired; Escape leaves it.
+  useEffect(() => {
+    if (!picking) return;
+    facesRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setFiring(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [picking]);
+
+  function fire(faceId: string) {
+    if (!canFire || isDone(state, faceId)) return;
+    dispatch({ type: "fire", faceId });
+    setFiring(false);
+    setFresh([faceId]);
+    // Negative ids never clash with the guesses' timestamps.
+    setFeedback({ id: -++fireMessages.current, kind: "hit", message: `You fired ${state.names[faceId]}.` });
+  }
 
   // The bar: ticks while playing and ends the game at zero, unless a film submitted in time is still being checked.
   useEffect(() => {
@@ -197,14 +224,30 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
     <div className="mt-3">
       {state.status === "won" && <Confetti />}
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex min-h-9 items-center justify-between gap-3">
         <p className="text-sm text-ink-soft">
           <strong className="text-ink">{crossed.size}</strong> of {board.faces.length} found
+          {fired.size > 0 && <>, {fired.size} fired</>}
         </p>
-        <GuessDots left={left} />
+        <div className="flex items-center gap-3">
+          {canFire && (
+            <button
+              type="button"
+              onClick={() => setFiring((f) => !f)}
+              disabled={busy}
+              aria-pressed={firing}
+              className={`inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-sm font-semibold ring-[1.5px] ring-inset disabled:opacity-50 ${
+                firing ? "bg-marker text-white ring-marker" : "text-marker ring-marker/60 hover:ring-marker"
+              }`}
+            >
+              <PinkSlipIcon className="size-4" /> Fire one
+            </button>
+          )}
+          <GuessDots left={left} />
+        </div>
       </div>
 
-      <ul aria-label="Faces" className="mt-4 grid grid-cols-4 gap-2 sm:gap-3">
+      <ul ref={facesRef} aria-label="Faces" className="mt-3 grid grid-cols-4 gap-2 sm:gap-3">
         {board.faces.map((face, i) => (
           <FaceCard
             key={face.id}
@@ -212,9 +255,11 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
             imageUrl={face.imageUrl}
             name={state.names[face.id] ?? null}
             crossed={crossed.has(face.id)}
+            fired={fired.has(face.id)}
             fresh={fresh.includes(face.id)}
-            missed={state.status === "lost" && !crossed.has(face.id)}
+            missed={state.status === "lost" && !crossed.has(face.id) && !fired.has(face.id)}
             blurred={state.status === "ready"}
+            onFire={picking && !isDone(state, face.id) ? () => fire(face.id) : undefined}
           />
         ))}
       </ul>
@@ -244,7 +289,18 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
           </>
         )}
         <p aria-live="polite" className="mt-2 flex min-h-6 items-center gap-2 text-sm">
-          {busy ? (
+          {picking ? (
+            <span className="flex w-full items-center justify-between gap-3 font-semibold text-marker">
+              Pick the actor to fire. They&rsquo;re off the board, no guess used.
+              <button
+                type="button"
+                onClick={() => setFiring(false)}
+                className="shrink-0 rounded-full px-3 py-1 text-ink underline underline-offset-4 hover:bg-ink/8"
+              >
+                Cancel
+              </button>
+            </span>
+          ) : busy ? (
             <span className="flex items-center gap-2 text-ink-soft">
               <ReelSpinner className="size-4" /> Checking the cast&hellip;
             </span>
@@ -259,7 +315,7 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
             <span className="text-ink-soft">
               Start reveals the {board.faces.length} faces and names and sets off a {RULES.castingCall.timeLimitSeconds}
               -second bar. Any film with someone from the board refills it. Cross out everyone within{" "}
-              {RULES.castingCall.maxGuesses} guesses.
+              {RULES.castingCall.maxGuesses} guesses. Stuck on someone? Fire them.
             </span>
           ) : state.guesses.length === 0 && playing ? (
             <span className="text-ink-soft">
@@ -356,50 +412,102 @@ function FaceCard({
   imageUrl,
   name,
   crossed,
+  fired,
   fresh,
   missed,
   blurred,
+  onFire,
 }: {
   index: number;
   imageUrl: string;
   name: string | null;
   crossed: boolean;
+  fired: boolean;
   fresh: boolean;
   missed: boolean;
   /** Before Start: the face can't be studied for free. */
   blurred: boolean;
+  /** Set while the player is picking who to fire: the face becomes a button. */
+  onFire?: () => void;
 }) {
+  const done = crossed || fired;
+  const picture = (
+    <>
+      <Image
+        src={imageUrl}
+        alt={onFire ? "" : crossed ? `${name}, crossed out` : fired ? `${name}, fired` : (name ?? `Face ${index + 1}`)}
+        fill
+        unoptimized
+        sizes="(min-width: 640px) 8rem, 25vw"
+        className={`object-cover transition-[filter,scale] duration-500 ${done ? "grayscale-[0.6] brightness-75" : ""} ${fired ? "grayscale brightness-[0.6]" : ""} ${blurred ? "scale-125 blur-xl" : ""}`}
+      />
+      {crossed && <MarkerCross animate={fresh} />}
+      {fired && <FiredStamp animate={fresh} />}
+    </>
+  );
+  const frame = "relative block aspect-square w-full overflow-hidden rounded-[6px] bg-sheet";
   return (
     <li className="min-w-0">
-      <div
-        className={`relative aspect-square overflow-hidden rounded-[6px] bg-sheet ring-1 ring-ink/15 ${
-          crossed && fresh ? "ccall-stamp" : ""
-        }`}
-      >
-        <Image
-          src={imageUrl}
-          alt={crossed ? `${name}, crossed out` : (name ?? `Face ${index + 1}`)}
-          fill
-          unoptimized
-          sizes="(min-width: 640px) 8rem, 25vw"
-          className={`object-cover transition-[filter,scale] duration-500 ${crossed ? "grayscale-[0.6] brightness-75" : ""} ${blurred ? "scale-125 blur-xl" : ""}`}
-        />
-        {crossed && <MarkerCross animate={fresh} />}
-      </div>
+      {onFire ? (
+        <button
+          type="button"
+          onClick={onFire}
+          aria-label={`Fire ${name}`}
+          className={`${frame} outline-none ring-2 ring-marker ring-offset-2 ring-offset-table hover:brightness-110 focus-visible:ring-4`}
+        >
+          {picture}
+        </button>
+      ) : (
+        <div className={`${frame} ring-1 ring-ink/15 ${crossed && fresh ? "ccall-stamp" : ""}`}>{picture}</div>
+      )}
       <p
         className={`mt-1 line-clamp-2 min-h-[2.2em] text-center text-xs font-semibold leading-tight ${
           missed
             ? "text-marker"
             : crossed
               ? "text-ink-soft line-through decoration-marker decoration-2"
-              : name
-                ? "text-ink"
-                : "text-ink-soft"
+              : fired
+                ? "text-ink-soft line-through decoration-ink-soft decoration-2"
+                : name
+                  ? "text-ink"
+                  : "text-ink-soft"
         }`}
       >
         {name ?? "?"}
       </p>
     </li>
+  );
+}
+
+/** A red rubber stamp over a fired face. */
+function FiredStamp({ animate }: { animate: boolean }) {
+  return (
+    <span aria-hidden="true" className="pointer-events-none absolute inset-0 grid place-items-center">
+      <span
+        className={`ccall-fired rounded-[3px] border-[2.5px] border-marker-strong bg-white/85 px-1.5 py-0.5 font-condensed text-[clamp(0.7rem,3.4vw,1rem)] font-black uppercase leading-none tracking-[0.12em] text-marker-strong ${animate ? "ccall-fired-in" : ""}`}
+      >
+        Fired
+      </span>
+    </span>
+  );
+}
+
+/** A pink slip: the notice that you're fired. */
+function PinkSlipIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 3h9l4 4v14H6z" />
+      <path d="M15 3v4h4M9 12h7M9 16h5" />
+    </svg>
   );
 }
 
@@ -445,7 +553,7 @@ function EndPanel({ board, state }: { board: PublicCastingBoard; state: CastingC
       </h2>
       <p className="mt-2 leading-snug">
         {won
-          ? `All ${total} actors in ${used} ${used === 1 ? "guess" : "guesses"}.`
+          ? `All ${total} actors in ${used} ${used === 1 ? "guess" : "guesses"}${state.fired.length ? `, ${state.fired.length} fired` : ""}.`
           : `You found ${state.crossed.length} of ${total}. The ones you missed are in red.`}
       </p>
       <BestRoute board={board} names={state.names} />

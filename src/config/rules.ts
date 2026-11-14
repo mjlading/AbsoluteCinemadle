@@ -25,9 +25,11 @@ export const RULES = {
     /** Actors' faces on a board. */
     faceCount: 8,
     /** Film guesses per board; crossing out every face within them wins. */
-    maxGuesses: 6,
+    maxGuesses: 5,
     /** The bar's length; it starts on Start and refills on any film with someone from the board. */
     timeLimitSeconds: 40,
+    /** Actors a player may fire per game: taken off the board as done, without a guess. */
+    firesPerGame: 1,
     /**
      * How the daily board is built (src/lib/casting-call/generate.ts): well-known actors in groups,
      * each group sharing a lesser-known film, so the best route takes one film per group.
@@ -57,10 +59,10 @@ export const RULES = {
       wellKnownRoles: 8,
       /**
        * The film a group shares ranks below `from` and no lower than `to`: widely seen, but not a top
-       * blockbuster (about 13,000 to 3,500 votes in November 2026, The Great Gatsby to Jeepers Creepers).
+       * blockbuster (about 15,000 to 4,250 votes in November 2026, Alice in Wonderland to Babel).
        * No two in a group may share a film ranked above `from`.
        */
-      sharedFilmRanks: { from: 200, to: 1500 },
+      sharedFilmRanks: { from: 150, to: 1200 },
       /** Everyone in a group is billed this high (TMDB cast order from 0) in the film they share. */
       sharedFilmOrder: 5,
       /** Actors and films used on a board aren't used again within this many days either side. */
