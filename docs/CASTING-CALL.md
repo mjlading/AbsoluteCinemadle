@@ -45,6 +45,7 @@ Boards are built on the server, never by hand, and stored in the `casting_call_b
   So the first run fills #1 onwards (the owner asked for days 1 to 5), and a day whose board was deleted is built again; a run stops starting boards after 200 seconds and leaves the rest for the next.
 - A player who reaches a day without a board (today somewhere on Earth: UTC-1 to UTC+1 days) gets it built on the spot, in a few seconds, so a missed cron run never leaves a day empty.
 - Building is seeded by the date, so the same TMDB data and history give the same board.
+  `CASTING_CALL_SEED` (optional) goes into every seed: a new value re-rolls the boards built from then on, for instance after clearing some; boards already stored never change.
 - `npm run db:import-casting-call` loads hand-made boards (the E2E fixtures, or a board for a particular day).
 
 The six fixed boards from before the daily are kept, unused, in `tools/casting-call/legacy-boards.json`; `/casting-call/1` to `/casting-call/6` redirect to today's board.

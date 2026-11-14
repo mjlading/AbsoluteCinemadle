@@ -57,6 +57,8 @@ export function FilmGuess({
   // Results for an earlier, shorter prefix stay up while the refined ones load; anything else is stale.
   const fresh = suggestions && query.toLowerCase().startsWith(suggestions.query.toLowerCase());
   const films = open && !disabled && query.length >= 2 && fresh ? suggestions.films : [];
+  // The top suggestion is the one Enter takes until the arrows pick another, so it counts as selected.
+  const current = films.length === 0 ? -1 : active >= 0 && active < films.length ? active : 0;
 
   const pick = (film: FilmSuggestion) => {
     if (busy) return;
@@ -69,17 +71,17 @@ export function FilmGuess({
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      const choice = films[active >= 0 ? active : 0];
+      const choice = films[current];
       if (choice) pick(choice);
       return;
     }
     if (films.length === 0) return;
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setActive((i) => (i + 1) % films.length);
+      setActive((current + 1) % films.length);
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
-      setActive((i) => (i <= 0 ? films.length - 1 : i - 1));
+      setActive(current <= 0 ? films.length - 1 : current - 1);
     } else if (event.key === "Escape") {
       setOpen(false);
       setActive(-1);
@@ -98,7 +100,7 @@ export function FilmGuess({
         aria-expanded={films.length > 0}
         aria-controls={listId}
         aria-autocomplete="list"
-        aria-activedescendant={active >= 0 && films[active] ? `${listId}-${active}` : undefined}
+        aria-activedescendant={current >= 0 ? `${listId}-${current}` : undefined}
         aria-busy={busy}
         autoComplete="off"
         autoCapitalize="words"
@@ -131,12 +133,12 @@ export function FilmGuess({
               key={film.tmdbId}
               id={`${listId}-${index}`}
               role="option"
-              aria-selected={index === active}
+              aria-selected={index === current}
               // Keep focus in the input; a mousedown here would blur it and close the list first.
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => pick(film)}
               className={`flex min-h-11 cursor-pointer items-baseline gap-2 px-4 py-2 ${
-                index === active || (active < 0 && index === 0) ? "bg-ink/10" : "hover:bg-ink/5"
+                index === current ? "bg-ink/10" : "hover:bg-ink/5"
               }`}
             >
               <span className="font-semibold">{film.title}</span>

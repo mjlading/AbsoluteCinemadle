@@ -142,7 +142,9 @@ export function getOrBuildBoard(date: string): Promise<CastingCallBoard> {
     pending = (async () => {
       const existing = await getBoardByDate(date);
       if (existing) return existing;
-      const built = await buildBoard(tmdbSource, { seed: `casting-call:${date}`, ...(await nearbyUse(date)) });
+      // CASTING_CALL_SEED re-rolls boards not built yet (say, after clearing some), which are otherwise the same for a date.
+      const seed = `casting-call:${process.env.CASTING_CALL_SEED ?? ""}${date}`;
+      const built = await buildBoard(tmdbSource, { seed, ...(await nearbyUse(date)) });
       // Another server instance may have stored one meanwhile; the first one stored wins.
       await db()
         .insert(castingCallBoards)

@@ -195,7 +195,7 @@ test.describe("with TMDB stubbed", () => {
     await guess(page, "Alpha Heist");
 
     await expect(page.getByRole("heading", { name: "Out of guesses" })).toBeVisible();
-    await expect(page.getByText("You found 3 of 8.")).toBeVisible();
+    await expect(page.getByText("You found 3 of 8. Better luck next time!")).toBeVisible();
     await expect(page.getByText("Hal Hayes")).toHaveClass(/text-marker/);
     await expect(page.getByText("Ada Archer", { exact: true }).first()).not.toHaveClass(/text-marker/);
     await expect(guessBox(page)).toBeDisabled();
@@ -219,7 +219,7 @@ test.describe("with TMDB stubbed", () => {
 
     await page.clock.fastForward(11_000);
     await expect(page.getByRole("heading", { name: "Time's up" })).toBeVisible();
-    await expect(page.getByText("You found 3 of 8.")).toBeVisible();
+    await expect(page.getByText("You found 3 of 8. Better luck next time!")).toBeVisible();
     await expect(timer(page)).toHaveCount(0);
     await expect(guessBox(page)).toBeDisabled();
   });
@@ -231,12 +231,13 @@ test.describe("with TMDB stubbed", () => {
     await page.keyboard.press("Enter");
     await expect(guessBox(page)).toBeFocused();
 
-    // "empty" lists all five; the arrow moves off the top suggestion and Escape closes the list.
+    // "empty" lists all five with the top one selected; one arrow press moves to the next, and Escape closes the list.
     await page.keyboard.type("empty");
     await expect(page.getByRole("option")).toHaveCount(5);
-    await page.keyboard.press("ArrowDown");
+    await expect(page.getByRole("option", { name: /Empty One/ })).toHaveAttribute("aria-selected", "true");
     await page.keyboard.press("ArrowDown");
     await expect(page.getByRole("option", { name: /Empty Two/ })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("option", { name: /Empty One/ })).toHaveAttribute("aria-selected", "false");
     await page.keyboard.press("Enter");
     await miss(page, "Empty Two");
     await expect(guessBox(page)).toBeFocused();

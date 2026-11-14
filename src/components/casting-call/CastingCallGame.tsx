@@ -446,7 +446,7 @@ function EndPanel({ board, state }: { board: PublicCastingBoard; state: CastingC
       <p className="mt-2 leading-snug">
         {won
           ? `All ${total} actors in ${used} ${used === 1 ? "guess" : "guesses"}.`
-          : `You found ${state.crossed.length} of ${total}. The ones you missed are in red.`}
+          : `You found ${state.crossed.length} of ${total}. Better luck next time!`}
       </p>
       <BestRoute board={board} names={state.names} />
       <div className="mt-4 flex flex-wrap gap-3">
