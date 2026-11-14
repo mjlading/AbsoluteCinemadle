@@ -100,10 +100,17 @@ describe("casting call state", () => {
     expect(msLeft(state, LIMIT + 5000)).toBe(0);
   });
 
-  it("shares the guesses used and a square per guess", () => {
+  it("shares the guesses used and a row per film that builds up: green for everyone crossed out so far", () => {
+    // The second film crosses out nobody, and the third only someone already found: both repeat the row above.
     const won = play(start, guess(1, "0", "1"), guess(2), guess(3, "1"), guess(4, "2", "3"));
-    expect(castingShareText("Casting call #6", won)).toBe("Casting call #6 4/6\n🟩🟥🟥🟩⬛⬛");
-    const lost = play(start, guess(1, "0"), { type: "timeUp" });
-    expect(castingShareText("Casting call #7", lost)).toBe("Casting call #7 X/6\n🟩⬛⬛⬛⬛⬛");
+    expect(castingShareText("Casting call #6", won, 4)).toBe(
+      "Casting call #6 4/6\n🟩🟩⬛⬛\n🟩🟩⬛⬛\n🟩🟩⬛⬛\n🟩🟩🟩🟩",
+    );
+  });
+
+  it("shares a loss as X, with a full board's width unless told otherwise", () => {
+    const lost = play(start, guess(1), guess(2, "0"), { type: "timeUp" });
+    expect(castingShareText("Casting call #7", lost, 4)).toBe("Casting call #7 X/6\n⬛⬛⬛⬛\n🟩⬛⬛⬛");
+    expect(castingShareText("Casting call #7", lost)).toBe("Casting call #7 X/6\n⬛⬛⬛⬛⬛⬛⬛⬛\n🟩⬛⬛⬛⬛⬛⬛⬛");
   });
 });

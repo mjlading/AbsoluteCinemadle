@@ -14,7 +14,10 @@ Rules decided where the brief is silent are in [ASSUMPTIONS.md](../ASSUMPTIONS.m
 - The bar running out, or 6 guesses without crossing out all 8, loses; the missed actors are then shown in red.
 - A guess that crosses out nobody new still counts; repeating a film is turned away for free.
 - Once the game is over, win or lose, the board's best route is shown: the films it was built from (3 or 4), each with its group of actors.
-- Share copies `Casting call #5 4/6` and one square per guess: green crossed someone new, red didn't, black unused.
+- Share copies `Casting call #5 4/6` (`X/6` for a loss) and one row per film guessed, 8 squares wide, that builds up as Wordle's does: a green square for every actor crossed out so far, then grey up to the board's 8 actors.
+  A film that crossed out nobody new repeats the row above it.
+  The owner found one square per guess said too little, and asked for Wordle's logic (2026-11-14); grey is the black square the other games use for "not reached".
+- The game-over panel ends with the same Share and Previous days buttons as the other games (`src/components/game/ResultActions.tsx`).
 
 ## Daily boards
 

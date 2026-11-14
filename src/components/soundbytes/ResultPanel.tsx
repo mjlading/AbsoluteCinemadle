@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
+import { ResultActions } from "@/components/game/ResultActions";
 import { SITE } from "@/config/site";
 import { soundbytesTitle } from "@/lib/soundbytes/day";
 import { lineMarks, wonOnLine, type SoundbytesState } from "@/lib/soundbytes/state";
@@ -21,28 +21,12 @@ export function soundbytesShareText(board: PublicSoundbytesBoard, state: Soundby
 /** Takes the guess row's place once the game is over: the film, the line it was named on, Share and the way on. */
 export function ResultPanel({ board, state }: { board: PublicSoundbytesBoard; state: SoundbytesState }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const [copied, setCopied] = useState<"yes" | "failed" | null>(null);
   const { answer } = state;
   const won = state.status === "won";
   const line = wonOnLine(state);
 
   // The guess box this replaces had focus, so focus moves to the film's name.
   useEffect(() => headingRef.current?.focus({ preventScroll: true }), []);
-
-  useEffect(() => {
-    if (!copied) return;
-    const timer = window.setTimeout(() => setCopied(null), 2000);
-    return () => window.clearTimeout(timer);
-  }, [copied]);
-
-  async function share() {
-    try {
-      await navigator.clipboard.writeText(soundbytesShareText(board, state));
-      setCopied("yes");
-    } catch {
-      setCopied("failed");
-    }
-  }
 
   return (
     <section aria-labelledby="sb-result" className="closeups-rise flex flex-col gap-3">
@@ -101,21 +85,7 @@ export function ResultPanel({ board, state }: { board: PublicSoundbytesBoard; st
           </p>
         </div>
       </div>
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={share}
-          className="h-12 flex-1 rounded-xl bg-ink font-semibold text-table transition-colors hover:bg-ink/85"
-        >
-          {copied === "yes" ? "Copied" : copied === "failed" ? "Couldn't copy" : "Share"}
-        </button>
-        <Link
-          href={SITE.games.soundbytesArchive}
-          className="grid h-12 flex-1 place-items-center rounded-xl bg-ink/7 font-condensed text-[17px] font-extrabold tracking-[0.02em] transition-colors hover:bg-ink/12"
-        >
-          Previous days
-        </Link>
-      </div>
+      <ResultActions shareText={() => soundbytesShareText(board, state)} archiveHref={SITE.games.soundbytesArchive} />
     </section>
   );
 }
