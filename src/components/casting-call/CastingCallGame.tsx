@@ -36,6 +36,7 @@ import { localIsoDate } from "@/lib/dates";
 import { ApiError, type FilmSuggestion } from "@/lib/game/api";
 import { usePersistentReducer } from "@/lib/game/storage";
 import { FilmGuess } from "./FilmGuess";
+import { PinkSlip } from "./PinkSlip";
 
 export const castingStorageKey = (boardId: string) => `casting-call:${boardId}`;
 
@@ -229,22 +230,7 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
           <strong className="text-ink">{crossed.size}</strong> of {board.faces.length} found
           {fired.size > 0 && <>, {fired.size} fired</>}
         </p>
-        <div className="flex items-center gap-3">
-          {canFire && (
-            <button
-              type="button"
-              onClick={() => setFiring((f) => !f)}
-              disabled={busy}
-              aria-pressed={firing}
-              className={`inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-sm font-semibold ring-[1.5px] ring-inset disabled:opacity-50 ${
-                firing ? "bg-marker text-white ring-marker" : "text-marker ring-marker/60 hover:ring-marker"
-              }`}
-            >
-              <PinkSlipIcon className="size-4" /> Fire one
-            </button>
-          )}
-          <GuessDots left={left} />
-        </div>
+        <GuessDots left={left} />
       </div>
 
       <ul ref={facesRef} aria-label="Faces" className="mt-3 grid grid-cols-4 gap-2 sm:gap-3">
@@ -263,6 +249,10 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
           />
         ))}
       </ul>
+
+      {canFire && (
+        <FireRow picking={picking} left={firesLeft(state)} disabled={busy} onToggle={() => setFiring((f) => !f)} />
+      )}
 
       <div className="mt-5">
         {state.status === "ready" ? (
@@ -289,18 +279,7 @@ function CastingCallPlay({ board }: { board: PublicCastingBoard }) {
           </>
         )}
         <p aria-live="polite" className="mt-2 flex min-h-6 items-center gap-2 text-sm">
-          {picking ? (
-            <span className="flex w-full items-center justify-between gap-3 font-semibold text-marker">
-              Pick the actor to fire. They&rsquo;re off the board, no guess used.
-              <button
-                type="button"
-                onClick={() => setFiring(false)}
-                className="shrink-0 rounded-full px-3 py-1 text-ink underline underline-offset-4 hover:bg-ink/8"
-              >
-                Cancel
-              </button>
-            </span>
-          ) : busy ? (
+          {busy ? (
             <span className="flex items-center gap-2 text-ink-soft">
               <ReelSpinner className="size-4" /> Checking the cast&hellip;
             </span>
@@ -492,22 +471,59 @@ function FiredStamp({ animate }: { animate: boolean }) {
   );
 }
 
-/** A pink slip: the notice that you're fired. */
-function PinkSlipIcon({ className = "" }: { className?: string }) {
+/**
+ * Firing, out in the open under the faces: the pink slip, what it does and how
+ * many are left. Pressed, it turns red and asks for a face, with Cancel beside it.
+ */
+function FireRow({
+  picking,
+  left,
+  disabled,
+  onToggle,
+}: {
+  picking: boolean;
+  left: number;
+  disabled: boolean;
+  onToggle: () => void;
+}) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+    <div
+      className={`mt-4 flex items-center gap-2 rounded-[12px] p-1.5 pr-2 ring-[1.5px] transition-colors ${
+        picking ? "bg-marker/12 ring-marker" : "bg-surface ring-ink/12"
+      }`}
     >
-      <path d="M6 3h9l4 4v14H6z" />
-      <path d="M15 3v4h4M9 12h7M9 16h5" />
-    </svg>
+      <button
+        type="button"
+        onClick={onToggle}
+        disabled={disabled}
+        aria-pressed={picking}
+        aria-describedby="ccall-fire-hint"
+        className="group flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-[9px] px-1.5 text-left outline-offset-2 hover:bg-ink/4 disabled:opacity-60"
+      >
+        <PinkSlip className="ccall-slip size-11 shrink-0 transition-transform group-hover:-rotate-6 group-hover:scale-105" />
+        <span className="min-w-0 leading-tight">
+          <span className={`block font-display text-xl font-[850] ${picking ? "text-marker" : ""}`}>
+            {picking ? "Tap the actor to fire" : "Fire an actor"}
+          </span>
+          <span id="ccall-fire-hint" className="block text-sm text-ink-soft">
+            {picking ? "They're off the board, no guess used." : "Can't place someone? Cut them, no guess used."}
+          </span>
+        </span>
+      </button>
+      {picking ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          className="min-h-10 shrink-0 rounded-full px-4 text-sm font-semibold ring-1 ring-ink/30 hover:ring-ink"
+        >
+          Cancel
+        </button>
+      ) : (
+        <span className="shrink-0 rounded-full bg-marker px-2.5 py-1 font-condensed text-xs font-bold uppercase tracking-wide text-white">
+          {left} left
+        </span>
+      )}
+    </div>
   );
 }
 

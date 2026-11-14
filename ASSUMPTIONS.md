@@ -136,7 +136,7 @@ Each entry says what was decided and why, so it can be revisited.
 - The six fixed boards were retired from the app and kept in `tools/casting-call/legacy-boards.json`; their old addresses redirect to today's board.
 - Faces are blurred before Start and names are not sent at all; the names are only fetched when Start is pressed, so the clock is running once they're known. The blur is CSS only, so the picture itself is still reachable by someone digging in the browser, which only spoils their own game.
 - The 5-guess limit stayed when the 40-second bar was added; the owner's brief for the bar didn't remove it.
-  The owner tried 6 on 2026-11-14 and went back to 5 the same day, when firing an actor was added.
+  The owner raised it to 6 on 2026-11-14, dropped it back to 5 when firing was added, then settled on 6 the same day.
 - A film refills the bar if anyone from the board is in it, including actors already crossed out; a film with nobody from the board doesn't.
 - The bar keeps running across a reload, since its deadline is saved; time spent waiting for the server to check a film isn't charged.
 - Any credited role in a film counts, however small: the player named a film the actor is in.

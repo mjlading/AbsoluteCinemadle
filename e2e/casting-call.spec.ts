@@ -68,7 +68,7 @@ async function stubTmdbRoutes(page: Page) {
 
 const guessBox = (page: Page) => page.getByRole("combobox", { name: "Guess a film" });
 const timer = (page: Page) => page.getByRole("timer");
-const guessesLeft = (page: Page, left: number) => page.getByLabel(`${left} of 5 guesses left`);
+const guessesLeft = (page: Page, left: number) => page.getByLabel(`${left} of 6 guesses left`);
 const crossedOut = (page: Page) => page.getByRole("img", { name: /, crossed out$/ });
 
 async function openBoard(page: Page) {
@@ -162,12 +162,12 @@ test.describe("with TMDB stubbed", () => {
 
     await guess(page, "Empty One");
     await miss(page, "Empty One");
-    await expect(guessesLeft(page, 4)).toBeVisible();
+    await expect(guessesLeft(page, 5)).toBeVisible();
     await expect(page.getByText("Nobody from the board")).toBeVisible();
 
     await guess(page, "Empty One");
     await expect(page.getByText("You already tried Empty One.")).toBeVisible();
-    await expect(guessesLeft(page, 4)).toBeVisible();
+    await expect(guessesLeft(page, 5)).toBeVisible();
 
     await guess(page, "Alpha Heist");
     await hit(page, "Alpha Heist", "Ada Archer, Ben Bright, Cleo Crane");
@@ -175,20 +175,20 @@ test.describe("with TMDB stubbed", () => {
 
     await guess(page, "Echo Street");
     await expect(page.getByText("Echo Street only has actors you've already crossed out.")).toBeVisible();
-    await expect(guessesLeft(page, 2)).toBeVisible();
+    await expect(guessesLeft(page, 3)).toBeVisible();
     await expect(crossedOut(page)).toHaveCount(3);
 
     await page.reload();
     await expect(crossedOut(page)).toHaveCount(3);
-    await expect(guessesLeft(page, 2)).toBeVisible();
+    await expect(guessesLeft(page, 3)).toBeVisible();
     await expect(timer(page)).toBeVisible();
     await expect(page.getByRole("button", { name: "Start" })).toHaveCount(0);
   });
 
-  test("five guesses without clearing the board loses and shows who was missed", async ({ page }) => {
+  test("six guesses without clearing the board loses and shows who was missed", async ({ page }) => {
     await openBoard(page);
     await start(page);
-    for (const title of ["Empty One", "Empty Two", "Empty Three", "Empty Four"]) {
+    for (const title of ["Empty One", "Empty Two", "Empty Three", "Empty Four", "Empty Five"]) {
       await guess(page, title);
       await miss(page, title);
     }
@@ -204,18 +204,23 @@ test.describe("with TMDB stubbed", () => {
   test("firing takes one actor off the board without a guess", { tag: "@phone" }, async ({ page }) => {
     await openBoard(page);
     await start(page);
-    const fireOne = page.getByRole("button", { name: "Fire one" });
+    const fireOne = page.getByRole("button", { name: /^Fire an actor/ });
 
     // Pick mode by keyboard: focus lands on the first face that can go, and Escape backs out.
     await fireOne.focus();
     await page.keyboard.press("Enter");
-    await expect(page.getByText("Pick the actor to fire.")).toBeVisible();
+    await expect(page.getByText("Tap the actor to fire")).toBeVisible();
+    await expect(page.getByText("1 left")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Fire Ada Archer" })).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("button", { name: /^Fire [A-Z]/ })).toHaveCount(0);
+    await expect(page.getByText("1 left")).toBeVisible();
 
     await guess(page, "Alpha Heist");
     await hit(page, "Alpha Heist", "Ada Archer, Ben Bright, Cleo Crane");
+    await fireOne.click();
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await expect(page.getByRole("button", { name: /^Fire [A-Z]/ })).toHaveCount(0);
     await fireOne.click();
     // Crossed-out faces can't be fired.
     await expect(page.getByRole("button", { name: /^Fire [A-Z]/ })).toHaveCount(5);
@@ -224,7 +229,7 @@ test.describe("with TMDB stubbed", () => {
     await expect(page.getByRole("img", { name: "Hal Hayes, fired" })).toBeVisible();
     await expect(page.getByText("You fired Hal Hayes.")).toBeVisible();
     await expect(page.getByText("3 of 8 found, 1 fired")).toBeVisible();
-    await expect(guessesLeft(page, 4)).toBeVisible();
+    await expect(guessesLeft(page, 5)).toBeVisible();
     await expect(fireOne).toHaveCount(0);
 
     await guess(page, "Bravo Run");

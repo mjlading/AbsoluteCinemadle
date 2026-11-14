@@ -83,3 +83,24 @@
     opacity: 1;
   }
 }
+
+/* The pink slip waves once when the game starts, so firing gets noticed. */
+.ccall-slip {
+  animation: ccall-slip-hello 900ms 600ms ease-in-out;
+}
+
+@keyframes ccall-slip-hello {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  20% {
+    rotate: -14deg;
+  }
+  45% {
+    rotate: 10deg;
+  }
+  70% {
+    rotate: -5deg;
+  }
+}

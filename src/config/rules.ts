@@ -25,7 +25,7 @@ export const RULES = {
     /** Actors' faces on a board. */
     faceCount: 8,
     /** Film guesses per board; crossing out every face within them wins. */
-    maxGuesses: 5,
+    maxGuesses: 6,
     /** The bar's length; it starts on Start and refills on any film with someone from the board. */
     timeLimitSeconds: 40,
     /** Actors a player may fire per game: taken off the board as done, without a guess. */
