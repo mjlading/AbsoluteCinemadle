@@ -126,7 +126,7 @@ Each entry says what was decided and why, so it can be revisited.
 
 - The game is called "Casting call" and lives at `/casting-call`.
   It became a daily on 2026-11-14, at the owner's request: `/casting-call` is today's board, `/casting-call/<date>` an earlier day and `/casting-call/archive` the list, like the other two dailies.
-- It shares their numbering (the owner's choice): #1 is 2026-11-10, so its first daily was #5, and the archive starts there.
+- It shares their numbering (the owner's choice): #1 is 2026-11-10. The daily went in on #5, and the owner asked for #1 to #4 too, so the cron job builds every missing day from #1 on (players can't, since they may only cause today's board to be built).
 - Boards build themselves with no computer of the owner's switched on (the owner's requirement): by a daily Vercel Cron job, or on a day's first visit when the job hasn't run.
   An LLM was considered and left out: building and checking a board is plain logic over TMDB data, and keyed APIs need the owner's approval.
   A player may only cause a board to be built for a day that is today somewhere on Earth, so the past and future can't be filled by request.

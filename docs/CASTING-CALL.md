@@ -32,8 +32,8 @@ The owner's brief: obscure films, well-known actors; playtests then moved the fi
 - How a group is found: a lead from the top of the billing of one of the 400 most-voted films; one of their lesser-known films; well-known co-stars from its billing (the biggest groups are found first).
 - Well known: at least 8 starring roles (billed in the top 4) in films ranked in the top 1,750 (about 3,000 votes in November 2026), counting only on-screen roles in proper films (no cameos as themselves, voice parts, TV films, animation or documentaries).
   It was 6 roles in films with 1,000+ votes until the owner's first playtest (2026-11-14) found faces such as Kevin Dunn and Clea DuVall too little known.
-- The shared film: one ranked #351 to #2,100 (about 10,000 to 2,500 votes in November 2026) where both are billed in the top 6: widely seen, but not a top blockbuster.
-  No two in a group may share a film ranked higher. It was 40 to 799 votes, then 300 to 2,499, then 1,500 to 5,999; the owner's playtests on 2026-11-14 found each too hard.
+- The shared film: one ranked #201 to #1,500 (about 13,000 to 3,500 votes in November 2026) where everyone in the group is billed in the top 6: widely seen, but not a top blockbuster.
+  No two in a group may share a film ranked higher. It was 40 to 799 votes, then 300 to 2,499, then 1,500 to 5,999, then ranks #351 to #2,100; the owner's playtests on 2026-11-14 found each too hard.
 - Every board is checked against every film the 8 are credited in: if fewer films than it has groups could clear it, it is thrown away and another is built.
 - Actors and films used on a board aren't used again within 60 days either side.
 - The faces are shuffled, so a group never sits in a known place on the board.
@@ -41,7 +41,8 @@ The owner's brief: obscure films, well-known actors; playtests then moved the fi
 
 Boards are built on the server, never by hand, and stored in the `casting_call_boards` table:
 
-- A Vercel Cron job calls `/api/cron/casting-call` daily at 04:00 UTC (`vercel.json`), which keeps 8 days of boards ready and refreshes TMDB data older than 5 months. It needs `CRON_SECRET` in Vercel.
+- A Vercel Cron job calls `/api/cron/casting-call` daily at 04:00 UTC (`vercel.json`). It builds every missing board from the launch date (#1, 2026-11-10) to a week ahead, today and ahead first, and refreshes TMDB data older than 5 months. It needs `CRON_SECRET` in Vercel.
+  So the first run fills #1 onwards (the owner asked for days 1 to 5), and a day whose board was deleted is built again; a run stops starting boards after 200 seconds and leaves the rest for the next.
 - A player who reaches a day without a board (today somewhere on Earth: UTC-1 to UTC+1 days) gets it built on the spot, in a few seconds, so a missed cron run never leaves a day empty.
 - Building is seeded by the date, so the same TMDB data and history give the same board.
 - `npm run db:import-casting-call` loads hand-made boards (the E2E fixtures, or a board for a particular day).

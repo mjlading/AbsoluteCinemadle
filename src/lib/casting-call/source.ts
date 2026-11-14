@@ -66,6 +66,18 @@ export async function getBoardByDate(date: string): Promise<CastingCallBoard | n
   return row ? toBoard(row) : null;
 }
 
+/** The days from `from` to `to` (YYYY-MM-DD, both included) that have no board yet, in date order. */
+export async function datesWithoutBoards(from: string, to: string): Promise<string[]> {
+  const rows = await db()
+    .select({ date: castingCallBoards.date })
+    .from(castingCallBoards)
+    .where(and(gte(castingCallBoards.date, from), lte(castingCallBoards.date, to)));
+  const have = new Set(rows.map((r) => r.date));
+  const missing: string[] = [];
+  for (let date = from; date <= to; date = addDays(date, 1)) if (!have.has(date)) missing.push(date);
+  return missing;
+}
+
 /** Every day with a board, newest first, up to and including `latest`. */
 export async function listCastingCallDays(latest: string): Promise<CastingCallDay[]> {
   return db()

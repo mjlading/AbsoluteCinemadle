@@ -57,9 +57,10 @@ export const RULES = {
       wellKnownRoles: 8,
       /**
        * The film a group shares ranks below `from` and no lower than `to`: widely seen, but not a top
-       * blockbuster (about 10,000 to 2,500 votes in November 2026). No two in a group may share a film ranked above `from`.
+       * blockbuster (about 13,000 to 3,500 votes in November 2026, The Great Gatsby to Jeepers Creepers).
+       * No two in a group may share a film ranked above `from`.
        */
-      sharedFilmRanks: { from: 350, to: 2100 },
+      sharedFilmRanks: { from: 200, to: 1500 },
       /** Everyone in a group is billed this high (TMDB cast order from 0) in the film they share. */
       sharedFilmOrder: 5,
       /** Actors and films used on a board aren't used again within this many days either side. */
