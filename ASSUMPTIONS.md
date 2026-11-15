@@ -150,3 +150,20 @@ Each entry says what was decided and why, so it can be revisited.
 - Faces are 320-pixel squares cropped from the top of the TMDB profile photo, cached for a day.
 - A board must need as many films as it has groups, counting every film its actors are credited in, so even a collage film like "Final Cut: Ladies and Gentlemen" can't make one easy.
 - Boards keep only TMDB ids; the cron job re-fetches the people on boards older than 5 months and dates them again, and deletes a board whose people TMDB no longer has.
+
+## Prototype games
+
+Five prototypes were built on 2026-11-15 for the owner to play-test (docs/PROTOTYPES.md): Carbon Dating, How Old Were They?, Double Feature, Ratings Cliff and Deep Cut.
+
+- They share one `prototype_boards` table instead of a table each, so trying or dropping a game needs no migration.
+- A board is built on a day's first visit only; there is no cron job for them until one is kept.
+- Any day from 2026-11-01 can be built, so there are earlier boards to try; the live games still count from 2026-11-10.
+- They have unit tests for their pure logic and no E2E tests, and plain layouts, at the owner's request.
+- The starting point values (100 less 8 a year in Carbon Dating, 100 less 12 a year in How Old Were They?) are first guesses to be tuned in play.
+- Carbon Dating leaves out animation, documentaries, TV films and films under 60 minutes, plays its decades in shuffled order, and has no cooldown between days.
+- How Old Were They? hides the release year until the reveal, never shows the actor's profile photo (it shows their age today), and judges fame by starring roles in well-voted films, as Casting call does.
+- Double Feature compares calendar years and ratings rounded to 0.1, counts money under $1 million as unknown, and counts box office as unknown until a film has been out 180 days.
+- Ratings Cliff leaves episodes under 15 votes off the chart, scales the rating axis to each series, and keeps a series from being the answer twice within 14 days.
+- Deep Cut is our own take on quizzes that reward the rarest right answer; it copies no other game's name, wording or look.
+  Rarity comes from TMDB vote counts until there are real guess counts. Documentaries and films under 40 minutes never fit a prompt.
+  Tries are counted on the player's device, since cheating only spoils the player's own game.

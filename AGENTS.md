@@ -9,6 +9,9 @@ Three film games, each with its own route, code folders and design notes:
 - Casting call (`/casting-call`, docs/CASTING-CALL.md): a daily; cross out 8 actors by naming films, within 6 guesses and a 50-second bar.
   `/casting-call` is today's board and `/casting-call/archive` lists earlier days; boards are built by the server from TMDB (`src/lib/casting-call/generate.ts`), by a daily Vercel Cron job or on a day's first visit.
 
+Five prototype dailies are also under test (docs/PROTOTYPES.md): Carbon Dating, How Old Were They?, Double Feature, Ratings Cliff and Deep Cut.
+They build their own boards from TMDB on a day's first visit, share `src/lib/prototypes` and the `prototype_boards` table, and are linked from a plain list on the home page.
+
 Decisions taken where the owner's briefs are silent live in [ASSUMPTIONS.md](ASSUMPTIONS.md); add to it instead of stopping to ask.
 None of the games has an admin editor; the labs make Close-Ups and Soundbytes content, and Casting call builds its own.
 
@@ -19,6 +22,7 @@ Close-Ups and Soundbytes need a new week of content before the last imported day
 Casting call's daily cron job needs `CRON_SECRET` set in the Vercel project.
 Collage puzzles and Soundbytes answers are TMDB data: rows older than about 5 months (`synced_at`) must be re-exported or deleted.
 Casting call's cron job refreshes its own boards' TMDB data after 5 months.
+The five prototypes are on the branch `claude/gifted-babbage-2b5vig` for play-testing, not on `main`; the owner decides which to keep.
 Update this section as that work lands.
 
 ## Stack
