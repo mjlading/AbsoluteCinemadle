@@ -27,6 +27,7 @@ export const POINTS = {
   },
   /** Prototype: pick the film that wins the round's comparison. */
   doubleFeature: {
+    /** Points for each round where the player picked the film that wins. */
     perCorrect: 1,
   },
   /** Prototype: name the series from its episode ratings. */
@@ -37,5 +38,11 @@ export const POINTS = {
   deepCut: {
     /** Points for the rarest fitting answer; the most obvious one scores 0. */
     max: 100,
+    /**
+     * Points follow an answer's place on a log scale of fame (0 at the most obvious answer, 1 at the
+     * vote floor) raised to this power: below 1 it lifts the middle, so a solid second-tier answer
+     * (Hook for "a film with pirates") earns about a third and a real deep cut 80 or more.
+     */
+    curve: 0.75,
   },
 } as const;
