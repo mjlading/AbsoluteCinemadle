@@ -163,7 +163,10 @@ Five prototypes were built on 2026-11-15 for the owner to play-test (docs/PROTOT
 - Carbon Dating leaves out animation, documentaries, TV films and films under 60 minutes, plays its decades in shuffled order, and has no cooldown between days.
 - How Old Were They? hides the release year until the reveal, never shows the actor's profile photo (it shows their age today), and judges fame by starring roles in well-voted films, as Casting call does.
 - Double Feature compares calendar years and ratings rounded to 0.1, counts money under $1 million as unknown, and counts box office as unknown until a film has been out 180 days.
-- Ratings Cliff leaves episodes under 15 votes off the chart, scales the rating axis to each series, and keeps a series from being the answer twice within 14 days.
+- Ratings Cliff leaves episodes under 15 votes off the chart and keeps a series from being the answer twice within 14 days.
+- Its chart is a grid of seasons by episodes with each rating printed in a cell coloured by band (the owner's request on 2026-11-15, after a first version with dots).
+  The bands are the same for every series (`RULES.ratingsCliff.chartBands`), set from how TMDB's episode ratings spread, so a strong series looks different from a weak one.
+  An episode left off the chart leaves a gap on its own row.
 - Deep Cut is our own take on quizzes that reward the rarest right answer; it copies no other game's name, wording or look.
   Rarity comes from TMDB vote counts until there are real guess counts. Documentaries and films under 40 minutes never fit a prompt.
   Tries are counted on the player's device, since cheating only spoils the player's own game.

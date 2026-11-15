@@ -18,9 +18,11 @@ export interface ChartSeason {
   episodes: ChartEpisode[];
 }
 
-/** What the player sees of one season: its number and its episodes' ratings, nothing else. */
+/** What the player sees of one season: its number, and its charted episodes' numbers and ratings, nothing else. */
 export interface PublicSeason {
   number: number;
+  /** Each charted episode's number within the season, in airing order; `ratings` runs alongside it. */
+  episodes: number[];
   ratings: number[];
 }
 
@@ -61,7 +63,37 @@ export function chartStats(seasons: PublicSeason[]): ChartStats {
 }
 
 export const toPublicSeasons = (seasons: ChartSeason[]): PublicSeason[] =>
-  seasons.map((s) => ({ number: s.number, ratings: s.episodes.map((e) => e.rating) }));
+  seasons.map((s) => ({
+    number: s.number,
+    episodes: s.episodes.map((e) => e.episode),
+    ratings: s.episodes.map((e) => e.rating),
+  }));
+
+/**
+ * Which colour band a rating falls in: 0 for the best, counting up to `floors.length` for the worst.
+ * `floors` holds the lowest rating of each band but the worst, best first.
+ */
+export function ratingBand(rating: number, floors: readonly number[]): number {
+  const band = floors.findIndex((floor) => rating >= floor);
+  return band === -1 ? floors.length : band;
+}
+
+/**
+ * A season as one column of the chart's grid: the rating in each row, or null for a gap.
+ * Episodes sit on the row of their own number, so one left off the chart (too few votes) leaves a
+ * gap where it aired. A season numbered some other way (counting on from the season before, say)
+ * is listed in airing order instead.
+ */
+export function seasonColumn(season: PublicSeason): (number | null)[] {
+  const { episodes, ratings } = season;
+  const last = episodes[episodes.length - 1] ?? 0;
+  const ascending = episodes.every((n, i) => Number.isInteger(n) && n >= 1 && (i === 0 || n > episodes[i - 1]));
+  // A few gaps are episodes left out; many mean the numbers aren't positions within the season.
+  if (!ascending || last > ratings.length + Math.max(3, Math.ceil(ratings.length / 4))) return [...ratings];
+  const column: (number | null)[] = Array.from({ length: last }, () => null);
+  episodes.forEach((n, i) => (column[n - 1] = ratings[i]));
+  return column;
+}
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 

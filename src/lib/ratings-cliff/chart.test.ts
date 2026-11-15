@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { chartClue, chartDescription, revealLine, shapeScore, toPublicSeasons, type ChartSeason } from "./chart";
+import {
+  chartClue,
+  chartDescription,
+  ratingBand,
+  revealLine,
+  seasonColumn,
+  shapeScore,
+  toPublicSeasons,
+  type ChartSeason,
+} from "./chart";
 import { optionId, pickAnswers, pickDecoys, weightedShuffle } from "./pick";
 import { seededRandom } from "@/lib/random";
 
@@ -11,6 +20,23 @@ const season = (number: number, ratings: number[]): ChartSeason => ({
 
 const collapse = [season(1, [8.2, 8.5, 9.0]), season(2, [8.4, 9.3, 8.8]), season(3, [6.9, 5.6, 4.5])];
 const flat = [season(1, [8.0, 8.1, 8.0]), season(2, [8.1, 8.0, 8.1])];
+
+describe("chart grid", () => {
+  it("sorts ratings into bands, best first", () => {
+    const floors = [9, 8.5, 8, 7, 6];
+    expect([9.4, 9, 8.9, 8.5, 8, 7.9, 7, 6, 5.9, 2].map((r) => ratingBand(r, floors))).toEqual([
+      0, 0, 1, 1, 2, 3, 3, 4, 5, 5,
+    ]);
+  });
+
+  it("puts each episode on the row of its number, leaving a gap for one left out", () => {
+    expect(seasonColumn({ number: 1, episodes: [1, 2, 4], ratings: [8, 8.1, 8.3] })).toEqual([8, 8.1, null, 8.3]);
+  });
+
+  it("lists a season in airing order when its episodes aren't numbered from 1", () => {
+    expect(seasonColumn({ number: 2, episodes: [14, 15, 16], ratings: [7, 7.5, 8] })).toEqual([7, 7.5, 8]);
+  });
+});
 
 describe("chart text", () => {
   it("describes the chart without naming anything", () => {

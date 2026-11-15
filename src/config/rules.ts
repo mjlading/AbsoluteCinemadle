@@ -237,6 +237,12 @@ export const RULES = {
     /** Series to choose between in a round, the right one included. */
     options: 4,
     /**
+     * The chart colours each episode by its rating: the lowest rating of each band, best first; anything
+     * lower is the worst band. Measured on 2026-11-15 over 897 charted episodes: a tenth rate under 6.3,
+     * half under 7.9, a tenth over 8.6 and one in fifty 9.0 or more.
+     */
+    chartBands: [9, 8.5, 8, 7, 6],
+    /**
      * How a day's board is built (src/lib/ratings-cliff/build.ts): well-known scripted series come from
      * TMDB's TV discover list by vote count; a seeded handful of them are looked up in full, and the ones
      * whose episode ratings make a readable, interesting chart become the day's answers.

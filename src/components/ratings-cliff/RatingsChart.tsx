@@ -1,100 +1,92 @@
-import { chartDescription, type PublicSeason } from "@/lib/ratings-cliff/chart";
+import { RULES } from "@/config/rules";
+import { chartDescription, ratingBand, seasonColumn, type PublicSeason } from "@/lib/ratings-cliff/chart";
 
 /*
- * A series' episode ratings as dots in airing order, seasons side by side in
- * alternating colours over shaded bands, each with its average as a line.
- * The scale fits the data, so a slump from 8.5 to 6 reads as the cliff it is.
+ * A series' episode ratings as a grid: one column per season, one row per
+ * episode, each cell showing its rating and coloured by how good it is. A
+ * season that sank reads as a column turning from green to red.
  */
 
-const W = 360;
-const H = 210;
-const LEFT = 26;
-const RIGHT = 6;
-const TOP = 8;
-const BOTTOM = 22;
-const COLORS = ["var(--tier-1)", "var(--tier-3)"];
+const FLOORS = RULES.ratingsCliff.chartBands;
+
+/**
+ * One fill per band, best first. The rating is printed in every cell, so the colour
+ * is never the only cue; the text colour is the one with the better contrast on each fill.
+ */
+const BANDS = [
+  { fill: "#2b7de0", text: "#0b0b0b" },
+  { fill: "#1e8f4e", text: "#0b0b0b" },
+  { fill: "#52c97c", text: "#0b0b0b" },
+  { fill: "#f5cf4a", text: "#0b0b0b" },
+  { fill: "#ee7a2a", text: "#0b0b0b" },
+  { fill: "#d92b3f", text: "#ffffff" },
+];
+
+/** "9+" for a band with a floor, "under 6" for the worst. */
+const bandLabel = (band: number) => (band < FLOORS.length ? `${FLOORS[band]}+` : `under ${FLOORS[FLOORS.length - 1]}`);
+
+/** Columns grow to this width (in rem) and no further, so a two-season chart isn't stretched across the page. */
+const MAX_COLUMN_REM = 3.5;
 
 export function RatingsChart({ seasons }: { seasons: PublicSeason[] }) {
-  const all = seasons.flatMap((s) => s.ratings);
-  const yMin = Math.max(0, Math.floor(Math.min(...all) - 0.2));
-  const yMax = Math.min(10, Math.ceil(Math.max(...all) + 0.2));
-  // One slot per episode, plus one empty slot between seasons.
-  const slots = all.length + seasons.length - 1;
-  const plotW = W - LEFT - RIGHT;
-  const plotH = H - TOP - BOTTOM;
-  const step = plotW / slots;
-  const x = (slot: number) => LEFT + step * (slot + 0.5);
-  const y = (rating: number) => TOP + plotH * (1 - (rating - yMin) / (yMax - yMin));
-  const r = Math.max(1.3, Math.min(3.5, step * 0.42));
-  const ticks = Array.from({ length: yMax - yMin + 1 }, (_, i) => yMin + i);
-  // Label every season unless they would collide; then every other one.
-  const labelEvery = plotW / seasons.length < 18 ? 2 : 1;
-
-  let slot = 0;
-  const laid = seasons.map((s, i) => {
-    const start = slot;
-    slot += s.ratings.length + 1;
-    const mean = s.ratings.reduce((a, b) => a + b, 0) / s.ratings.length;
-    return { season: s, i, start, end: start + s.ratings.length - 1, mean };
-  });
+  const columns = seasons.map(seasonColumn);
+  const rows = Math.max(...columns.map((c) => c.length));
+  // With many seasons the cells get narrow, so the numbers shrink to fit.
+  const dense = seasons.length > 8;
 
   return (
-    <figure className="m-0">
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="h-auto w-full rounded-xl bg-surface"
-        role="img"
-        aria-label={chartDescription(seasons)}
+    <figure className="m-0 rounded-xl bg-surface p-2 sm:p-3">
+      <table
+        className="w-full table-fixed border-separate border-spacing-[2px] tabular-nums"
+        style={{ maxWidth: `${1.75 + seasons.length * MAX_COLUMN_REM}rem` }}
       >
-        {ticks.map((t) => (
-          <g key={t}>
-            <line x1={LEFT} x2={W - RIGHT} y1={y(t)} y2={y(t)} stroke="currentColor" strokeOpacity={0.12} />
-            <text x={LEFT - 5} y={y(t) + 3.5} textAnchor="end" fontSize={10} fill="var(--ink-soft)">
-              {t}
-            </text>
-          </g>
-        ))}
-        {laid.map(({ season, i, start, end, mean }) => (
-          <g key={season.number}>
-            {i % 2 === 1 && (
-              <rect
-                x={x(start) - step / 2}
-                width={(end - start + 1) * step}
-                y={TOP}
-                height={plotH}
-                fill="currentColor"
-                fillOpacity={0.04}
-              />
-            )}
-            <line
-              x1={x(start) - step * 0.4}
-              x2={x(end) + step * 0.4}
-              y1={y(mean)}
-              y2={y(mean)}
-              stroke="var(--ink-soft)"
-              strokeWidth={1.5}
-              strokeOpacity={0.7}
-            />
-            {season.ratings.map((rating, e) => (
-              <circle key={e} cx={x(start + e)} cy={y(rating)} r={r} fill={COLORS[i % 2]}>
-                <title>{`S${season.number}: ${rating.toFixed(1)}`}</title>
-              </circle>
-            ))}
-            {i % labelEvery === 0 && (
-              <text
-                x={(x(start) + x(end)) / 2}
-                y={H - 7}
-                textAnchor="middle"
-                fontSize={10}
-                fontWeight={600}
-                fill="var(--ink-soft)"
+        <caption className="sr-only">{chartDescription(seasons)}</caption>
+        <thead>
+          <tr>
+            <td className="w-7" />
+            {seasons.map((s) => (
+              <th
+                key={s.number}
+                scope="col"
+                className={`pb-0.5 font-semibold text-ink-soft ${dense ? "text-[11px]" : "text-xs"}`}
               >
-                S{season.number}
-              </text>
-            )}
-          </g>
+                S{s.number}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from({ length: rows }, (_, row) => (
+            <tr key={row}>
+              <th scope="row" className="pr-1 text-right text-[11px] font-normal text-ink-soft">
+                E{row + 1}
+              </th>
+              {columns.map((column, i) => {
+                const rating = column[row] ?? null;
+                if (rating === null) return <td key={seasons[i].number} />;
+                const band = BANDS[ratingBand(rating, FLOORS)];
+                return (
+                  <td
+                    key={seasons[i].number}
+                    className={`h-6 rounded-[4px] text-center font-bold leading-none ${dense ? "text-[11px]" : "text-[13px]"}`}
+                    style={{ background: band.fill, color: band.text }}
+                  >
+                    {rating.toFixed(1)}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <figcaption className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-soft">
+        {BANDS.map((band, i) => (
+          <span key={band.fill} className="inline-flex items-center gap-1">
+            <span aria-hidden="true" className="size-3 rounded-[3px]" style={{ background: band.fill }} />
+            {bandLabel(i)}
+          </span>
         ))}
-      </svg>
+      </figcaption>
     </figure>
   );
 }

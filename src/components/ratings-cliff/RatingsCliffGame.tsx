@@ -134,7 +134,7 @@ function Play({ board }: { board: PublicRatingsCliffBoard }) {
   return (
     <section aria-labelledby="rc-round" className="space-y-3">
       <p className="text-sm text-ink-soft">
-        Which TV series is this? Every dot is an episode, by its TMDB rating; the line is the season&rsquo;s average.
+        Which TV series is this? Every cell is an episode, coloured by its TMDB rating.
       </p>
       <h2 id="rc-round" ref={roundRef} tabIndex={-1} className="font-condensed text-lg font-extrabold">
         Series {index + 1} of {board.rounds.length}

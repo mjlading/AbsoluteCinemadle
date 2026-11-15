@@ -39,7 +39,7 @@ Known weak points: unconstrained pairs can be too easy; a day's first load takes
 
 ## Ratings Cliff (`/ratings-cliff`)
 
-Five series a day, each shown as a chart of its episode ratings by season with no names; pick the show from four options.
+Five series a day, each shown as a grid of its episode ratings (a column per season, a row per episode, each cell coloured by its rating) with no names; pick the show from four options.
 One point per right pick. It is the site's first game about TV series.
 Series come from about the 200 most-voted scripted shows; a series needs at least 2 seasons, 12 to 250 rated episodes and a chart with some shape to it.
 TMDB's episode ratings show the shapes people know (Game of Thrones' last season, Dexter's finale); long sitcoms are mostly too thinly voted to qualify.
