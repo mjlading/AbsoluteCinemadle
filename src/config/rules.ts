@@ -317,10 +317,11 @@ export const RULES = {
       /** An actor's most obvious answer is their most-voted film where they are billed this high (a cameo isn't it). */
       obviousBillingOrder: 10,
       /**
-       * The deep-cut example in a reveal: the best-rated fitting film with votes in this range
-       * (animation and TV films left out unless the prompt asks for animation; for actors, billed this high).
+       * The deep-cut example in a reveal: the best-rated fitting film with at least `minVotes` votes (not junk)
+       * that scores at least `minScore` (animation and TV films left out unless the prompt asks for animation;
+       * for actors, billed this high).
        */
-      deepCutVotes: { min: 300, max: 1500 },
+      deepCut: { minVotes: 250, minScore: 60 },
       deepCutBillingOrder: 5,
       /** Genre-and-decade and theme sets are read this many TMDB pages deep (20 films a page) for the scale. */
       setPages: 10,
