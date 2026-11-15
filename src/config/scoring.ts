@@ -11,4 +11,31 @@ export const POINTS = {
     /** Extra points for a win on the very first guess. */
     firstClueBonus: 2,
   },
+  /** Prototype: guess a still's release year. */
+  carbonDating: {
+    /** Points for the exact year. */
+    exact: 100,
+    /** Each year off costs this much, down to 0. */
+    perYearOff: -8,
+  },
+  /** Prototype: guess an actor's age when a film came out. */
+  howOld: {
+    /** Points for the exact age. */
+    exact: 100,
+    /** Each year off costs this much, down to 0. */
+    perYearOff: -12,
+  },
+  /** Prototype: pick the film that wins the round's comparison. */
+  doubleFeature: {
+    perCorrect: 1,
+  },
+  /** Prototype: name the series from its episode ratings. */
+  ratingsCliff: {
+    perCorrect: 1,
+  },
+  /** Prototype: name a fitting film few would think of. */
+  deepCut: {
+    /** Points for the rarest fitting answer; the most obvious one scores 0. */
+    max: 100,
+  },
 } as const;

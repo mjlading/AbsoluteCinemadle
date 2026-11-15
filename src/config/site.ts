@@ -11,6 +11,11 @@ export const SITE = {
     soundbytesArchive: "/soundbytes/archive",
     castingCall: "/casting-call",
     castingCallArchive: "/casting-call/archive",
+    carbonDating: "/carbon-dating",
+    howOld: "/how-old",
+    doubleFeature: "/double-feature",
+    ratingsCliff: "/ratings-cliff",
+    deepCut: "/deep-cut",
   },
   /** Close-Ups #1 is played on this date; its numbers count up one per day from it. */
   closeUpsLaunchDate: "2026-11-10",
@@ -18,4 +23,6 @@ export const SITE = {
   soundbytesLaunchDate: "2026-11-10",
   /** Casting call shares the other dailies' count, so all three show the same number on the same day. */
   castingCallLaunchDate: "2026-11-10",
+  /** The prototype games build a board for any day from this date on, so there are earlier days to try. */
+  prototypeLaunchDate: "2026-11-01",
 } as const;

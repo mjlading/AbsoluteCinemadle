@@ -9,7 +9,8 @@ const API_BASE = "https://api.themoviedb.org/3";
 
 export class TmdbError extends Error {}
 
-async function tmdb<T extends z.ZodType>(
+/** One GET to TMDB's API, checked against a schema. The prototype games call it with their own schemas. */
+export async function tmdb<T extends z.ZodType>(
   path: string,
   schema: T,
   params: Record<string, string> = {},

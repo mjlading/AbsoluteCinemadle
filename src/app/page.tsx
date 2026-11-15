@@ -1,7 +1,17 @@
+import Link from "next/link";
+
 import { GameCard } from "@/components/game-modes/GameCard";
 import { CastingCallIcon, CloseUpsIcon, RaisedHand, SoundbytesIcon } from "@/components/game-modes/GameIcons";
 import { SiteFooter } from "@/components/game/SiteFooter";
 import { SITE } from "@/config/site";
+
+const PROTOTYPES = [
+  { title: "Carbon Dating", blurb: "Guess the year a still is from.", href: SITE.games.carbonDating },
+  { title: "How Old Were They?", blurb: "Guess an actor's age in a film.", href: SITE.games.howOld },
+  { title: "Double Feature", blurb: "Two films, one question: which wins?", href: SITE.games.doubleFeature },
+  { title: "Ratings Cliff", blurb: "Name the series from its episode ratings.", href: SITE.games.ratingsCliff },
+  { title: "Deep Cut", blurb: "Name a film that fits, the rarer the better.", href: SITE.games.deepCut },
+];
 
 export default function Home() {
   return (
@@ -49,6 +59,26 @@ export default function Home() {
                 href={SITE.games.soundbytes}
               />
             </li>
+          </ul>
+        </section>
+
+        {/* Prototypes under test: plain links until one earns a card. */}
+        <section aria-labelledby="prototypes-heading" className="mt-12">
+          <h2
+            id="prototypes-heading"
+            className="font-condensed text-lg font-bold uppercase tracking-wide text-ink-soft"
+          >
+            Prototypes
+          </h2>
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {PROTOTYPES.map((game) => (
+              <li key={game.href}>
+                <Link href={game.href} className="block rounded-xl border-2 border-ink/15 px-4 py-3 hover:border-ink">
+                  <span className="block font-display text-2xl font-[900]">{game.title}</span>
+                  <span className="block text-sm text-ink-soft">{game.blurb}</span>
+                </Link>
+              </li>
+            ))}
           </ul>
         </section>
       </main>

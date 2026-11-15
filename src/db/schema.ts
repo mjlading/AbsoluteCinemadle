@@ -1,4 +1,4 @@
-import { customType, date, jsonb, pgTable, smallint, text, timestamp } from "drizzle-orm/pg-core";
+import { customType, date, integer, jsonb, pgTable, smallint, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 import type { BoardGroup } from "@/lib/casting-call/generate";
 import type { CollageKeyword, CollagePuzzle } from "@/lib/collage/types";
@@ -73,3 +73,25 @@ export const castingCallBoards = pgTable("casting_call_boards", {
   groups: jsonb("groups").$type<BoardGroup[]>().notNull(),
   syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Daily boards of the prototype games (src/lib/prototypes), one per game and date, built by the
+ * server from TMDB on a day's first visit. Each game keeps its own JSON document in `data`, answers
+ * included, so these stay on the server. They hold TMDB data, so `synced_at` dates them for the 6-month limit.
+ */
+export const prototypeBoards = pgTable(
+  "prototype_boards",
+  {
+    /** Opaque id, used in the board's API addresses. */
+    id: text("id").primaryKey(),
+    /** Which prototype game the board belongs to. */
+    game: text("game").notNull(),
+    /** The day it is the daily board (YYYY-MM-DD). */
+    date: date("date", { mode: "string" }).notNull(),
+    /** The game's generator version when it was built; a board from an older version is built again. */
+    version: integer("version").notNull(),
+    data: jsonb("data").$type<unknown>().notNull(),
+    syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [unique("prototype_boards_game_date_unique").on(table.game, table.date)],
+);

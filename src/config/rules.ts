@@ -67,4 +67,38 @@ export const RULES = {
       cooldownDays: 60,
     },
   },
+  /** Prototype: guess a still's release year. */
+  carbonDating: {
+    /** Stills per day. */
+    rounds: 5,
+    /** The earliest year the slider offers; the latest is the current year. */
+    minYear: 1930,
+  },
+  /** Prototype: guess an actor's age when a film came out. */
+  howOld: {
+    /** Actors per day. */
+    rounds: 5,
+    /** The ages the player can pick between. */
+    minAge: 5,
+    maxAge: 95,
+  },
+  /** Prototype: pick the film that wins the round's comparison. */
+  doubleFeature: {
+    /** Pairs of films per day. */
+    rounds: 10,
+  },
+  /** Prototype: name the series from its episode ratings. */
+  ratingsCliff: {
+    /** Series per day. */
+    rounds: 5,
+    /** Series to choose between in a round, the right one included. */
+    options: 4,
+  },
+  /** Prototype: name a fitting film few would think of. */
+  deepCut: {
+    /** Prompts per day. */
+    rounds: 3,
+    /** Films a player may name for one prompt before it scores 0; one that doesn't fit uses a try. */
+    triesPerPrompt: 3,
+  },
 } as const;
