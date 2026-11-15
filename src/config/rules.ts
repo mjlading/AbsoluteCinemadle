@@ -313,7 +313,7 @@ export const RULES = {
       /** An actor needs this many fitting films that count, and to be well known by Casting call's measure. */
       actorMinFilms: 15,
       /** A director needs this many directed feature films that count. */
-      directorMinFilms: 8,
+      directorMinFilms: 10,
       /** An actor's most obvious answer is their most-voted film where they are billed this high (a cameo isn't it). */
       obviousBillingOrder: 10,
       /**
@@ -322,6 +322,10 @@ export const RULES = {
        * for actors, billed this high).
        */
       deepCut: { minVotes: 250, minScore: 60 },
+      /** A deep-cut example is at least this many years old, so a film isn't little known only because it is new. */
+      deepCutMinAgeYears: 3,
+      /** A person, theme or genre-and-decade on a board isn't used again on boards this many days either side. */
+      repeatWindowDays: 10,
       deepCutBillingOrder: 5,
       /** Genre-and-decade and theme sets are read this many TMDB pages deep (20 films a page) for the scale. */
       setPages: 10,
