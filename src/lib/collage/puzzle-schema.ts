@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { RULES } from "@/config/rules";
 import { isIsoDate } from "@/lib/dates";
+import { MEDIA_TYPES } from "@/lib/tmdb/api";
 import { revealOrder } from "./order";
 import { COLLAGE_TIERS, type CollagePuzzle } from "./types";
 
@@ -27,6 +28,8 @@ const TileImage = z.discriminatedUnion("kind", [
 ]);
 
 export const CollageAnswerSchema = z.object({
+  /** A film or a TV series; puzzles from before series were added are films. */
+  mediaType: z.enum(MEDIA_TYPES).default("movie"),
   tmdbId: z.number().int().positive(),
   title: z.string().min(1),
   originalTitle: z.string().nullable(),

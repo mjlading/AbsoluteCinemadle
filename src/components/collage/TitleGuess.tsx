@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent 
 
 import { ReelSpinner } from "@/components/game/ReelSpinner";
 import { suggestFilms, type FilmSuggestion } from "@/lib/game/api";
+import type { MediaType } from "@/lib/tmdb/api";
 
 /**
  * One button reads "Guess", then the empty action (Skip) once the box clears,
@@ -21,6 +22,8 @@ interface TitleGuessProps {
   onGuess: (guess: string, tmdbId?: number) => void | boolean | Promise<void | boolean>;
   /** Also the box's accessible name. */
   placeholder: string;
+  /** Which titles to suggest: films, or TV series on a series day. */
+  mediaType: MediaType;
   /**
    * While the box is empty, the button beside it does this instead (Skip, or Give up); Enter in an empty box does nothing.
    * The button shows a checking state while a guess is out, and ignores presses until it settles.
@@ -32,7 +35,7 @@ interface TitleGuessProps {
  * Close-Ups' guess box: free text, with TMDB title suggestions as a combobox opening above it.
  * Picking a suggestion submits it straight away.
  */
-export function TitleGuess({ onGuess, placeholder, emptyAction }: TitleGuessProps) {
+export function TitleGuess({ onGuess, placeholder, mediaType, emptyAction }: TitleGuessProps) {
   const inputId = useId();
   const listId = useId();
   const [value, setValue] = useState("");
@@ -49,7 +52,7 @@ export function TitleGuess({ onGuess, placeholder, emptyAction }: TitleGuessProp
     if (query.length < 2) return;
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      suggestFilms(query, controller.signal).then(
+      suggestFilms(query, controller.signal, mediaType).then(
         ({ results }) => setSuggestions({ query, films: results }),
         () => {},
       );
@@ -58,7 +61,7 @@ export function TitleGuess({ onGuess, placeholder, emptyAction }: TitleGuessProp
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [query]);
+  }, [query, mediaType]);
 
   // Results for an earlier, shorter prefix stay up while the refined ones load; anything else is stale.
   const fresh = suggestions && query.toLowerCase().startsWith(suggestions.query.toLowerCase());

@@ -118,6 +118,7 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
   const round = currentRound(state);
   const playing = state.status === "playing";
   const last = puzzle.keywords.length - 1;
+  const series = puzzle.mediaType === "tv";
   const labels = puzzle.keywords.map((k) => k.label);
 
   // A keyword the player chose to look at again holds until the game moves on; then the view follows it.
@@ -209,7 +210,7 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
     pending.current = true;
     setGuessError(null);
     try {
-      const result = await guessCollage(puzzle.id, text, tmdbId);
+      const result = await guessCollage(puzzle.id, text, tmdbId, puzzle.mediaType);
       apply(
         result.correct
           ? { type: "guess", text, correct: true, answer: result.answer }
@@ -277,7 +278,7 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
 
   return (
     <>
-      <TopBar date={puzzle.date} onHelp={() => setHelpOpen(true)} />
+      <TopBar date={puzzle.date} series={series} onHelp={() => setHelpOpen(true)} />
       <main className="closeups-stage flex min-h-0 flex-1 flex-col items-center px-4 pb-4 pt-1 min-[700px]:justify-center min-[700px]:py-4">
         <div
           className="closeups-group flex flex-col gap-3"
@@ -325,7 +326,8 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
                 <div ref={guessRow}>
                   <TitleGuess
                     onGuess={guess}
-                    placeholder="Name the film…"
+                    placeholder={series ? "Name the series…" : "Name the film…"}
+                    mediaType={puzzle.mediaType}
                     emptyAction={{ label: round === last ? giveUpLabel : "Skip", onPress: skip }}
                   />
                 </div>
@@ -363,7 +365,7 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
   );
 }
 
-function TopBar({ date, onHelp }: { date?: string | null; onHelp?: () => void }) {
+function TopBar({ date, series, onHelp }: { date?: string | null; series?: boolean; onHelp?: () => void }) {
   return (
     <header className="flex h-14 shrink-0 items-center gap-1 px-2">
       <Link href="/" aria-label="All games" className="grid size-11 place-items-center rounded-full hover:bg-ink/8">
@@ -384,6 +386,11 @@ function TopBar({ date, onHelp }: { date?: string | null; onHelp?: () => void })
         <h1 className="font-display text-[30px] font-[900] leading-none tracking-[-0.005em]">Close-Ups</h1>
         {closeUpsNumber(date ?? null) && (
           <span className="font-condensed text-[15px] font-bold text-ink-soft">#{closeUpsNumber(date ?? null)}</span>
+        )}
+        {series && (
+          <span className="closeups-tape self-center bg-[var(--tier-3)] px-1.5 py-1 font-condensed text-xs font-extrabold uppercase leading-none tracking-[0.06em] text-on-tape">
+            TV series
+          </span>
         )}
       </div>
       <Link

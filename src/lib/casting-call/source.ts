@@ -8,7 +8,7 @@ import { z } from "zod";
 import { RULES } from "@/config/rules";
 import { db } from "@/db/client";
 import { castingCallBoards } from "@/db/schema";
-import { addDays, utcIsoDate } from "@/lib/dates";
+import { addDays } from "@/lib/dates";
 import { getPerson } from "@/lib/tmdb/api";
 import { getMostVotedFilms, getMovieWithCast, getPersonFilmCredits } from "@/lib/tmdb/cached";
 import { buildBoard, type BoardSource } from "./generate";
@@ -17,7 +17,7 @@ import type { CastingCallDay } from "./types";
 /*
  * Casting call's daily boards live in the casting_call_boards table, one per
  * date. Nobody makes them by hand: the daily cron job builds the coming week's
- * (src/app/api/cron/casting-call), and a player who reaches a day without one
+ * (src/app/api/cron/daily), and a player who reaches a day without one
  * gets it built on the spot, so a missed cron run never leaves a day empty.
  */
 
@@ -85,15 +85,6 @@ export async function listCastingCallDays(latest: string): Promise<CastingCallDa
     .from(castingCallBoards)
     .where(lte(castingCallBoards.date, latest))
     .orderBy(desc(castingCallBoards.date));
-}
-
-/**
- * A board may be built on demand only for a day that is today somewhere on
- * Earth (UTC-12 to UTC+14), so nobody can fill the past or the far future.
- */
-export function canBuildOnDemand(date: string, now: Date = new Date()): boolean {
-  const today = utcIsoDate(now);
-  return date >= addDays(today, -1) && date <= addDays(today, 1);
 }
 
 /** TMDB's most-voted list comes 20 films a page, and stops at page 500. */

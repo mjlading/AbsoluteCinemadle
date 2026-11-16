@@ -55,6 +55,37 @@ export function CastingCallIcon({ className = "" }: { className?: string }) {
   );
 }
 
+/** A TV set whose screen is a ratings grid, its last season dropping off in red. */
+export function RatingsCliffIcon({ className = "" }: { className?: string }) {
+  // Cells per column, top to bottom: ink for a good episode, red for the last season's slide.
+  const columns = [
+    ["ink", "ink", "ink"],
+    ["ink", "ink", "ink"],
+    ["ink", "red", "red"],
+  ];
+  return (
+    <svg viewBox="0 0 96 96" className={className} aria-hidden="true" focusable="false">
+      <path d="M36 14l12 12 12-12" fill="none" {...line} />
+      <g transform="rotate(-4 48 54)">
+        <rect x="10" y="26" width="76" height="58" rx="10" fill={PAPER} {...line} />
+        {columns.map((cells, c) =>
+          cells.map((tone, r) => (
+            <rect
+              key={`${c}${r}`}
+              x={22 + c * 19}
+              y={36 + r * 14}
+              width="15"
+              height="10"
+              rx="2.5"
+              fill={tone === "red" ? RED : INK}
+            />
+          )),
+        )}
+      </g>
+    </svg>
+  );
+}
+
 /** A speaker sending out sound, one wave in red. */
 export function SoundbytesIcon({ className = "" }: { className?: string }) {
   return (

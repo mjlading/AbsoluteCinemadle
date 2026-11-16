@@ -9,7 +9,8 @@ const API_BASE = "https://api.themoviedb.org/3";
 
 export class TmdbError extends Error {}
 
-async function tmdb<T extends z.ZodType>(
+/** One GET to TMDB's API, checked against a schema; Ratings Cliff calls it with its own TV schemas. */
+export async function tmdb<T extends z.ZodType>(
   path: string,
   schema: T,
   params: Record<string, string> = {},
@@ -60,6 +61,36 @@ const MovieSummarySchema = z
 
 export async function searchMovies(query: string): Promise<MovieSummary[]> {
   const { results } = await tmdb("/search/movie", z.object({ results: z.array(MovieSummarySchema) }), {
+    query,
+    include_adult: "false",
+    language: "en-US",
+  });
+  return results;
+}
+
+/** TMDB keeps films and series apart, with ids that overlap: film 105 and series 105 are different titles. */
+export const MEDIA_TYPES = ["movie", "tv"] as const;
+export type MediaType = (typeof MEDIA_TYPES)[number];
+
+const SeriesSummarySchema = z
+  .object({
+    id: z.number(),
+    name: z.string(),
+    first_air_date: z.string().nullish(),
+    poster_path: nullableString,
+    vote_count: z.number().default(0),
+  })
+  .transform((s): MovieSummary => ({
+    tmdbId: s.id,
+    title: s.name,
+    year: yearOf(s.first_air_date),
+    posterPath: s.poster_path,
+    voteCount: s.vote_count,
+  }));
+
+/** TV series matching a name, in the same shape as films (the series' name as its title, its first year). */
+export async function searchSeries(query: string): Promise<MovieSummary[]> {
+  const { results } = await tmdb("/search/tv", z.object({ results: z.array(SeriesSummarySchema) }), {
     query,
     include_adult: "false",
     language: "en-US",

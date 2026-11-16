@@ -2,6 +2,7 @@ import { customType, date, jsonb, pgTable, smallint, text, timestamp } from "dri
 
 import type { BoardGroup } from "@/lib/casting-call/generate";
 import type { CollageKeyword, CollagePuzzle } from "@/lib/collage/types";
+import type { RatingsCliffRound } from "@/lib/ratings-cliff/types";
 import type { SoundbytesBoard, StoredSoundNode } from "@/lib/soundbytes/types";
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => "bytea" });
@@ -71,5 +72,20 @@ export const castingCallBoards = pgTable("casting_call_boards", {
   personIds: jsonb("person_ids").$type<number[]>().notNull(),
   /** The best route, shown once the game is over: one lesser-known film per group of faces. */
   groups: jsonb("groups").$type<BoardGroup[]>().notNull(),
+  syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Ratings Cliff's daily boards, one per date, built on the server
+ * (src/lib/ratings-cliff/build.ts) by the daily cron job or by the first player
+ * of a day that has none. Each round holds its answer, so these stay on the
+ * server. Episode ratings are TMDB data, so `synced_at` dates them for the 6-month limit.
+ */
+export const ratingsCliffBoards = pgTable("ratings_cliff_boards", {
+  /** Opaque id, used in the board's API addresses. */
+  id: text("id").primaryKey(),
+  /** The day it is the daily board (YYYY-MM-DD). */
+  date: date("date", { mode: "string" }).notNull().unique(),
+  rounds: jsonb("rounds").$type<RatingsCliffRound[]>().notNull(),
   syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
 });

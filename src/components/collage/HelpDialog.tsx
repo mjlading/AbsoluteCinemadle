@@ -29,7 +29,8 @@ export function HelpDialog({ open, onClose }: { open: boolean; onClose: () => vo
           tone="bg-ink/8"
           icon={<span className="closeups-tape bg-[var(--tier-4)] px-1 py-1.5 text-[9px] text-on-tape">Hands</span>}
         >
-          Name the film from {inWords(tilesPerCollage)} close-ups that share one keyword.
+          Name the film (or, when it says so, the TV series) from {inWords(tilesPerCollage)} close-ups that share one
+          keyword.
         </Line>
         <Line
           tone="bg-ink/8"

@@ -116,6 +116,25 @@ Each entry says what was decided and why, so it can be revisited.
 - Dialogue clips are served from `/api/soundbytes/<board>/clips/<clip>` with byte ranges, since Safari plays media only from servers that answer them.
   They may be cached by the browser for good (ids change with every import) but never by the CDN: a shared cache keyed on the URL alone could hand Safari's 2-byte probe to the next player as the whole file.
 
+## Picking films
+
+- Close-Ups may be a TV series (the owner, 2026-11-16): about one day a week (`python pick_demo.py 7 batch2 1` picks one series of 7). The puzzle stores `mediaType` (`movie` or `tv`; older rows are films), the top bar shows a "TV series" tape and the guess box reads "Name the series…" and suggests series only. A suggestion counts only when its type matches too, since TMDB's film and series ids overlap.
+
+- No film is used twice, in either game: a film that was a Close-Ups puzzle is never a Soundbytes board, and the other way round (the owner, 2026-11-16).
+  The pickers (`pick_demo.py`, `pick.py`) skip every film in the used-films ledger, `.data/used-films.json` (gitignored, since it names answers), and every film in either lab's folders.
+  The ledger gets each pick, whether or not it goes live, and each real import (not `--days` test imports); `npm run db:used-films` adds every film in a database, so run it with the production `DATABASE_URL` before picking on a new PC or after lab folders were deleted.
+- Soundbytes picks films with at least 6,000 TMDB votes, like Close-Ups: after the first two weeks, 8,000 left only 4 unused films that pass every check.
+
+## Ratings Cliff
+
+- The prototype's rules and numbers were kept as they were play-tested (5 series, 4 options, a point each, the six colour bands); only the look, the archive, day numbers and storage changed to match the other games.
+- It shares the other games' count (#1 is 2026-11-10), and its days before its launch on 2026-11-17 were built so its archive starts at #1 too.
+- Its board table is its own (`ratings_cliff_boards`), as Casting call's is, instead of the prototypes' shared table.
+- The one cron job builds both self-building games (`/api/cron/daily`); upcoming days for both come before filling past ones.
+- The chart sits on the dark contact sheet the Close-Ups board uses; its colours run from the site's cyan tape (9+) to its red marker (under 6), with the rating printed in every cell so colour is never the only cue.
+- The end panel's heading is a word ("Perfect run!", "Good eye", "Rough ratings", "Off the cliff") because the score sits beside it.
+- A series that is a Close-Ups answer within 14 days isn't a Ratings Cliff answer, so one show doesn't turn up in two games in the same fortnight.
+
 ## Development and tests
 
 - E2E tests run against a production build and a separate `cinemadle_test` database; each run imports the Close-Ups and Soundbytes fixtures for today.

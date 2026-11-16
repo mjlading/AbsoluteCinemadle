@@ -406,3 +406,37 @@ test("the archive lists earlier days, and no day ahead of the player's opens", a
   const { days: listed } = await (await page.request.get("/api/collage")).json();
   expect(listed).toHaveLength(2);
 });
+
+test("a series day says so, suggests series, and only a series id can solve it", async ({ page }) => {
+  // Yesterday's fixture is a made-up series sharing TMDB id 105 with today's film: TMDB's film and series ids overlap.
+  const searches: string[] = [];
+  await page.route("**/api/films/search**", (route) => {
+    searches.push(route.request().url());
+    return route.fulfill({ json: { results: [{ tmdbId: 105, title: "Northbound", year: 2019 }] } });
+  });
+  await page.addInitScript(() => window.localStorage.setItem("close-ups:help-seen", "1"));
+  await page.goto("/close-ups/archive");
+  await page.getByRole("listitem").nth(1).getByRole("link").click();
+  await expect(tab(page, "Hands")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText("TV series", { exact: true })).toBeVisible();
+  const box = page.getByRole("combobox", { name: /^Name the series/ });
+  await box.fill("north");
+  await expect(page.getByRole("option", { name: /Northbound/ })).toBeVisible();
+  expect(searches.at(-1)).toContain("type=tv");
+
+  const yesterday = page.url().split("/").at(-1)!;
+  const { id } = await (await page.request.get(`/api/collage/day/${yesterday}`)).json();
+  const guess = (data: object) => page.request.post(`/api/collage/${id}/guess`, { data: { guess: "x", ...data } });
+  expect((await (await guess({ tmdbId: 105 })).json()).correct).toBe(false);
+  expect((await (await guess({ tmdbId: 105, mediaType: "movie" })).json()).correct).toBe(false);
+  expect((await (await guess({ tmdbId: 105, mediaType: "tv" })).json()).correct).toBe(true);
+
+  await page.getByRole("option", { name: /Northbound/ }).click();
+  await expect(page.getByRole("heading", { name: "Northbound" })).toBeVisible();
+
+  // Today's film day has no tag and searches films.
+  await openPuzzle(page);
+  await expect(page.getByText("TV series", { exact: true })).toHaveCount(0);
+  await guessBox(page).fill("back");
+  await expect.poll(() => searches.at(-1)).not.toContain("type=tv");
+});

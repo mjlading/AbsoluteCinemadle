@@ -1,0 +1,2014 @@
+{
+  "boards": [
+    {
+      "id": "fixture1",
+      "rounds": [
+        {
+          "seriesId": 900010,
+          "title": "The Long Count",
+          "firstYear": 2010,
+          "lastYear": 2015,
+          "seasons": [
+            {
+              "number": 1,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.8,
+                  "votes": 242
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.5,
+                  "votes": 77
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.7,
+                  "votes": 88
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.1,
+                  "votes": 69
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.8,
+                  "votes": 149
+                },
+                {
+                  "episode": 6,
+                  "rating": 7.7,
+                  "votes": 262
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.2,
+                  "votes": 163
+                },
+                {
+                  "episode": 8,
+                  "rating": 7.8,
+                  "votes": 257
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.7,
+                  "votes": 103
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.8,
+                  "votes": 362
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.5,
+                  "votes": 71
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.4,
+                  "votes": 243
+                },
+                {
+                  "episode": 5,
+                  "rating": 7.8,
+                  "votes": 153
+                },
+                {
+                  "episode": 6,
+                  "rating": 7.8,
+                  "votes": 108
+                }
+              ]
+            },
+            {
+              "number": 3,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 6.2,
+                  "votes": 316
+                },
+                {
+                  "episode": 2,
+                  "rating": 5.8,
+                  "votes": 197
+                },
+                {
+                  "episode": 3,
+                  "rating": 6.4,
+                  "votes": 389
+                },
+                {
+                  "episode": 4,
+                  "rating": 5.9,
+                  "votes": 337
+                },
+                {
+                  "episode": 5,
+                  "rating": 6.4,
+                  "votes": 136
+                },
+                {
+                  "episode": 6,
+                  "rating": 6.1,
+                  "votes": 320
+                },
+                {
+                  "episode": 7,
+                  "rating": 6.6,
+                  "votes": 328
+                },
+                {
+                  "episode": 8,
+                  "rating": 5.8,
+                  "votes": 145
+                }
+              ]
+            }
+          ],
+          "options": [
+            {
+              "id": "b1r0o0",
+              "seriesId": 910100,
+              "title": "Harbour Lights"
+            },
+            {
+              "id": "b1r0o1",
+              "seriesId": 900010,
+              "title": "The Long Count"
+            },
+            {
+              "id": "b1r0o2",
+              "seriesId": 910102,
+              "title": "Glass Orchard"
+            },
+            {
+              "id": "b1r0o3",
+              "seriesId": 910103,
+              "title": "Night Desk"
+            }
+          ],
+          "answer": "b1r0o1",
+          "reveal": "Made-up ratings for the tests."
+        },
+        {
+          "seriesId": 900011,
+          "title": "The Understudies",
+          "firstYear": 2011,
+          "lastYear": 2016,
+          "seasons": [
+            {
+              "number": 1,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.5,
+                  "votes": 258
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.6,
+                  "votes": 278
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.4,
+                  "votes": 272
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.1,
+                  "votes": 167
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.7,
+                  "votes": 397
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.6,
+                  "votes": 81
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.4,
+                  "votes": 308
+                },
+                {
+                  "episode": 8,
+                  "rating": 8.3,
+                  "votes": 215
+                },
+                {
+                  "episode": 9,
+                  "rating": 8.6,
+                  "votes": 187
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.9,
+                  "votes": 100
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.3,
+                  "votes": 124
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.6,
+                  "votes": 117
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.8,
+                  "votes": 255
+                },
+                {
+                  "episode": 5,
+                  "rating": 7.7,
+                  "votes": 382
+                },
+                {
+                  "episode": 6,
+                  "rating": 7.8,
+                  "votes": 325
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.4,
+                  "votes": 200
+                },
+                {
+                  "episode": 8,
+                  "rating": 8.1,
+                  "votes": 219
+                },
+                {
+                  "episode": 9,
+                  "rating": 8.4,
+                  "votes": 336
+                },
+                {
+                  "episode": 10,
+                  "rating": 8.7,
+                  "votes": 75
+                }
+              ]
+            },
+            {
+              "number": 3,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.8,
+                  "votes": 282
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.5,
+                  "votes": 73
+                },
+                {
+                  "episode": 3,
+                  "rating": 7.8,
+                  "votes": 399
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.1,
+                  "votes": 335
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.9,
+                  "votes": 268
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.0,
+                  "votes": 237
+                }
+              ]
+            },
+            {
+              "number": 4,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 7.7,
+                  "votes": 276
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.1,
+                  "votes": 352
+                },
+                {
+                  "episode": 3,
+                  "rating": 7.8,
+                  "votes": 70
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.0,
+                  "votes": 187
+                },
+                {
+                  "episode": 5,
+                  "rating": 7.9,
+                  "votes": 166
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.2,
+                  "votes": 294
+                },
+                {
+                  "episode": 7,
+                  "rating": 7.8,
+                  "votes": 269
+                },
+                {
+                  "episode": 8,
+                  "rating": 8.2,
+                  "votes": 182
+                }
+              ]
+            }
+          ],
+          "options": [
+            {
+              "id": "b1r1o0",
+              "seriesId": 910104,
+              "title": "Copper Valley"
+            },
+            {
+              "id": "b1r1o1",
+              "seriesId": 910105,
+              "title": "Small Hours"
+            },
+            {
+              "id": "b1r1o2",
+              "seriesId": 900011,
+              "title": "The Understudies"
+            },
+            {
+              "id": "b1r1o3",
+              "seriesId": 910107,
+              "title": "Northbound"
+            }
+          ],
+          "answer": "b1r1o2",
+          "reveal": "Made-up ratings for the tests."
+        },
+        {
+          "seriesId": 900012,
+          "title": "Second Wind",
+          "firstYear": 2012,
+          "lastYear": 2017,
+          "seasons": [
+            {
+              "number": 1,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.7,
+                  "votes": 321
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.0,
+                  "votes": 252
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.9,
+                  "votes": 389
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.8,
+                  "votes": 158
+                },
+                {
+                  "episode": 5,
+                  "rating": 7.9,
+                  "votes": 130
+                },
+                {
+                  "episode": 6,
+                  "rating": 7.9,
+                  "votes": 377
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.0,
+                  "votes": 288
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 7.9,
+                  "votes": 184
+                },
+                {
+                  "episode": 2,
+                  "rating": 7.7,
+                  "votes": 254
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.3,
+                  "votes": 352
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.4,
+                  "votes": 104
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.5,
+                  "votes": 303
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.8,
+                  "votes": 375
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.5,
+                  "votes": 67
+                },
+                {
+                  "episode": 8,
+                  "rating": 8.2,
+                  "votes": 388
+                },
+                {
+                  "episode": 9,
+                  "rating": 8.7,
+                  "votes": 240
+                },
+                {
+                  "episode": 10,
+                  "rating": 8.2,
+                  "votes": 241
+                }
+              ]
+            },
+            {
+              "number": 3,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.3,
+                  "votes": 245
+                },
+                {
+                  "episode": 2,
+                  "rating": 7.8,
+                  "votes": 74
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.9,
+                  "votes": 265
+                },
+                {
+                  "episode": 4,
+                  "rating": 7.9,
+                  "votes": 214
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.4,
+                  "votes": 92
+                },
+                {
+                  "episode": 6,
+                  "rating": 7.7,
+                  "votes": 117
+                }
+              ]
+            },
+            {
+              "number": 4,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 7.8,
+                  "votes": 226
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.4,
+                  "votes": 76
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.7,
+                  "votes": 354
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.2,
+                  "votes": 364
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.0,
+                  "votes": 217
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.4,
+                  "votes": 282
+                },
+                {
+                  "episode": 7,
+                  "rating": 7.8,
+                  "votes": 289
+                },
+                {
+                  "episode": 8,
+                  "rating": 8.9,
+                  "votes": 278
+                },
+                {
+                  "episode": 9,
+                  "rating": 8.3,
+                  "votes": 199
+                },
+                {
+                  "episode": 10,
+                  "rating": 7.8,
+                  "votes": 92
+                }
+              ]
+            },
+            {
+              "number": 5,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 6.6,
+                  "votes": 285
+                },
+                {
+                  "episode": 2,
+                  "rating": 6.7,
+                  "votes": 122
+                },
+                {
+                  "episode": 3,
+                  "rating": 6.3,
+                  "votes": 145
+                },
+                {
+                  "episode": 4,
+                  "rating": 6.8,
+                  "votes": 310
+                },
+                {
+                  "episode": 5,
+                  "rating": 6.1,
+                  "votes": 393
+                },
+                {
+                  "episode": 6,
+                  "rating": 6.4,
+                  "votes": 53
+                },
+                {
+                  "episode": 7,
+                  "rating": 6.6,
+                  "votes": 192
+                },
+                {
+                  "episode": 8,
+                  "rating": 6.9,
+                  "votes": 86
+                }
+              ]
+            }
+          ],
+          "options": [
+            {
+              "id": "b1r2o0",
+              "seriesId": 910108,
+              "title": "Lantern Street"
+            },
+            {
+              "id": "b1r2o1",
+              "seriesId": 910109,
+              "title": "Salt & Signal"
+            },
+            {
+              "id": "b1r2o2",
+              "seriesId": 910110,
+              "title": "Paper Kingdom"
+            },
+            {
+              "id": "b1r2o3",
+              "seriesId": 900012,
+              "title": "Second Wind"
+            }
+          ],
+          "answer": "b1r2o3",
+          "reveal": "Made-up ratings for the tests."
+        },
+        {
+          "seriesId": 900013,
+          "title": "The Tollkeepers",
+          "firstYear": 2013,
+          "lastYear": 2018,
+          "seasons": [
+            {
+              "number": 1,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.3,
+                  "votes": 125
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.1,
+                  "votes": 154
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.3,
+                  "votes": 297
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.1,
+                  "votes": 154
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.4,
+                  "votes": 139
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.7,
+                  "votes": 245
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.6,
+                  "votes": 156
+                },
+                {
+                  "episode": 8,
+                  "rating": 7.9,
+                  "votes": 292
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.6,
+                  "votes": 54
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.6,
+                  "votes": 281
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.0,
+                  "votes": 394
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.4,
+                  "votes": 216
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.2,
+                  "votes": 218
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.8,
+                  "votes": 226
+                },
+                {
+                  "episode": 7,
+                  "rating": 7.8,
+                  "votes": 92
+                },
+                {
+                  "episode": 8,
+                  "rating": 8.0,
+                  "votes": 140
+                }
+              ]
+            },
+            {
+              "number": 3,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 7.9,
+                  "votes": 359
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.9,
+                  "votes": 352
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.7,
+                  "votes": 285
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.8,
+                  "votes": 216
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.7,
+                  "votes": 83
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.7,
+                  "votes": 101
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.8,
+                  "votes": 142
+                },
+                {
+                  "episode": 8,
+                  "rating": 8.3,
+                  "votes": 131
+                }
+              ]
+            }
+          ],
+          "options": [
+            {
+              "id": "b1r3o0",
+              "seriesId": 900013,
+              "title": "The Tollkeepers"
+            },
+            {
+              "id": "b1r3o1",
+              "seriesId": 910113,
+              "title": "Quiet Hours Club"
+            },
+            {
+              "id": "b1r3o2",
+              "seriesId": 910114,
+              "title": "Low Tide"
+            },
+            {
+              "id": "b1r3o3",
+              "seriesId": 910115,
+              "title": "Blue Hour"
+            }
+          ],
+          "answer": "b1r3o0",
+          "reveal": "Made-up ratings for the tests."
+        },
+        {
+          "seriesId": 900014,
+          "title": "Ferris Point",
+          "firstYear": 2014,
+          "lastYear": 2019,
+          "seasons": [
+            {
+              "number": 1,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.6,
+                  "votes": 210
+                },
+                {
+                  "episode": 2,
+                  "rating": 7.8,
+                  "votes": 242
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.3,
+                  "votes": 83
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.6,
+                  "votes": 127
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.9,
+                  "votes": 54
+                },
+                {
+                  "episode": 6,
+                  "rating": 7.9,
+                  "votes": 278
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.7,
+                  "votes": 114
+                },
+                {
+                  "episode": 8,
+                  "rating": 8.4,
+                  "votes": 345
+                },
+                {
+                  "episode": 9,
+                  "rating": 8.9,
+                  "votes": 376
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 7.9,
+                  "votes": 320
+                },
+                {
+                  "episode": 2,
+                  "rating": 7.9,
+                  "votes": 47
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.7,
+                  "votes": 372
+                },
+                {
+                  "episode": 4,
+                  "rating": 7.8,
+                  "votes": 111
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.2,
+                  "votes": 139
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.7,
+                  "votes": 148
+                },
+                {
+                  "episode": 7,
+                  "rating": 7.7,
+                  "votes": 148
+                },
+                {
+                  "episode": 8,
+                  "rating": 8.1,
+                  "votes": 163
+                }
+              ]
+            },
+            {
+              "number": 3,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.1,
+                  "votes": 318
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.2,
+                  "votes": 107
+                },
+                {
+                  "episode": 3,
+                  "rating": 7.8,
+                  "votes": 221
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.8,
+                  "votes": 379
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.4,
+                  "votes": 304
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.2,
+                  "votes": 296
+                },
+                {
+                  "episode": 7,
+                  "rating": 7.9,
+                  "votes": 117
+                },
+                {
+                  "episode": 8,
+                  "rating": 8.3,
+                  "votes": 49
+                },
+                {
+                  "episode": 9,
+                  "rating": 8.7,
+                  "votes": 133
+                },
+                {
+                  "episode": 10,
+                  "rating": 8.4,
+                  "votes": 116
+                }
+              ]
+            },
+            {
+              "number": 4,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 5.9,
+                  "votes": 356
+                },
+                {
+                  "episode": 2,
+                  "rating": 6.6,
+                  "votes": 324
+                },
+                {
+                  "episode": 3,
+                  "rating": 5.8,
+                  "votes": 389
+                },
+                {
+                  "episode": 4,
+                  "rating": 6.3,
+                  "votes": 324
+                },
+                {
+                  "episode": 5,
+                  "rating": 6.3,
+                  "votes": 94
+                },
+                {
+                  "episode": 6,
+                  "rating": 6.8,
+                  "votes": 69
+                },
+                {
+                  "episode": 7,
+                  "rating": 6.0,
+                  "votes": 181
+                }
+              ]
+            }
+          ],
+          "options": [
+            {
+              "id": "b1r4o0",
+              "seriesId": 910116,
+              "title": "The Archivists"
+            },
+            {
+              "id": "b1r4o1",
+              "seriesId": 900014,
+              "title": "Ferris Point"
+            },
+            {
+              "id": "b1r4o2",
+              "seriesId": 910118,
+              "title": "Rook & Ransom"
+            },
+            {
+              "id": "b1r4o3",
+              "seriesId": 910119,
+              "title": "Open Season"
+            }
+          ],
+          "answer": "b1r4o1",
+          "reveal": "Made-up ratings for the tests."
+        }
+      ]
+    },
+    {
+      "id": "fixture2",
+      "rounds": [
+        {
+          "seriesId": 900020,
+          "title": "The Long Count",
+          "firstYear": 2010,
+          "lastYear": 2015,
+          "seasons": [
+            {
+              "number": 1,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.6,
+                  "votes": 299
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.2,
+                  "votes": 54
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.6,
+                  "votes": 72
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.2,
+                  "votes": 353
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.9,
+                  "votes": 350
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.3,
+                  "votes": 394
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.2,
+                  "votes": 313
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.7,
+                  "votes": 299
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.8,
+                  "votes": 397
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.3,
+                  "votes": 172
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.8,
+                  "votes": 143
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.7,
+                  "votes": 110
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.2,
+                  "votes": 240
+                },
+                {
+                  "episode": 8,
+                  "rating": 8.2,
+                  "votes": 77
+                }
+              ]
+            },
+            {
+              "number": 3,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 6.2,
+                  "votes": 148
+                },
+                {
+                  "episode": 2,
+                  "rating": 6.5,
+                  "votes": 102
+                },
+                {
+                  "episode": 3,
+                  "rating": 6.8,
+                  "votes": 119
+                },
+                {
+                  "episode": 4,
+                  "rating": 6.8,
+                  "votes": 369
+                },
+                {
+                  "episode": 5,
+                  "rating": 6.5,
+                  "votes": 113
+                },
+                {
+                  "episode": 6,
+                  "rating": 6.0,
+                  "votes": 110
+                },
+                {
+                  "episode": 7,
+                  "rating": 6.9,
+                  "votes": 152
+                }
+              ]
+            }
+          ],
+          "options": [
+            {
+              "id": "b2r0o0",
+              "seriesId": 910200,
+              "title": "Night Desk"
+            },
+            {
+              "id": "b2r0o1",
+              "seriesId": 910201,
+              "title": "Glass Orchard"
+            },
+            {
+              "id": "b2r0o2",
+              "seriesId": 900020,
+              "title": "The Long Count"
+            },
+            {
+              "id": "b2r0o3",
+              "seriesId": 910203,
+              "title": "Harbour Lights"
+            }
+          ],
+          "answer": "b2r0o2",
+          "reveal": "Made-up ratings for the tests."
+        },
+        {
+          "seriesId": 900021,
+          "title": "Copper Valley",
+          "firstYear": 2011,
+          "lastYear": 2016,
+          "seasons": [
+            {
+              "number": 1,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.2,
+                  "votes": 289
+                },
+                {
+                  "episode": 2,
+                  "rating": 7.9,
+                  "votes": 381
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.7,
+                  "votes": 122
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.5,
+                  "votes": 303
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.2,
+                  "votes": 255
+                },
+                {
+                  "episode": 6,
+                  "rating": 7.9,
+                  "votes": 203
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.6,
+                  "votes": 49
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.1,
+                  "votes": 274
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.2,
+                  "votes": 49
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.2,
+                  "votes": 304
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.4,
+                  "votes": 302
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.9,
+                  "votes": 97
+                }
+              ]
+            },
+            {
+              "number": 3,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.9,
+                  "votes": 93
+                },
+                {
+                  "episode": 2,
+                  "rating": 7.8,
+                  "votes": 179
+                },
+                {
+                  "episode": 3,
+                  "rating": 7.7,
+                  "votes": 132
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.0,
+                  "votes": 106
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.7,
+                  "votes": 386
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.7,
+                  "votes": 172
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.2,
+                  "votes": 314
+                }
+              ]
+            },
+            {
+              "number": 4,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.4,
+                  "votes": 398
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.1,
+                  "votes": 182
+                },
+                {
+                  "episode": 3,
+                  "rating": 7.8,
+                  "votes": 392
+                },
+                {
+                  "episode": 4,
+                  "rating": 7.9,
+                  "votes": 77
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.0,
+                  "votes": 48
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.5,
+                  "votes": 173
+                },
+                {
+                  "episode": 7,
+                  "rating": 7.8,
+                  "votes": 153
+                },
+                {
+                  "episode": 8,
+                  "rating": 7.8,
+                  "votes": 102
+                },
+                {
+                  "episode": 9,
+                  "rating": 8.2,
+                  "votes": 213
+                },
+                {
+                  "episode": 10,
+                  "rating": 8.9,
+                  "votes": 253
+                }
+              ]
+            }
+          ],
+          "options": [
+            {
+              "id": "b2r1o0",
+              "seriesId": 910204,
+              "title": "Northbound"
+            },
+            {
+              "id": "b2r1o1",
+              "seriesId": 910205,
+              "title": "The Understudies"
+            },
+            {
+              "id": "b2r1o2",
+              "seriesId": 910206,
+              "title": "Small Hours"
+            },
+            {
+              "id": "b2r1o3",
+              "seriesId": 900021,
+              "title": "Copper Valley"
+            }
+          ],
+          "answer": "b2r1o3",
+          "reveal": "Made-up ratings for the tests."
+        },
+        {
+          "seriesId": 900022,
+          "title": "Second Wind",
+          "firstYear": 2012,
+          "lastYear": 2017,
+          "seasons": [
+            {
+              "number": 1,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.4,
+                  "votes": 62
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.3,
+                  "votes": 162
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.8,
+                  "votes": 122
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.0,
+                  "votes": 132
+                },
+                {
+                  "episode": 5,
+                  "rating": 7.9,
+                  "votes": 199
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.5,
+                  "votes": 311
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.6,
+                  "votes": 188
+                },
+                {
+                  "episode": 8,
+                  "rating": 8.2,
+                  "votes": 384
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.0,
+                  "votes": 49
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.9,
+                  "votes": 58
+                },
+                {
+                  "episode": 3,
+                  "rating": 7.7,
+                  "votes": 298
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.4,
+                  "votes": 137
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.3,
+                  "votes": 165
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.8,
+                  "votes": 94
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.5,
+                  "votes": 372
+                }
+              ]
+            },
+            {
+              "number": 3,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.5,
+                  "votes": 319
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.7,
+                  "votes": 241
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.9,
+                  "votes": 197
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.5,
+                  "votes": 157
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.1,
+                  "votes": 365
+                },
+                {
+                  "episode": 6,
+                  "rating": 7.9,
+                  "votes": 217
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.9,
+                  "votes": 106
+                },
+                {
+                  "episode": 8,
+                  "rating": 7.7,
+                  "votes": 360
+                },
+                {
+                  "episode": 9,
+                  "rating": 8.6,
+                  "votes": 170
+                }
+              ]
+            },
+            {
+              "number": 4,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 7.9,
+                  "votes": 83
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.5,
+                  "votes": 235
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.7,
+                  "votes": 383
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.9,
+                  "votes": 346
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.0,
+                  "votes": 190
+                },
+                {
+                  "episode": 6,
+                  "rating": 7.8,
+                  "votes": 134
+                },
+                {
+                  "episode": 7,
+                  "rating": 7.9,
+                  "votes": 268
+                },
+                {
+                  "episode": 8,
+                  "rating": 7.7,
+                  "votes": 226
+                },
+                {
+                  "episode": 9,
+                  "rating": 8.9,
+                  "votes": 320
+                }
+              ]
+            },
+            {
+              "number": 5,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 6.0,
+                  "votes": 198
+                },
+                {
+                  "episode": 2,
+                  "rating": 6.0,
+                  "votes": 133
+                },
+                {
+                  "episode": 3,
+                  "rating": 5.7,
+                  "votes": 235
+                },
+                {
+                  "episode": 4,
+                  "rating": 5.8,
+                  "votes": 182
+                },
+                {
+                  "episode": 5,
+                  "rating": 6.3,
+                  "votes": 142
+                },
+                {
+                  "episode": 6,
+                  "rating": 6.0,
+                  "votes": 42
+                },
+                {
+                  "episode": 7,
+                  "rating": 5.8,
+                  "votes": 85
+                },
+                {
+                  "episode": 8,
+                  "rating": 5.9,
+                  "votes": 340
+                }
+              ]
+            }
+          ],
+          "options": [
+            {
+              "id": "b2r2o0",
+              "seriesId": 900022,
+              "title": "Second Wind"
+            },
+            {
+              "id": "b2r2o1",
+              "seriesId": 910209,
+              "title": "Paper Kingdom"
+            },
+            {
+              "id": "b2r2o2",
+              "seriesId": 910210,
+              "title": "Salt & Signal"
+            },
+            {
+              "id": "b2r2o3",
+              "seriesId": 910211,
+              "title": "Lantern Street"
+            }
+          ],
+          "answer": "b2r2o0",
+          "reveal": "Made-up ratings for the tests."
+        },
+        {
+          "seriesId": 900023,
+          "title": "Low Tide",
+          "firstYear": 2013,
+          "lastYear": 2018,
+          "seasons": [
+            {
+              "number": 1,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.2,
+                  "votes": 193
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.1,
+                  "votes": 159
+                },
+                {
+                  "episode": 3,
+                  "rating": 7.8,
+                  "votes": 310
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.7,
+                  "votes": 119
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.5,
+                  "votes": 345
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.2,
+                  "votes": 206
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 7.9,
+                  "votes": 356
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.5,
+                  "votes": 62
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.7,
+                  "votes": 302
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.5,
+                  "votes": 398
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.7,
+                  "votes": 111
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.8,
+                  "votes": 298
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.4,
+                  "votes": 48
+                },
+                {
+                  "episode": 8,
+                  "rating": 8.7,
+                  "votes": 339
+                },
+                {
+                  "episode": 9,
+                  "rating": 8.7,
+                  "votes": 389
+                }
+              ]
+            },
+            {
+              "number": 3,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 7.8,
+                  "votes": 61
+                },
+                {
+                  "episode": 2,
+                  "rating": 7.9,
+                  "votes": 224
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.9,
+                  "votes": 232
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.7,
+                  "votes": 325
+                },
+                {
+                  "episode": 5,
+                  "rating": 7.8,
+                  "votes": 49
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.5,
+                  "votes": 388
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.0,
+                  "votes": 175
+                }
+              ]
+            }
+          ],
+          "options": [
+            {
+              "id": "b2r3o0",
+              "seriesId": 910212,
+              "title": "Blue Hour"
+            },
+            {
+              "id": "b2r3o1",
+              "seriesId": 900023,
+              "title": "Low Tide"
+            },
+            {
+              "id": "b2r3o2",
+              "seriesId": 910214,
+              "title": "Quiet Hours Club"
+            },
+            {
+              "id": "b2r3o3",
+              "seriesId": 910215,
+              "title": "The Tollkeepers"
+            }
+          ],
+          "answer": "b2r3o1",
+          "reveal": "Made-up ratings for the tests."
+        },
+        {
+          "seriesId": 900024,
+          "title": "Ferris Point",
+          "firstYear": 2014,
+          "lastYear": 2019,
+          "seasons": [
+            {
+              "number": 1,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.2,
+                  "votes": 75
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.6,
+                  "votes": 297
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.8,
+                  "votes": 87
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.5,
+                  "votes": 73
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.6,
+                  "votes": 282
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.0,
+                  "votes": 78
+                }
+              ]
+            },
+            {
+              "number": 2,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.0,
+                  "votes": 145
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.0,
+                  "votes": 372
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.9,
+                  "votes": 292
+                },
+                {
+                  "episode": 4,
+                  "rating": 8.7,
+                  "votes": 79
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.3,
+                  "votes": 390
+                },
+                {
+                  "episode": 6,
+                  "rating": 8.0,
+                  "votes": 63
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.4,
+                  "votes": 369
+                },
+                {
+                  "episode": 8,
+                  "rating": 7.9,
+                  "votes": 347
+                }
+              ]
+            },
+            {
+              "number": 3,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 8.1,
+                  "votes": 373
+                },
+                {
+                  "episode": 2,
+                  "rating": 8.6,
+                  "votes": 195
+                },
+                {
+                  "episode": 3,
+                  "rating": 8.4,
+                  "votes": 108
+                },
+                {
+                  "episode": 4,
+                  "rating": 7.7,
+                  "votes": 71
+                },
+                {
+                  "episode": 5,
+                  "rating": 8.3,
+                  "votes": 384
+                },
+                {
+                  "episode": 6,
+                  "rating": 7.8,
+                  "votes": 151
+                },
+                {
+                  "episode": 7,
+                  "rating": 8.5,
+                  "votes": 188
+                }
+              ]
+            },
+            {
+              "number": 4,
+              "episodes": [
+                {
+                  "episode": 1,
+                  "rating": 6.0,
+                  "votes": 278
+                },
+                {
+                  "episode": 2,
+                  "rating": 6.3,
+                  "votes": 100
+                },
+                {
+                  "episode": 3,
+                  "rating": 6.9,
+                  "votes": 321
+                },
+                {
+                  "episode": 4,
+                  "rating": 5.9,
+                  "votes": 83
+                },
+                {
+                  "episode": 5,
+                  "rating": 6.8,
+                  "votes": 48
+                },
+                {
+                  "episode": 6,
+                  "rating": 6.0,
+                  "votes": 79
+                },
+                {
+                  "episode": 7,
+                  "rating": 6.7,
+                  "votes": 270
+                },
+                {
+                  "episode": 8,
+                  "rating": 6.9,
+                  "votes": 238
+                },
+                {
+                  "episode": 9,
+                  "rating": 6.0,
+                  "votes": 147
+                },
+                {
+                  "episode": 10,
+                  "rating": 5.8,
+                  "votes": 86
+                }
+              ]
+            }
+          ],
+          "options": [
+            {
+              "id": "b2r4o0",
+              "seriesId": 910216,
+              "title": "Open Season"
+            },
+            {
+              "id": "b2r4o1",
+              "seriesId": 910217,
+              "title": "Rook & Ransom"
+            },
+            {
+              "id": "b2r4o2",
+              "seriesId": 900024,
+              "title": "Ferris Point"
+            },
+            {
+              "id": "b2r4o3",
+              "seriesId": 910219,
+              "title": "The Archivists"
+            }
+          ],
+          "answer": "b2r4o2",
+          "reveal": "Made-up ratings for the tests."
+        }
+      ]
+    }
+  ]
+}

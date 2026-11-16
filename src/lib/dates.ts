@@ -31,6 +31,15 @@ export function utcIsoDate(now: Date = new Date()): string {
   return now.toISOString().slice(0, 10);
 }
 
+/**
+ * A self-building daily's board may be built on demand only for a day that is today somewhere on
+ * Earth (UTC-12 to UTC+14), so nobody can fill the past or the far future.
+ */
+export function canBuildOnDemand(date: string, now: Date = new Date()): boolean {
+  const today = utcIsoDate(now);
+  return date >= addDays(today, -1) && date <= addDays(today, 1);
+}
+
 /** A YYYY-MM-DD date moved by a number of days. */
 export function addDays(date: string, days: number): string {
   const [year, month, day] = date.split("-").map(Number);

@@ -1,6 +1,6 @@
 import { boardResponse } from "@/lib/casting-call/handlers";
-import { canBuildOnDemand, getBoardByDate, getOrBuildBoard } from "@/lib/casting-call/source";
-import { isPlayableDate } from "@/lib/dates";
+import { getBoardByDate, getOrBuildBoard } from "@/lib/casting-call/source";
+import { canBuildOnDemand, isPlayableDate } from "@/lib/dates";
 import { errorResponse } from "@/lib/http";
 
 /** Building a board on the spot takes a few seconds of TMDB lookups. */

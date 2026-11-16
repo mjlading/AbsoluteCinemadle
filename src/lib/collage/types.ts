@@ -1,3 +1,4 @@
+import type { MediaType } from "@/lib/tmdb/api";
 import type { Crop } from "@/lib/tmdb/images";
 
 /**
@@ -47,6 +48,8 @@ export interface CollagePuzzle {
   /** The day it is the daily puzzle (YYYY-MM-DD), or null for an undated one (the old demos), which players never see. */
   date: string | null;
   answer: {
+    /** A film ("movie") or a TV series ("tv"); TMDB ids only mean something with it. */
+    mediaType: MediaType;
     tmdbId: number;
     title: string;
     originalTitle: string | null;
@@ -84,6 +87,8 @@ export interface PublicCollagePuzzle {
   id: string;
   name: string;
   date: string | null;
+  /** Players are told whether to name a film or a series; it narrows the suggestions too. */
+  mediaType: MediaType;
   keywords: PublicCollageKeyword[];
 }
 

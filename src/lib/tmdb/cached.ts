@@ -15,6 +15,12 @@ export async function searchMovies(query: string) {
   return api.searchMovies(query);
 }
 
+export async function searchSeries(query: string) {
+  "use cache";
+  cacheLife("hours");
+  return api.searchSeries(query);
+}
+
 export async function searchPeople(query: string) {
   "use cache";
   cacheLife("hours");

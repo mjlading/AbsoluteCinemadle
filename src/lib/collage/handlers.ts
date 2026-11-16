@@ -3,6 +3,7 @@ import "server-only";
 import { z } from "zod";
 
 import { errorResponse, parseJsonBody } from "@/lib/http";
+import { MEDIA_TYPES } from "@/lib/tmdb/api";
 import { posterUrl } from "@/lib/tmdb/images";
 import { titleMatches } from "@/lib/game/match";
 import { parseCollageView, renderCollageImage } from "./image";
@@ -26,6 +27,7 @@ export function toPublicCollage(puzzle: CollagePuzzle): PublicCollagePuzzle {
     id: puzzle.id,
     name: puzzle.name,
     date: puzzle.date,
+    mediaType: puzzle.answer.mediaType,
     keywords: puzzle.keywords.map((k) => ({
       id: k.id,
       label: k.label,
@@ -49,15 +51,17 @@ export const collageResponse = (puzzle: CollagePuzzle) => Response.json(toPublic
 
 const GuessBody = z.object({
   guess: z.string().max(200),
-  /** Set when the player picked a film from the suggestions. */
+  /** Set when the player picked a title from the suggestions. */
   tmdbId: z.number().int().positive().optional(),
+  /** What kind of title the picked id is: film and series ids overlap. */
+  mediaType: z.enum(MEDIA_TYPES).default("movie"),
 });
 
 export async function collageGuessResponse(puzzle: CollagePuzzle, request: Request): Promise<Response> {
   const body = await parseJsonBody(request, GuessBody);
   if (body instanceof Response) return body;
   const correct =
-    body.tmdbId === puzzle.answer.tmdbId ||
+    (body.tmdbId === puzzle.answer.tmdbId && body.mediaType === puzzle.answer.mediaType) ||
     titleMatches(body.guess, [puzzle.answer.title, puzzle.answer.originalTitle]);
   const result: CollageGuessResult = correct ? { correct: true, answer: answerOf(puzzle) } : { correct: false };
   return Response.json(result, { headers: noStore });
