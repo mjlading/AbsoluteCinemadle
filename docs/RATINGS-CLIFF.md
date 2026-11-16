@@ -26,6 +26,7 @@ Rules decided where the owner is silent are in [ASSUMPTIONS.md](../ASSUMPTIONS.m
   Answers are drawn with odds growing with the chart's shape and the show's fame, at most two per main genre a day.
 - Wrong options are other well-known shows with about as many seasons.
 - A series is not an answer again within 14 days either side, nor while it is a Close-Ups answer within those 14 days.
+  Five answers a day from a pool of about 150 shows can't always keep that up once the fortnight around a day is full, so the window then shrinks to 10, 7, 4 and finally 0 days rather than leave a day without a board (found when building #1 to #14 at once).
 - Every number is in `RULES.ratingsCliff` and `POINTS.ratingsCliff`.
 
 ## Answer protection

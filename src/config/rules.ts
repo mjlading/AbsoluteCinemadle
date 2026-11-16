@@ -126,6 +126,11 @@ export const RULES = {
       maxSameGenre: 2,
       /** A series that was a day's answer isn't an answer again within this many days either side (it may be a wrong option). */
       cooldownDays: 14,
+      /**
+       * When the days around are so full that too few series are left (the pool is about 150 shows and a
+       * fortnight either side holds up to 140 answers), the window shrinks to these, in turn.
+       */
+      cooldownFallbackDays: [10, 7, 4, 0],
     },
   },
 } as const;
