@@ -88,13 +88,13 @@ async function chartOf(details: SeriesDetails, date: string): Promise<Charted | 
 
 /**
  * Series that may not be an answer on `date`: the answers on boards already stored within
- * `cooldownDays` either side, and any series that is a Close-Ups answer in that window, so a
- * player doesn't meet one show in two games in the same fortnight. Which neighbours exist
- * depends on which days were built first; a day's board, once stored, doesn't change.
+ * `days` either side, and any series that is a Close-Ups answer in that window, so a player
+ * doesn't meet one show in two games in the same fortnight. Which neighbours exist depends on
+ * which days were built first; a day's board, once stored, doesn't change.
  */
-async function recentAnswers(date: string): Promise<Set<number>> {
-  const from = addDays(date, -B.cooldownDays);
-  const to = addDays(date, B.cooldownDays);
+async function recentAnswers(date: string, days: number): Promise<Set<number>> {
+  const from = addDays(date, -days);
+  const to = addDays(date, days);
   const [boards, puzzles] = await Promise.all([
     db()
       .select({ rounds: ratingsCliffBoards.rounds })
@@ -113,9 +113,12 @@ async function recentAnswers(date: string): Promise<Set<number>> {
 
 const yearOf = (d: string | null) => (d ? Number(d.slice(0, 4)) : null);
 
+/**
+ * A day's board. A series isn't the answer again within `cooldownDays` either side; when the days
+ * around are so full that too few series are left, the window shrinks step by step
+ * (`cooldownFallbackDays`) rather than leave the day without a board.
+ */
 export async function buildRatingsCliffBoard(seed: string, date: string): Promise<RatingsCliffRound[]> {
-  const random = seededRandom(seed);
-  const cooling = await recentAnswers(date);
   const pages = await mapLimited(
     Array.from({ length: B.poolPages }, (_, i) => i + 1),
     CONCURRENCY,
@@ -123,9 +126,29 @@ export async function buildRatingsCliffBoard(seed: string, date: string): Promis
   );
   const seen = new Set<number>();
   const pool = pages.flat().filter((s) => !seen.has(s.seriesId) && seen.add(s.seriesId) && poolAllows(s));
+  for (const [i, days] of [B.cooldownDays, ...B.cooldownFallbackDays].entries()) {
+    const cooling = await recentAnswers(date, days);
+    // The first try keeps the day's own seed, so a board is the same however often it is built.
+    const rounds = await tryBoard(seededRandom(i === 0 ? seed : `${seed}:${days}`), date, pool, cooling);
+    if (rounds) return rounds;
+  }
+  throw new Error(`Ratings Cliff found too few series for ${date}, even with the shortest cooldown.`);
+}
 
+/** A board drawn from `pool` with no answer in `cooling`, or null when too few series qualify. */
+async function tryBoard(
+  random: () => number,
+  date: string,
+  pool: PoolSeries[],
+  cooling: Set<number>,
+): Promise<RatingsCliffRound[] | null> {
   // Better-known series are more likely to be looked up, so they come up more often as answers and wrong options.
-  const sample = weightedShuffle(pool, (s) => fameWeight(s.voteCount), random).slice(0, B.candidates);
+  // Series that are cooling down are left out first, so the ones looked up can all be answers.
+  const sample = weightedShuffle(
+    pool.filter((s) => !cooling.has(s.seriesId)),
+    (s) => fameWeight(s.voteCount),
+    random,
+  ).slice(0, B.candidates);
   const votes = new Map(sample.map((s) => [s.seriesId, s.voteCount]));
   const details = (await mapLimited(sample, CONCURRENCY, (s) => getSeriesDetails(s.seriesId))).filter(
     (d) => d.type === "Scripted" && airedBy(d.firstAirDate, date),
@@ -161,9 +184,7 @@ export async function buildRatingsCliffBoard(seed: string, date: string): Promis
     { minShape: B.minShape, maxSameGenre: B.maxSameGenre },
     random,
   );
-  if (answers.length < RULES.ratingsCliff.rounds) {
-    throw new Error(`Ratings Cliff found only ${answers.length} series for ${date}.`);
-  }
+  if (answers.length < RULES.ratingsCliff.rounds) return null;
 
   const answerTitles = new Set(answers.map((a) => a.details.title.toLowerCase()));
   const decoyPool = details
