@@ -222,12 +222,21 @@ def stems_step(video, d):
 
 # 4. lines --------------------------------------------------------------------------------------------------------
 
+def singular(word):
+    """A word with a plural ending dropped, so "avenger" in a line matches "Avengers" in the title."""
+    if len(word) > 4 and word.endswith("ies"):
+        return word[:-3] + "y"
+    if len(word) > 3 and word.endswith("s") and not word.endswith("ss"):
+        return word[:-1]
+    return word
+
+
 def title_rule(names):
     """What gives the title away: the whole title (or a part of it split at a colon) as a phrase, and any title
     word rare enough to name the film on its own ("Titanic", "Batman"; not "back" or "future").
     Character names, places and people are allowed: the owner wants the game easier (2026-11-10)."""
     phrases = {" ".join(normalize(part)) for n in names for part in [n, *n.split(":")] if normalize(part)}
-    words = {t for n in names for t in name_tokens(n) if zipf_frequency(t, "en") < RARE_ZIPF}
+    words = {singular(t) for n in names for t in name_tokens(n) if zipf_frequency(t, "en") < RARE_ZIPF}
     return phrases, words
 
 
@@ -236,7 +245,7 @@ def says_forbidden(text, rule):
     phrases, rare = rule
     words = [re.sub(r"'s$", "", w) for w in normalize(text)]
     joined = f" {' '.join(words)} "
-    return (any(w in rare for w in words) or any(f" {p} " in joined for p in phrases)
+    return (any(singular(w) in rare for w in words) or any(f" {p} " in joined for p in phrases)
             or any(p in joined for p in TRAILER_PHRASES))
 
 
