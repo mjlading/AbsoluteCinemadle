@@ -16,7 +16,8 @@ Output stays spoiler-free: counts and scores only, never titles or lines.
 
 usage: python build.py [slug ...]     (default: every pick in work/picks.json)
 """
-import difflib, logging, math, re, sys
+import difflib, logging, math, pathlib, re, sys
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import soundfile as sf
@@ -25,6 +26,9 @@ from wordfreq import zipf_frequency
 from common import LAB, RATE, WORK, decode, encode_mp3, new_id, normalize, read_json, rms, tmdb, write_json
 from signals import quoted, signals_step
 from theme import theme_step
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+import gpu_lock
 
 # Scene clips are the film's own sound; trailers add a narrator, so they only fill in, and only with voices
 # also heard in a scene clip. A film needs MIN_CLIPS scene clips to get a board.
@@ -618,15 +622,36 @@ def lines_step(slug, meta, d, videos):
 
 # ------------------------------------------------------------------------------------------------------------------
 
-def build(slug, tmdb_id):
+def release_gpu():
+    """Unloads every model, so the GPU is free for the other lab while this one downloads; they reload in seconds."""
+    _models.clear()
+    import gc
+    import torch
+
+    gc.collect()
+    torch.cuda.empty_cache()
+
+
+def fetch(slug, tmdb_id):
+    """Steps 1 and 2: network only, so they run for the next film while this one is on the GPU."""
     d = WORK / slug
     meta = meta_step(slug, tmdb_id, d)
-    videos = download_step(slug, meta, d)
+    return meta, download_step(slug, meta, d)
+
+
+def build(slug, fetched):
+    d = WORK / slug
+    meta, videos = fetched
     clips = sum(meta["videos"][i]["type"] == "Clip" for i, _ in videos)
     if clips < MIN_CLIPS:
         log(slug, f"only {clips} scene clips: no way to tell a trailer narrator from the cast, so no board")
         return
-    lines = lines_step(slug, meta, d, videos)
+    # Separation, Whisper and voice prints: one GPU job at a time, across both labs (tools/gpu_lock.py).
+    with gpu_lock.held():
+        try:
+            lines = lines_step(slug, meta, d, videos)
+        finally:
+            release_gpu()
     iconic = sum(l["role"] == "iconic" for l in lines)
     log(slug, f"{len(videos)} videos, {len(lines)} lines ({iconic} iconic)")
     theme_step(slug, meta, d, log)
@@ -635,6 +660,12 @@ def build(slug, tmdb_id):
 if __name__ == "__main__":
     picks = read_json(WORK / "picks.json")
     wanted = set(sys.argv[1:])
-    for pick in picks:
-        if not wanted or pick["slug"] in wanted:
-            build(pick["slug"], pick["tmdb_id"])
+    todo = [p for p in picks if not wanted or p["slug"] in wanted]
+    # Downloads run ahead of the GPU work, in film order, so a film is usually fetched by the time the GPU gets to it.
+    with ThreadPoolExecutor(max_workers=1) as downloads:
+        ahead = [downloads.submit(fetch, p["slug"], p["tmdb_id"]) for p in todo]
+        for pick, fetched in zip(todo, ahead):
+            try:
+                build(pick["slug"], fetched.result())
+            except Exception as e:  # one film's failure must not stop the batch
+                log(pick["slug"], f"failed: {type(e).__name__}: {e}")

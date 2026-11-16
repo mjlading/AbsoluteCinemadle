@@ -55,3 +55,6 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# the labs' cross-process GPU lock (tools/gpu_lock.py)
+/tools/.gpu.lock

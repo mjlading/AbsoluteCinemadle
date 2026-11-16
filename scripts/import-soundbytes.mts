@@ -13,6 +13,7 @@
  * Without either each board keeps the date in the file, and an undated board is never
  * shown to players.
  * The files hold answers and clips: keep them out of git.
+ * A real import (no `--days`) adds its films to the used-films ledger, which the labs' pickers skip.
  */
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -24,6 +25,7 @@ import postgres from "postgres";
 import * as schema from "../src/db/schema";
 import { addDays, isIsoDate, localIsoDate } from "../src/lib/dates";
 import { SoundbytesExportSchema } from "../src/lib/soundbytes/board-schema";
+import { recordUsedFilms } from "./used-films-ledger";
 
 const url = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL is not set. See .env.example.");
@@ -80,6 +82,11 @@ await db.transaction(async (tx) => {
   for (const clip of clips) await tx.insert(schema.soundbytesClips).values(clip);
 });
 await client.end();
+if (!daysOption)
+  await recordUsedFilms(
+    "soundbytes",
+    boards.map((b) => ({ mediaType: "movie" as const, tmdbId: b.answer.tmdbId })),
+  );
 for (const r of rows) console.log(`${r.date ?? "undated"}  ${r.name}`);
 const kb = Math.round(clips.reduce((sum, c) => sum + c.data.byteLength, 0) / 1024);
 console.log(

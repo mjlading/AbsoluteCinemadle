@@ -22,8 +22,10 @@ ffmpeg comes with the `imageio-ffmpeg` package. The first run downloads the sepa
 ## Run
 
 ```sh
-python pick.py 3        # picks well-known films at random as new board-N slugs, without printing them
-python build.py         # builds every pick (or name slugs: python build.py board-2); about 6 minutes a film
+(cd ../.. && npm run db:used-films)  # with the production DATABASE_URL: films already live, skipped by both games' pickers
+python pick.py 3        # picks well-known films at random as new board-N slugs, without printing them, never a film either game used
+python build.py         # builds every pick (or name slugs: python build.py board-2); about 3 minutes a film,
+                        # downloads running ahead of the GPU work
 python export.py        # -> .data/soundbytes/boards.json and clips/ (gitignored)
 # then, from the repo root, one board a day from a date: npm run db:import-soundbytes -- .data/soundbytes/boards.json --from=2026-11-12
 python review.py        # a page with each built board's lines in order, roles and signals (spoils the films)
@@ -72,3 +74,8 @@ Without a judgment the board uses the signals' order.
 
 Downloaded videos, stems and clips are gitignored and stay on this PC; delete `work/` once boards are imported.
 Clip sources (video id and time) stay in the database, server-side, so a takedown request can be traced to its clip.
+
+## Running next to the collage lab
+
+Both labs may run at once: every step that loads a large model holds `tools/gpu_lock.py`, so only one is on the GPU at a time (two at once spilled GPU memory and froze the PC), while the other lab's downloads carry on.
+`build.py` unloads its models each time it lets go of the lock.
