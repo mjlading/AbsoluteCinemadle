@@ -1,5 +1,11 @@
 import { GameCard } from "@/components/game-modes/GameCard";
-import { CastingCallIcon, CloseUpsIcon, RaisedHand, SoundbytesIcon } from "@/components/game-modes/GameIcons";
+import {
+  CastingCallIcon,
+  CloseUpsIcon,
+  RaisedHand,
+  RatingsCliffIcon,
+  SoundbytesIcon,
+} from "@/components/game-modes/GameIcons";
 import { SiteFooter } from "@/components/game/SiteFooter";
 import { SITE } from "@/config/site";
 
@@ -17,8 +23,8 @@ export default function Home() {
           <RaisedHand side="right" className="shrink-0 text-ink" />
         </header>
 
-        <section aria-label="Games" className="mt-12 sm:mt-16">
-          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <section aria-label="Games" className="mx-auto mt-12 max-w-[46rem] sm:mt-16">
+          <ul className="grid gap-5 sm:grid-cols-2">
             <li>
               <GameCard
                 title="Close-Ups"
@@ -47,6 +53,16 @@ export default function Home() {
                 tag="New"
                 icon={<SoundbytesIcon className="size-24" />}
                 href={SITE.games.soundbytes}
+              />
+            </li>
+            <li>
+              <GameCard
+                title="Ratings Cliff"
+                blurb="Name the TV series from its episode ratings."
+                color="#a6d86e"
+                tag="New"
+                icon={<RatingsCliffIcon className="size-24" />}
+                href={SITE.games.ratingsCliff}
               />
             </li>
           </ul>

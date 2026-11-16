@@ -320,8 +320,8 @@ test.describe("answer protection on the real server", () => {
   });
 
   test("the cron route refuses callers without the secret", async ({ request }) => {
-    expect((await request.get("/api/cron/casting-call")).status()).toBe(401);
-    const wrong = await request.get("/api/cron/casting-call", { headers: { Authorization: "Bearer nope" } });
+    expect((await request.get("/api/cron/daily")).status()).toBe(401);
+    const wrong = await request.get("/api/cron/daily", { headers: { Authorization: "Bearer nope" } });
     expect(wrong.status()).toBe(401);
   });
 });

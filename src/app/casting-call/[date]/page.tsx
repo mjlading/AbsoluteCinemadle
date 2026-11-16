@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { CastingCallGame } from "@/components/casting-call/CastingCallGame";
-import { CastingCallShell } from "@/components/casting-call/CastingCallShell";
+import { DailyShell } from "@/components/game/DailyShell";
 
 export const metadata: Metadata = {
   title: "Casting call | Absolute Cinemadle",
@@ -12,11 +12,11 @@ export const metadata: Metadata = {
 /** An earlier day's board, from the archive. */
 export default function CastingCallDayPage({ params }: PageProps<"/casting-call/[date]">) {
   return (
-    <CastingCallShell>
+    <DailyShell>
       <Suspense fallback={<div className="flex-1" />}>
         <Day params={params} />
       </Suspense>
-    </CastingCallShell>
+    </DailyShell>
   );
 }
 

@@ -52,7 +52,7 @@ The site runs on Vercel with a Neon Postgres database, connected through Neon's 
 - Each build runs `npm run db:migrate` first (see `vercel.json`), against the direct connection in `DATABASE_URL_UNPOOLED`.
 - Functions run in Frankfurt (`fra1` in `vercel.json`), next to the Neon database (`aws-eu-central-1`).
 - Secrets live in the Vercel project's environment variables, never in the repo.
-- A Vercel Cron job (`crons` in `vercel.json`, daily at 04:00 UTC, production only) calls `/api/cron/casting-call`, which builds the coming week's Casting call boards.
+- A Vercel Cron job (`crons` in `vercel.json`, daily at 04:00 UTC, production only) calls `/api/cron/daily`, which builds the coming week's Casting call and Ratings Cliff boards.
   It needs `CRON_SECRET` (any long random string) in the project's environment variables; Vercel sends it with the call, and without it the route refuses everyone.
   If a run is missed, the first player of a day without a board gets one built on the spot.
 

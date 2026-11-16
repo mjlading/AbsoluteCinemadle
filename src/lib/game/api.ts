@@ -26,6 +26,12 @@ export interface FilmSuggestion {
   year: number | null;
 }
 
-export function suggestFilms(query: string, signal: AbortSignal): Promise<{ results: FilmSuggestion[] }> {
-  return request(`/api/films/search?q=${encodeURIComponent(query)}`, { signal });
+/** Film suggestions, or TV series ones with `mediaType` "tv". */
+export function suggestFilms(
+  query: string,
+  signal: AbortSignal,
+  mediaType: "movie" | "tv" = "movie",
+): Promise<{ results: FilmSuggestion[] }> {
+  const type = mediaType === "tv" ? "&type=tv" : "";
+  return request(`/api/films/search?q=${encodeURIComponent(query)}${type}`, { signal });
 }

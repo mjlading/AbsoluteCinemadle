@@ -40,8 +40,10 @@ python sheet.py whiplash          # thumbnails of all fetched frames
 ## Daily batches
 
 ```sh
-python pick_demo.py 7 batch1       # 7 secret picks as batch1-1..7 -> images/batch1-picks.json
-bash run_batch.sh batch1           # fetch, faces, frames, then SAM 3 and MM-DINO detect + report per film, one GPU job at a time
+(cd ../.. && npm run db:used-films) # with the production DATABASE_URL: films already live, skipped by both games' pickers
+python pick_demo.py 7 batch1 1     # 7 secret picks as batch1-1..7, 1 of them a TV series -> images/batch1-picks.json, never a title either game used
+bash run_batch.sh batch1           # downloads (fetch, faces) run ahead while the GPU does frames, SAM 3 and MM-DINO detect + report;
+                                   # steps already done are skipped, so a stopped batch can be run again
 python strips.py batch1-1          # one image per keyword row (agent/), every tile numbered, ~ marks likely same-shot tiles
 python curate.py batch1 2026-11-10 # curation page on http://localhost:8767: pick 4 keywords and their exact 4 tiles, date, approve
 python export_demo.py images/batch1-*-curation.json   # warns about days not approved

@@ -11,4 +11,8 @@ export const POINTS = {
     /** Extra points for a win on the very first guess. */
     firstClueBonus: 2,
   },
+  /** Ratings Cliff: one point per series named right. */
+  ratingsCliff: {
+    perCorrect: 1,
+  },
 } as const;

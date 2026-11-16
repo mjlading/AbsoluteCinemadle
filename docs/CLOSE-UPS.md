@@ -8,6 +8,7 @@ Rules decided where this file is silent are in [ASSUMPTIONS.md](../ASSUMPTIONS.m
 ## Game
 
 - A puzzle is one hand-picked film or series.
+  A series day says so: a "TV series" tape beside the day's number, a guess box reading "Name the series…" and series-only suggestions (2026-11-16; about one day a week).
 - A clue is a 2x2 collage of close-up crops that share a keyword, such as "shoes", all from the same title.
 - A puzzle has 4 keywords in a fixed order, from least to most revealing.
   Every player sees the same clues in the same order, so scores are comparable.

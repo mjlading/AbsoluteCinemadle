@@ -46,7 +46,10 @@ puzzles = []
 for slug, spec in curation.items():
     meta = json.loads((LAB / "images" / slug / "meta.json").read_text())
     index = {it["file"]: it for it in json.loads((LAB / "images" / slug / "index.json").read_text())}
-    film = requests.get(f"https://api.themoviedb.org/3/movie/{meta['tmdb_id']}", headers=H, timeout=30).json()
+    media = meta.get("media_type", "movie")
+    film = requests.get(f"https://api.themoviedb.org/3/{media}/{meta['tmdb_id']}", headers=H, timeout=30).json()
+    if media == "tv":  # a series' name, original name and first air date, in a film's fields
+        film |= {"title": film["name"], "original_title": film.get("original_name"), "release_date": film.get("first_air_date")}
     keywords = []
     for kw in spec["keywords"]:
         rows = json.loads((LAB / "detections" / f"{slug}-{kw['source']}-keywords.json").read_text())
@@ -75,7 +78,7 @@ for slug, spec in curation.items():
         "id": new_id(8),
         "name": spec["name"],
         "date": spec.get("date"),
-        "answer": {"tmdbId": film["id"], "title": film["title"], "originalTitle": film.get("original_title"),
+        "answer": {"mediaType": media, "tmdbId": film["id"], "title": film["title"], "originalTitle": film.get("original_title"),
                    "year": year, "posterPath": film.get("poster_path")},
         "keywords": keywords,
     })

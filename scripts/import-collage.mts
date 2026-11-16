@@ -9,6 +9,7 @@
  * `--days` dates the puzzles in file order relative to today on this machine (0 is
  * today, -1 yesterday), for tests; without it each puzzle keeps the date in the file.
  * The file holds answers and TMDB paths: keep it out of git, and delete it once imported.
+ * A real import (no `--days`) adds its films to the used-films ledger, which the labs' pickers skip.
  */
 import { readFile } from "node:fs/promises";
 
@@ -19,6 +20,7 @@ import postgres from "postgres";
 import * as schema from "../src/db/schema";
 import { addDays, localIsoDate } from "../src/lib/dates";
 import { CollageExportSchema } from "../src/lib/collage/puzzle-schema";
+import { recordUsedFilms } from "./used-films-ledger";
 
 const url = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL is not set. See .env.example.");
@@ -60,5 +62,10 @@ await db.transaction(async (tx) => {
   if (rows.length > 0) await tx.insert(table).values(rows);
 });
 await client.end();
+if (!offsets)
+  await recordUsedFilms(
+    "close-ups",
+    puzzles.map((p) => p.answer),
+  );
 for (const r of rows) console.log(`${r.date ?? "undated"}  ${r.name}`);
 console.log(`Imported ${rows.length} Close-Ups puzzle${rows.length === 1 ? "" : "s"}.`);

@@ -297,10 +297,11 @@
       "id": "fixture2",
       "name": "Test puzzle 2",
       "answer": {
+        "mediaType": "tv",
         "tmdbId": 105,
-        "title": "Back to the Future",
+        "title": "Northbound",
         "originalTitle": null,
-        "year": 1985,
+        "year": 2019,
         "posterPath": null
       },
       "keywords": [

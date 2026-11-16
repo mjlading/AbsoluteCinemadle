@@ -44,7 +44,7 @@ The owner's brief: obscure films, well-known actors; playtests then moved the fi
 
 Boards are built on the server, never by hand, and stored in the `casting_call_boards` table:
 
-- A Vercel Cron job calls `/api/cron/casting-call` daily at 04:00 UTC (`vercel.json`). It builds every missing board from the launch date (#1, 2026-11-10) to a week ahead, today and ahead first, and refreshes TMDB data older than 5 months. It needs `CRON_SECRET` in Vercel.
+- A Vercel Cron job calls `/api/cron/daily` daily at 04:00 UTC (`vercel.json`). It builds every missing board from the launch date (#1, 2026-11-10) to a week ahead, today and ahead first, and refreshes TMDB data older than 5 months. It needs `CRON_SECRET` in Vercel.
   So the first run fills #1 onwards (the owner asked for days 1 to 5), and a day whose board was deleted is built again; a run stops starting boards after 200 seconds and leaves the rest for the next.
 - A player who reaches a day without a board (today somewhere on Earth: UTC-1 to UTC+1 days) gets it built on the spot, in a few seconds, so a missed cron run never leaves a day empty.
 - Building is seeded by the date, so the same TMDB data and history give the same board.
@@ -65,7 +65,7 @@ Who is on the board is the puzzle, so it follows the project's hard rules on ans
 
 - Building boards: `src/lib/casting-call/generate.ts` (pure, with unit tests); storing and serving them: `src/lib/casting-call/source.ts`.
 - Logic: `src/lib/casting-call/state.ts`, with unit tests.
-- Server: `src/lib/casting-call/handlers.ts`, routes under `src/app/api/casting-call/` and `src/app/api/cron/casting-call/`.
+- Server: `src/lib/casting-call/handlers.ts`, routes under `src/app/api/casting-call/` and `src/app/api/cron/daily/` (shared with Ratings Cliff).
 - UI: `src/components/casting-call/`, pages under `src/app/casting-call/`.
 - Player flows: `e2e/casting-call.spec.ts`, on fixture boards (`e2e/fixtures/casting-call.json`), with TMDB stubbed apart from one real playthrough that needs a token.
 

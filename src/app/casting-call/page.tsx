@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { CastingCallGame } from "@/components/casting-call/CastingCallGame";
-import { CastingCallShell } from "@/components/casting-call/CastingCallShell";
+import { DailyShell } from "@/components/game/DailyShell";
 
 export const metadata: Metadata = {
   title: "Casting call | Absolute Cinemadle",
@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 /** Today's board, by the player's own calendar; played or not, this is where the game lives. */
 export default function CastingCallTodayPage() {
   return (
-    <CastingCallShell>
+    <DailyShell>
       <CastingCallGame />
-    </CastingCallShell>
+    </DailyShell>
   );
 }

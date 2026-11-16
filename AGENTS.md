@@ -1,24 +1,28 @@
 # Absolute Cinemadle
 
-Three film games, each with its own route, code folders and design notes:
+Four daily games, each with its own route, code folders and design notes:
 
-- Close-Ups (`/close-ups`, docs/CLOSE-UPS.md): a daily; name the film from collages of close-ups that share a keyword.
+- Close-Ups (`/close-ups`, docs/CLOSE-UPS.md): a daily; name the film (or, about one day a week, the TV series) from collages of close-ups that share a keyword.
   `/close-ups` is today's puzzle and `/close-ups/archive` lists earlier days; puzzles are curated in `tools/collage-lab` and loaded with `npm run db:import-collage`.
 - Soundbytes (`/soundbytes`, docs/SOUNDBYTES.md): a daily; name the film from lines of dialogue that get easier, then its theme.
   Boards are built on the owner's PC by `tools/soundbytes-lab` and loaded with `npm run db:import-soundbytes`.
 - Casting call (`/casting-call`, docs/CASTING-CALL.md): a daily; cross out 8 actors by naming films, within 6 guesses and a 50-second bar.
   `/casting-call` is today's board and `/casting-call/archive` lists earlier days; boards are built by the server from TMDB (`src/lib/casting-call/generate.ts`), by a daily Vercel Cron job or on a day's first visit.
+- Ratings Cliff (`/ratings-cliff`, docs/RATINGS-CLIFF.md): a daily; name five TV series from grids of their episode ratings.
+  Boards are built by the server from TMDB (`src/lib/ratings-cliff/build.ts`), like Casting call's, by the same cron job or on a day's first visit.
 
 Decisions taken where the owner's briefs are silent live in [ASSUMPTIONS.md](ASSUMPTIONS.md); add to it instead of stopping to ask.
-None of the games has an admin editor; the labs make Close-Ups and Soundbytes content, and Casting call builds its own.
+None of the games has an admin editor; the labs make Close-Ups and Soundbytes content, and Casting call and Ratings Cliff build their own.
+No film or series is used twice across Close-Ups and Soundbytes: the labs' pickers skip the used-films ledger (`tools/used_films.py`, see ASSUMPTIONS.md under "Picking films").
 
 ## Status
 
-All three games are live at absolutecinemadle.fun (Vercel Hobby with a Neon free database; see "Deploy" in README.md).
-Close-Ups and Soundbytes need a new week of content before the last imported day runs out; Casting call fills itself.
-Casting call's daily cron job needs `CRON_SECRET` set in the Vercel project.
+All four games are live at absolutecinemadle.fun (Vercel Hobby with a Neon free database; see "Deploy" in README.md).
+Close-Ups and Soundbytes need a new week of content before the last imported day runs out (both have boards to 2026-11-23); Casting call and Ratings Cliff fill themselves.
+The daily cron job (`/api/cron/daily`) needs `CRON_SECRET` set in the Vercel project.
+The labs run side by side on the owner's PC: downloads overlap GPU work, and `tools/gpu_lock.py` keeps one large model on the GPU at a time.
 Collage puzzles and Soundbytes answers are TMDB data: rows older than about 5 months (`synced_at`) must be re-exported or deleted.
-Casting call's cron job refreshes its own boards' TMDB data after 5 months.
+The cron job refreshes Casting call's and Ratings Cliff's TMDB data after 5 months.
 Update this section as that work lands.
 
 ## Stack
