@@ -54,6 +54,7 @@ export interface SeriesDetails {
   /** TMDB's kind of show: "Scripted", "Miniseries", "Reality", "Talk Show", ... */
   type: string;
   genreIds: number[];
+  posterPath: string | null;
   firstAirDate: string | null;
   lastAirDate: string | null;
   /** Regular seasons (specials left out), with their episode counts and first air dates. */
@@ -64,6 +65,7 @@ const DetailsSchema = z.object({
   id: z.number(),
   name: z.string(),
   type: z.string().nullish(),
+  poster_path: z.string().nullish(),
   genres: z.array(z.object({ id: z.number() })).default([]),
   first_air_date: z.string().nullish(),
   last_air_date: z.string().nullish(),
@@ -81,6 +83,7 @@ export async function getSeriesDetails(seriesId: number): Promise<SeriesDetails>
     title: d.name,
     type: d.type ?? "",
     genreIds: d.genres.map((g) => g.id),
+    posterPath: d.poster_path || null,
     firstAirDate: d.first_air_date || null,
     lastAirDate: d.last_air_date || null,
     seasons: d.seasons

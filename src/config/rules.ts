@@ -133,4 +133,9 @@ export const RULES = {
       cooldownFallbackDays: [10, 7, 4, 0],
     },
   },
+  /** Warmer: find the hidden film by how close each guess ranks. */
+  warmer: {
+    /** Guesses (hints don't count) before each fact about the hidden film can be asked for. */
+    clueAfter: { decade: 5, genres: 10 },
+  },
 } as const;

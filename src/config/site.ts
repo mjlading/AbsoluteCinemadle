@@ -23,4 +23,6 @@ export const SITE = {
   castingCallLaunchDate: "2026-11-10",
   /** Ratings Cliff joined on 2026-11-17 but shares the count too; its earlier days were built for the archive. */
   ratingsCliffLaunchDate: "2026-11-10",
+  /** Warmer joined on 2026-11-25 and shares the count as well; any earlier day can still be played. */
+  warmerLaunchDate: "2026-11-10",
 } as const;

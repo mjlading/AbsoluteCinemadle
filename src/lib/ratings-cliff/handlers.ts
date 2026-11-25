@@ -4,13 +4,14 @@ import { z } from "zod";
 
 import { RULES } from "@/config/rules";
 import { errorResponse, parseJsonBody } from "@/lib/http";
+import { posterUrl } from "@/lib/tmdb/images";
 import { toPublicSeasons } from "./chart";
 import { getBoard, type RatingsCliffBoard } from "./source";
 import type { PublicRatingsCliffBoard, RatingsCliffGuessResult } from "./types";
 
 /*
  * Request handling for /api/ratings-cliff/... The client gets each round's
- * chart and option titles; which option is right, and the series' name, only
+ * chart and the options' titles and posters; which option is right, and the series' name, only
  * come back from the guess route, one round at a time.
  */
 
@@ -22,7 +23,7 @@ export function boardResponse(board: RatingsCliffBoard): Response {
     date: board.date,
     rounds: board.rounds.map((r) => ({
       seasons: toPublicSeasons(r.seasons),
-      options: r.options.map((o) => ({ id: o.id, title: o.title })),
+      options: r.options.map((o) => ({ id: o.id, title: o.title, posterUrl: posterUrl(o.posterPath ?? null) })),
     })),
   };
   return Response.json(body, { headers: noStore });

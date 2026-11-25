@@ -191,6 +191,7 @@ async function tryBoard(
     .filter((d) => !answerTitles.has(d.title.toLowerCase()))
     .map((d) => ({ seriesId: d.seriesId, title: d.title, seasons: Math.max(1, airedSeasons(d, date).length) }));
   const used = new Set(answers.map((a) => a.details.seriesId));
+  const posters = new Map(details.map((d) => [d.seriesId, d.posterPath]));
   const ids = new Set<string>();
 
   return answers.map((a) => {
@@ -207,7 +208,7 @@ async function tryBoard(
       let id = optionId(random);
       while (ids.has(id)) id = optionId(random);
       ids.add(id);
-      return { ...o, id };
+      return { ...o, id, posterPath: posters.get(o.seriesId) ?? null };
     });
     return {
       seriesId: a.details.seriesId,

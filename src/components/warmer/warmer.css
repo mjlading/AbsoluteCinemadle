@@ -1,0 +1,56 @@
+/*
+ * Warmer. On the lit table lies a control strip, the stepped colour wedge a lab
+ * lays beside a contact sheet: five tapes from cold to burning, then the film.
+ * Every guess lands on a step, and that is the one loud thing on the page.
+ *
+ * - Close is hot. Cyan, paper, yellow, orange, red, in steps, never a gradient.
+ * - A step nobody has reached is an empty dashed slot; a reached one is tape.
+ * - Tape always carries ink text. Colour sits on the tape and on the rank, nowhere else.
+ * - The rank is the biggest thing in a row and in the reading, set in the display face.
+ * - Sorted closest first, the list's ranks stack into the same wedge.
+ */
+
+.warmer-patch {
+  background: var(--heat);
+  color: var(--on-tape);
+  font-size: clamp(9px, 2.9vw, 12px);
+}
+
+.warmer-patch[data-empty] {
+  clip-path: none;
+  border-radius: 3px;
+  background: none;
+  color: rgb(232 238 241 / 0.42);
+  outline: 1.5px dashed rgb(232 238 241 / 0.2);
+  outline-offset: -1.5px;
+}
+
+/* The step the latest guess landed on: its tape is stuck down, and a notch points at the reading below. */
+.warmer-slot[data-latest] > .warmer-patch {
+  animation: closeups-stick 420ms cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.warmer-slot[data-latest]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 3px);
+  translate: -50% 0;
+  border: 5px solid transparent;
+  border-top-color: var(--heat);
+  border-bottom-width: 0;
+  animation: closeups-pop 250ms ease-out;
+}
+
+/* A new reading: the rank lands with a little overshoot. */
+.warmer-rank {
+  animation: warmer-land 380ms cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+
+@keyframes warmer-land {
+  from {
+    opacity: 0;
+    scale: 1.35;
+    translate: 0 -6px;
+  }
+}

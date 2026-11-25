@@ -10,7 +10,7 @@ import { ratingsCliffBoards } from "@/db/schema";
 import { addDays } from "@/lib/dates";
 import { RatingsCliffBoardSchema } from "./board-schema";
 import { buildRatingsCliffBoard } from "./build";
-import { getSeasonEpisodes } from "./tmdb";
+import { getSeasonEpisodes, getSeriesDetails } from "./tmdb";
 import type { RatingsCliffDay, RatingsCliffRound } from "./types";
 
 /*
@@ -39,6 +39,28 @@ export async function getBoard(id: string): Promise<RatingsCliffBoard | null> {
 export async function getBoardByDate(date: string): Promise<RatingsCliffBoard | null> {
   const [row] = await db().select().from(ratingsCliffBoards).where(eq(ratingsCliffBoards.date, date));
   return row ? toBoard(row) : null;
+}
+
+/**
+ * A board built before options carried posters gets them the first time it is served: one TMDB
+ * lookup per option, stored so it happens once. If TMDB can't be reached the board goes out without.
+ */
+export async function withPosters(board: RatingsCliffBoard): Promise<RatingsCliffBoard> {
+  if (board.rounds.every((r) => r.options.every((o) => o.posterPath !== undefined))) return board;
+  try {
+    const rounds = await Promise.all(
+      board.rounds.map(async (round) => ({
+        ...round,
+        options: await Promise.all(
+          round.options.map(async (o) => ({ ...o, posterPath: (await getSeriesDetails(o.seriesId)).posterPath })),
+        ),
+      })),
+    );
+    await db().update(ratingsCliffBoards).set({ rounds }).where(eq(ratingsCliffBoards.id, board.id));
+    return { ...board, rounds };
+  } catch {
+    return board;
+  }
 }
 
 /** The days from `from` to `to` (YYYY-MM-DD, both included) that have no board yet, in date order. */

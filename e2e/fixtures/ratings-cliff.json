@@ -139,22 +139,26 @@
             {
               "id": "b1r0o0",
               "seriesId": 910100,
-              "title": "Harbour Lights"
+              "title": "Harbour Lights",
+              "posterPath": null
             },
             {
               "id": "b1r0o1",
               "seriesId": 900010,
-              "title": "The Long Count"
+              "title": "The Long Count",
+              "posterPath": null
             },
             {
               "id": "b1r0o2",
               "seriesId": 910102,
-              "title": "Glass Orchard"
+              "title": "Glass Orchard",
+              "posterPath": null
             },
             {
               "id": "b1r0o3",
               "seriesId": 910103,
-              "title": "Night Desk"
+              "title": "Night Desk",
+              "posterPath": null
             }
           ],
           "answer": "b1r0o1",
@@ -356,22 +360,26 @@
             {
               "id": "b1r1o0",
               "seriesId": 910104,
-              "title": "Copper Valley"
+              "title": "Copper Valley",
+              "posterPath": null
             },
             {
               "id": "b1r1o1",
               "seriesId": 910105,
-              "title": "Small Hours"
+              "title": "Small Hours",
+              "posterPath": null
             },
             {
               "id": "b1r1o2",
               "seriesId": 900011,
-              "title": "The Understudies"
+              "title": "The Understudies",
+              "posterPath": null
             },
             {
               "id": "b1r1o3",
               "seriesId": 910107,
-              "title": "Northbound"
+              "title": "Northbound",
+              "posterPath": null
             }
           ],
           "answer": "b1r1o2",
@@ -618,22 +626,26 @@
             {
               "id": "b1r2o0",
               "seriesId": 910108,
-              "title": "Lantern Street"
+              "title": "Lantern Street",
+              "posterPath": null
             },
             {
               "id": "b1r2o1",
               "seriesId": 910109,
-              "title": "Salt & Signal"
+              "title": "Salt & Signal",
+              "posterPath": null
             },
             {
               "id": "b1r2o2",
               "seriesId": 910110,
-              "title": "Paper Kingdom"
+              "title": "Paper Kingdom",
+              "posterPath": null
             },
             {
               "id": "b1r2o3",
               "seriesId": 900012,
-              "title": "Second Wind"
+              "title": "Second Wind",
+              "posterPath": null
             }
           ],
           "answer": "b1r2o3",
@@ -785,22 +797,26 @@
             {
               "id": "b1r3o0",
               "seriesId": 900013,
-              "title": "The Tollkeepers"
+              "title": "The Tollkeepers",
+              "posterPath": null
             },
             {
               "id": "b1r3o1",
               "seriesId": 910113,
-              "title": "Quiet Hours Club"
+              "title": "Quiet Hours Club",
+              "posterPath": null
             },
             {
               "id": "b1r3o2",
               "seriesId": 910114,
-              "title": "Low Tide"
+              "title": "Low Tide",
+              "posterPath": null
             },
             {
               "id": "b1r3o3",
               "seriesId": 910115,
-              "title": "Blue Hour"
+              "title": "Blue Hour",
+              "posterPath": null
             }
           ],
           "answer": "b1r3o0",
@@ -1007,22 +1023,26 @@
             {
               "id": "b1r4o0",
               "seriesId": 910116,
-              "title": "The Archivists"
+              "title": "The Archivists",
+              "posterPath": null
             },
             {
               "id": "b1r4o1",
               "seriesId": 900014,
-              "title": "Ferris Point"
+              "title": "Ferris Point",
+              "posterPath": null
             },
             {
               "id": "b1r4o2",
               "seriesId": 910118,
-              "title": "Rook & Ransom"
+              "title": "Rook & Ransom",
+              "posterPath": null
             },
             {
               "id": "b1r4o3",
               "seriesId": 910119,
-              "title": "Open Season"
+              "title": "Open Season",
+              "posterPath": null
             }
           ],
           "answer": "b1r4o1",
@@ -1164,22 +1184,26 @@
             {
               "id": "b2r0o0",
               "seriesId": 910200,
-              "title": "Night Desk"
+              "title": "Night Desk",
+              "posterPath": null
             },
             {
               "id": "b2r0o1",
               "seriesId": 910201,
-              "title": "Glass Orchard"
+              "title": "Glass Orchard",
+              "posterPath": null
             },
             {
               "id": "b2r0o2",
               "seriesId": 900020,
-              "title": "The Long Count"
+              "title": "The Long Count",
+              "posterPath": null
             },
             {
               "id": "b2r0o3",
               "seriesId": 910203,
-              "title": "Harbour Lights"
+              "title": "Harbour Lights",
+              "posterPath": null
             }
           ],
           "answer": "b2r0o2",
@@ -1361,22 +1385,26 @@
             {
               "id": "b2r1o0",
               "seriesId": 910204,
-              "title": "Northbound"
+              "title": "Northbound",
+              "posterPath": null
             },
             {
               "id": "b2r1o1",
               "seriesId": 910205,
-              "title": "The Understudies"
+              "title": "The Understudies",
+              "posterPath": null
             },
             {
               "id": "b2r1o2",
               "seriesId": 910206,
-              "title": "Small Hours"
+              "title": "Small Hours",
+              "posterPath": null
             },
             {
               "id": "b2r1o3",
               "seriesId": 900021,
-              "title": "Copper Valley"
+              "title": "Copper Valley",
+              "posterPath": null
             }
           ],
           "answer": "b2r1o3",
@@ -1623,22 +1651,26 @@
             {
               "id": "b2r2o0",
               "seriesId": 900022,
-              "title": "Second Wind"
+              "title": "Second Wind",
+              "posterPath": null
             },
             {
               "id": "b2r2o1",
               "seriesId": 910209,
-              "title": "Paper Kingdom"
+              "title": "Paper Kingdom",
+              "posterPath": null
             },
             {
               "id": "b2r2o2",
               "seriesId": 910210,
-              "title": "Salt & Signal"
+              "title": "Salt & Signal",
+              "posterPath": null
             },
             {
               "id": "b2r2o3",
               "seriesId": 910211,
-              "title": "Lantern Street"
+              "title": "Lantern Street",
+              "posterPath": null
             }
           ],
           "answer": "b2r2o0",
@@ -1780,22 +1812,26 @@
             {
               "id": "b2r3o0",
               "seriesId": 910212,
-              "title": "Blue Hour"
+              "title": "Blue Hour",
+              "posterPath": null
             },
             {
               "id": "b2r3o1",
               "seriesId": 900023,
-              "title": "Low Tide"
+              "title": "Low Tide",
+              "posterPath": null
             },
             {
               "id": "b2r3o2",
               "seriesId": 910214,
-              "title": "Quiet Hours Club"
+              "title": "Quiet Hours Club",
+              "posterPath": null
             },
             {
               "id": "b2r3o3",
               "seriesId": 910215,
-              "title": "The Tollkeepers"
+              "title": "The Tollkeepers",
+              "posterPath": null
             }
           ],
           "answer": "b2r3o1",
@@ -1987,22 +2023,26 @@
             {
               "id": "b2r4o0",
               "seriesId": 910216,
-              "title": "Open Season"
+              "title": "Open Season",
+              "posterPath": null
             },
             {
               "id": "b2r4o1",
               "seriesId": 910217,
-              "title": "Rook & Ransom"
+              "title": "Rook & Ransom",
+              "posterPath": null
             },
             {
               "id": "b2r4o2",
               "seriesId": 900024,
-              "title": "Ferris Point"
+              "title": "Ferris Point",
+              "posterPath": null
             },
             {
               "id": "b2r4o3",
               "seriesId": 910219,
-              "title": "The Archivists"
+              "title": "The Archivists",
+              "posterPath": null
             }
           ],
           "answer": "b2r4o2",
