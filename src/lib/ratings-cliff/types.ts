@@ -10,8 +10,11 @@ export interface RatingsCliffRound {
   firstYear: number | null;
   lastYear: number | null;
   seasons: ChartSeason[];
-  /** In display order; each has an opaque id that says nothing about which is right. */
-  options: { id: string; seriesId: number; title: string }[];
+  /**
+   * In display order; each has an opaque id that says nothing about which is right.
+   * `posterPath` is missing on boards built before options had posters, until they are first served.
+   */
+  options: { id: string; seriesId: number; title: string; posterPath?: string | null }[];
   /** The id of the right option. */
   answer: string;
   /** One line for the reveal, built from the chart's numbers. */
@@ -24,7 +27,7 @@ export interface RatingsCliffDay {
   id: string;
 }
 
-/** What the client gets of a day's board: charts and option titles, never which option is right. */
+/** What the client gets of a day's board: charts and the options' titles and posters, never which option is right. */
 export interface PublicRatingsCliffBoard {
   id: string;
   date: string;
@@ -33,7 +36,7 @@ export interface PublicRatingsCliffBoard {
 
 export interface PublicRound {
   seasons: PublicSeason[];
-  options: { id: string; title: string }[];
+  options: { id: string; title: string; posterUrl: string | null }[];
 }
 
 /** The server's answer to one pick. */

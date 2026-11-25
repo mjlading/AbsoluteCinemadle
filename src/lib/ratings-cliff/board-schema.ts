@@ -27,7 +27,14 @@ const RoundSchema = z.object({
     )
     .min(1),
   options: z
-    .array(z.object({ id: z.string().min(1), seriesId: z.number().int().positive(), title: z.string() }))
+    .array(
+      z.object({
+        id: z.string().min(1),
+        seriesId: z.number().int().positive(),
+        title: z.string(),
+        posterPath: z.string().nullish(),
+      }),
+    )
     .length(OPTIONS),
   answer: z.string().min(1),
   reveal: z.string(),

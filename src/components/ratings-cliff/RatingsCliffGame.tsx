@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Confetti } from "@/components/game/Confetti";
 import { GameTopBar } from "@/components/game/GameTopBar";
+import { Poster } from "@/components/game/Poster";
 import { ReelSpinner } from "@/components/game/ReelSpinner";
 import { ResultActions } from "@/components/game/ResultActions";
 import { DailyLeaderboard } from "@/components/leaderboard/DailyLeaderboard";
@@ -195,11 +196,14 @@ function RatingsCliffPlay({ board }: { board: PublicRatingsCliffBoard }) {
               type="button"
               disabled={busy || Boolean(answer)}
               onClick={() => pick(o.id)}
-              className={`min-h-14 rounded-xl px-3 py-2 text-left font-semibold leading-tight ring-1 transition-colors disabled:cursor-default ${tone}`}
+              className={`flex items-center gap-2.5 rounded-xl p-1.5 pr-3 text-left font-semibold leading-tight ring-1 transition-colors disabled:cursor-default ${tone}`}
             >
-              {o.title}
-              {answer && right && <span className="sr-only"> (the answer)</span>}
-              {answer && chosen && !right && <span className="sr-only"> (your pick)</span>}
+              <Poster src={o.posterUrl} className="h-[54px] w-[36px]" />
+              <span className="min-w-0">
+                {o.title}
+                {answer && right && <span className="sr-only"> (the answer)</span>}
+                {answer && chosen && !right && <span className="sr-only"> (your pick)</span>}
+              </span>
             </button>
           );
         })}

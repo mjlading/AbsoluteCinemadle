@@ -1,7 +1,7 @@
 import { canBuildOnDemand, isPlayableDate } from "@/lib/dates";
 import { errorResponse } from "@/lib/http";
 import { boardResponse } from "@/lib/ratings-cliff/handlers";
-import { getBoardByDate, getOrBuildBoard } from "@/lib/ratings-cliff/source";
+import { getBoardByDate, getOrBuildBoard, withPosters } from "@/lib/ratings-cliff/source";
 
 /** Building a board on the spot takes a few seconds of TMDB lookups. */
 export const maxDuration = 60;
@@ -16,7 +16,9 @@ export async function GET(_request: Request, ctx: RouteContext<"/api/ratings-cli
   if (!isPlayableDate(date)) return errorResponse(404, "There is no Ratings Cliff for that day.");
   try {
     const board = canBuildOnDemand(date) ? await getOrBuildBoard(date) : await getBoardByDate(date);
-    return board ? boardResponse(board) : errorResponse(404, "There is no Ratings Cliff for that day.");
+    return board
+      ? boardResponse(await withPosters(board))
+      : errorResponse(404, "There is no Ratings Cliff for that day.");
   } catch (error) {
     console.error(`Ratings Cliff board for ${date} could not be built`, error);
     return errorResponse(502, "Today's board couldn't be made right now.");
