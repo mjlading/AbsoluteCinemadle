@@ -57,7 +57,7 @@ export function DayList() {
       {days.map((d) => (
         <li key={d.date}>
           <Link
-            href={d.today ? SITE.games.soundbytes : `${SITE.games.soundbytes}/${d.date}`}
+            href={`${SITE.games.soundbytes}/${d.date}`}
             className="flex min-h-14 items-center gap-4 rounded-[10px] bg-surface px-4 ring-1 ring-ink/15 hover:ring-ink"
           >
             <span className="w-14 font-display text-2xl font-[850] leading-none">

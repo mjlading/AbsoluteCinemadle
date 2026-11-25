@@ -8,7 +8,7 @@ test(
     const card = (name: string) => page.getByRole("link").filter({ has: page.getByRole("heading", { name }) });
     await expect(card("Close-Ups")).toHaveAttribute("href", "/close-ups");
     await expect(card("Casting call")).toHaveAttribute("href", "/casting-call");
-    await expect(card("Soundbytes")).toHaveAttribute("href", "/soundbytes");
+    await expect(card("Soundbytes")).toHaveAttribute("href", "/soundbytes/archive");
 
     await page.keyboard.press("Tab");
     await expect(card("Close-Ups")).toBeFocused();

@@ -9,7 +9,8 @@ import { expect, test, type Page } from "@playwright/test";
 /** Opens today's board, with the first-visit help already seen unless a test asks for it. */
 async function openToday(page: Page, { help = false } = {}) {
   if (!help) await page.addInitScript(() => window.localStorage.setItem("soundbytes:help-seen", "1"));
-  await page.goto("/soundbytes");
+  // Soundbytes is archived, so today's board is only reached by its date.
+  await page.goto(`/soundbytes/${new Date().toLocaleDateString("sv")}`);
   // Generous: the first visits to a freshly started server also warm its caches.
   await expect(line(page, 1)).toBeVisible({ timeout: 15_000 });
 }
@@ -27,7 +28,7 @@ async function expectMarks(page: Page, marks: string[]) {
 }
 
 test(
-  "the home card opens today's board straight away, with the help on a first visit",
+  "the archived game's home card and old address open the archive, which lists today's board",
   { tag: "@phone" },
   async ({ page }) => {
     await page.goto("/");
@@ -35,14 +36,21 @@ test(
       .getByRole("link")
       .filter({ has: page.getByRole("heading", { name: "Soundbytes" }) })
       .click();
-    await expect(page).toHaveURL(/\/soundbytes$/);
-    const help = page.getByRole("dialog", { name: "How to play" });
-    await expect(help).toBeVisible();
-    await help.getByRole("button", { name: "Let's go" }).click();
-    await expect(help).toBeHidden();
+    await expect(page).toHaveURL(/\/soundbytes\/archive$/);
     await expect(page.getByRole("heading", { name: "Soundbytes", level: 1 })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Today/ })).toBeVisible();
+    await page.goto("/soundbytes");
+    await expect(page).toHaveURL(/\/soundbytes\/archive$/);
   },
 );
+
+test("the first visit to a board shows the help", async ({ page }) => {
+  await page.goto(`/soundbytes/${new Date().toLocaleDateString("sv")}`);
+  const help = page.getByRole("dialog", { name: "How to play" });
+  await expect(help).toBeVisible();
+  await help.getByRole("button", { name: "Let's go" }).click();
+  await expect(help).toBeHidden();
+});
 
 test(
   "line 1 plays from our clip route, each skip opens the next line, and giving up takes a second press",
