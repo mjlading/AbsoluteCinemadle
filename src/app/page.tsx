@@ -48,11 +48,11 @@ export default function Home() {
             <li>
               <GameCard
                 title="Soundbytes"
-                blurb="Name the film by ear."
+                blurb="Name the film by ear. Taking a break: replay the old boards."
                 color="#f2c641"
-                tag="New"
+                tag="Archived"
                 icon={<SoundbytesIcon className="size-24" />}
-                href={SITE.games.soundbytes}
+                href={SITE.games.soundbytesArchive}
               />
             </li>
             <li>

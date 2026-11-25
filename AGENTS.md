@@ -4,8 +4,8 @@ Four daily games, each with its own route, code folders and design notes:
 
 - Close-Ups (`/close-ups`, docs/CLOSE-UPS.md): a daily; name the film (or, about one day a week, the TV series) from collages of close-ups that share a keyword.
   `/close-ups` is today's puzzle and `/close-ups/archive` lists earlier days; puzzles are curated in `tools/collage-lab` and loaded with `npm run db:import-collage`.
-- Soundbytes (`/soundbytes`, docs/SOUNDBYTES.md): a daily; name the film from lines of dialogue that get easier, then its theme.
-  Boards are built on the owner's PC by `tools/soundbytes-lab` and loaded with `npm run db:import-soundbytes`.
+- Soundbytes (docs/SOUNDBYTES.md): archived on 2026-11-25 (the owner found it not much fun); make no new boards.
+  `/soundbytes` redirects to `/soundbytes/archive`, where the boards to 2026-11-23 stay playable; the lab (`tools/soundbytes-lab`) is kept in case it returns.
 - Casting call (`/casting-call`, docs/CASTING-CALL.md): a daily; cross out 8 actors by naming films, within 6 guesses and a 50-second bar.
   `/casting-call` is today's board and `/casting-call/archive` lists earlier days; boards are built by the server from TMDB (`src/lib/casting-call/generate.ts`), by a daily Vercel Cron job or on a day's first visit.
 - Ratings Cliff (`/ratings-cliff`, docs/RATINGS-CLIFF.md): a daily; name five TV series from grids of their episode ratings.
@@ -17,8 +17,8 @@ No film or series is used twice across Close-Ups and Soundbytes: the labs' picke
 
 ## Status
 
-All four games are live at absolutecinemadle.fun (Vercel Hobby with a Neon free database; see "Deploy" in README.md).
-Close-Ups and Soundbytes need a new week of content before the last imported day runs out (both have boards to 2026-11-23); Casting call and Ratings Cliff fill themselves.
+Three games are live (Soundbytes is archived) at absolutecinemadle.fun (Vercel Hobby with a Neon free database; see "Deploy" in README.md).
+Close-Ups needs a new week of content before the last imported day runs out; Casting call and Ratings Cliff fill themselves.
 The daily cron job (`/api/cron/daily`) needs `CRON_SECRET` set in the Vercel project.
 The labs run side by side on the owner's PC: downloads overlap GPU work, and `tools/gpu_lock.py` keeps one large model on the GPU at a time.
 Collage puzzles and Soundbytes answers are TMDB data: rows older than about 5 months (`synced_at`) must be re-exported or deleted.
