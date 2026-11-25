@@ -1,4 +1,16 @@
-import { customType, date, jsonb, pgTable, smallint, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  customType,
+  date,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  serial,
+  smallint,
+  text,
+  timestamp,
+  unique,
+} from "drizzle-orm/pg-core";
 
 import type { BoardGroup } from "@/lib/casting-call/generate";
 import type { CollageKeyword, CollagePuzzle } from "@/lib/collage/types";
@@ -89,3 +101,43 @@ export const ratingsCliffBoards = pgTable("ratings_cliff_boards", {
   rounds: jsonb("rounds").$type<RatingsCliffRound[]>().notNull(),
   syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Leaderboard names. There are no accounts: the first browser to use a name
+ * holds it through a random token kept in its localStorage (only its SHA-256
+ * is stored), and the player can copy that token to another device to keep it.
+ */
+export const leaderboardPlayers = pgTable("leaderboard_players", {
+  id: serial("id").primaryKey(),
+  /** The name as the player typed it, tidied (src/lib/leaderboard/names.ts). */
+  name: text("name").notNull(),
+  /** The name folded for comparison, so "Mats" and "mats " are one player. */
+  nameKey: text("name_key").notNull().unique(),
+  tokenHash: text("token_hash").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * One finished daily per player and game. The score is worked out on the
+ * server by replaying the player's guesses against the board, never taken from the client.
+ */
+export const leaderboardEntries = pgTable(
+  "leaderboard_entries",
+  {
+    id: serial("id").primaryKey(),
+    playerId: integer("player_id")
+      .notNull()
+      .references(() => leaderboardPlayers.id, { onDelete: "cascade" }),
+    /** "close-ups", "casting-call" or "ratings-cliff". */
+    game: text("game").notNull(),
+    date: date("date", { mode: "string" }).notNull(),
+    score: smallint("score").notNull(),
+    won: smallint("won").notNull(),
+    /** A short spoiler-free summary for the list, e.g. "3/4" or "8/8 in 5". */
+    summary: text("summary").notNull(),
+    /** SHA-256 of the sender's IP, for the submission rate limit only. */
+    ipHash: text("ip_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.playerId, t.game, t.date), index().on(t.game, t.date), index().on(t.ipHash, t.createdAt)],
+);

@@ -11,6 +11,9 @@ Four daily games, each with its own route, code folders and design notes:
 - Ratings Cliff (`/ratings-cliff`, docs/RATINGS-CLIFF.md): a daily; name five TV series from grids of their episode ratings.
   Boards are built by the server from TMDB (`src/lib/ratings-cliff/build.ts`), like Casting call's, by the same cron job or on a day's first visit.
 
+A leaderboard (`/leaderboard`, `src/lib/leaderboard`) takes a name after Close-Ups, Casting call and Ratings Cliff and lists everyone's result for that day, plus all-time totals.
+There are no accounts: a name belongs to the first browser's random token, which the player can copy to another device; the server scores each post by replaying the moves against the board. Its UI is a placeholder awaiting a design.
+
 Decisions taken where the owner's briefs are silent live in [ASSUMPTIONS.md](ASSUMPTIONS.md); add to it instead of stopping to ask.
 None of the games has an admin editor; the labs make Close-Ups and Soundbytes content, and Casting call and Ratings Cliff build their own.
 No film or series is used twice across Close-Ups and Soundbytes: the labs' pickers skip the used-films ledger (`tools/used_films.py`, see ASSUMPTIONS.md under "Picking films").

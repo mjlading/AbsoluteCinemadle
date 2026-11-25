@@ -7,6 +7,7 @@ import { Confetti } from "@/components/game/Confetti";
 import { GameTopBar } from "@/components/game/GameTopBar";
 import { ReelSpinner } from "@/components/game/ReelSpinner";
 import { ResultActions } from "@/components/game/ResultActions";
+import { DailyLeaderboard } from "@/components/leaderboard/DailyLeaderboard";
 import { POINTS } from "@/config/scoring";
 import { SITE } from "@/config/site";
 import { localIsoDate } from "@/lib/dates";
@@ -327,6 +328,11 @@ function EndPanel({ board, state }: { board: PublicRatingsCliffBoard; state: Rat
             archiveHref={SITE.games.ratingsCliffArchive}
           />
         </div>
+        <DailyLeaderboard
+          boardId={board.id}
+          date={board.date}
+          moves={{ game: "ratings-cliff", picks: state.answers.map((a) => a.option) }}
+        />
       </section>
     </>
   );
