@@ -10,6 +10,7 @@ import { Confetti } from "@/components/game/Confetti";
 import { GameTopBar } from "@/components/game/GameTopBar";
 import { ReelSpinner } from "@/components/game/ReelSpinner";
 import { ResultActions } from "@/components/game/ResultActions";
+import { DailyLeaderboard } from "@/components/leaderboard/DailyLeaderboard";
 import { RULES } from "@/config/rules";
 import { SITE } from "@/config/site";
 import {
@@ -447,6 +448,11 @@ function EndPanel({ board, state }: { board: PublicCastingBoard; state: CastingC
           archiveHref={SITE.games.castingCallArchive}
         />
       </div>
+      <DailyLeaderboard
+        boardId={board.id}
+        date={board.date}
+        moves={{ game: "casting-call", films: state.guesses.map((g) => g.film.tmdbId), timedOut: state.timedOut }}
+      />
     </section>
   );
 }

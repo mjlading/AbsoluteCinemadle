@@ -10,8 +10,8 @@ import type { CollageAnswer } from "./types";
  */
 
 export interface CollageState {
-  /** Every guess in order; `text: null` is a skip. */
-  guesses: { text: string | null; correct: boolean }[];
+  /** Every guess in order; `text: null` is a skip. `tmdbId` is set for a title picked from the suggestions. */
+  guesses: { text: string | null; correct: boolean; tmdbId?: number }[];
   /** The tile "Enhance" was used on, if any. */
   enhanced: string | null;
   status: "playing" | "won" | "lost";
@@ -20,7 +20,7 @@ export interface CollageState {
 }
 
 export type CollageAction =
-  | { type: "guess"; text: string; correct: boolean; answer?: CollageAnswer }
+  | { type: "guess"; text: string; correct: boolean; answer?: CollageAnswer; tmdbId?: number }
   | { type: "skip" }
   | { type: "enhance"; tileId: string }
   | { type: "reveal"; answer: CollageAnswer };
@@ -59,7 +59,8 @@ export function collageReducer(state: CollageState, action: CollageAction): Coll
       return state.status === "playing" && state.enhanced === null ? { ...state, enhanced: action.tileId } : state;
     case "guess": {
       if (state.status !== "playing" || alreadyGuessed(state, action.text)) return state;
-      const next = { ...state, guesses: [...state.guesses, { text: action.text, correct: action.correct }] };
+      const guess = { text: action.text, correct: action.correct, ...(action.tmdbId ? { tmdbId: action.tmdbId } : {}) };
+      const next = { ...state, guesses: [...state.guesses, guess] };
       if (action.correct) return { ...next, status: "won", answer: action.answer ?? null };
       return guessesLeft(next) <= 0 ? { ...next, status: "lost" } : next;
     }

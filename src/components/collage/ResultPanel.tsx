@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 
 import { POINTS } from "@/config/scoring";
 import { ResultActions } from "@/components/game/ResultActions";
+import { DailyLeaderboard } from "@/components/leaderboard/DailyLeaderboard";
 import { SITE } from "@/config/site";
 import { collageScore, currentRound, isFirstClueWin, maxCollageScore, type CollageState } from "@/lib/collage/state";
 import { closeUpsTitle } from "@/lib/collage/day";
@@ -78,6 +79,16 @@ export function ResultPanel({ puzzle, state }: { puzzle: PublicCollagePuzzle; st
         </div>
       </div>
       <ResultActions shareText={() => collageShareText(puzzle, state)} archiveHref={SITE.games.closeUpsArchive} />
+      {puzzle.date && (
+        <DailyLeaderboard
+          boardId={puzzle.id}
+          date={puzzle.date}
+          moves={{
+            game: "close-ups",
+            guesses: state.guesses.map((g) => (g.text === null ? null : { text: g.text, tmdbId: g.tmdbId })),
+          }}
+        />
+      )}
     </section>
   );
 }

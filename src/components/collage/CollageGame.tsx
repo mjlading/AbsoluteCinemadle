@@ -213,8 +213,8 @@ function CollagePlay({ puzzle }: { puzzle: PublicCollagePuzzle }) {
       const result = await guessCollage(puzzle.id, text, tmdbId, puzzle.mediaType);
       apply(
         result.correct
-          ? { type: "guess", text, correct: true, answer: result.answer }
-          : { type: "guess", text, correct: false },
+          ? { type: "guess", text, correct: true, answer: result.answer, tmdbId }
+          : { type: "guess", text, correct: false, tmdbId },
       );
       return true;
     } catch {
