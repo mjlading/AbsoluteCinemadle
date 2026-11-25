@@ -1,6 +1,6 @@
 # Absolute Cinemadle
 
-Four daily games, each with its own route, code folders and design notes:
+Five daily games, each with its own route, code folders and design notes:
 
 - Close-Ups (`/close-ups`, docs/CLOSE-UPS.md): a daily; name the film (or, about one day a week, the TV series) from collages of close-ups that share a keyword.
   `/close-ups` is today's puzzle and `/close-ups/archive` lists earlier days; puzzles are curated in `tools/collage-lab` and loaded with `npm run db:import-collage`.
@@ -10,6 +10,8 @@ Four daily games, each with its own route, code folders and design notes:
   `/casting-call` is today's board and `/casting-call/archive` lists earlier days; boards are built by the server from TMDB (`src/lib/casting-call/generate.ts`), by a daily Vercel Cron job or on a day's first visit.
 - Ratings Cliff (`/ratings-cliff`, docs/RATINGS-CLIFF.md): a daily; name five TV series from grids of their episode ratings.
   Boards are built by the server from TMDB (`src/lib/ratings-cliff/build.ts`), like Casting call's, by the same cron job or on a day's first visit.
+- Warmer (`/warmer`, `src/lib/warmer`): a daily; find a hidden well-known film, with every guess ranked by how alike it is (#1 is the film); hints give a film halfway there, and clues give its decade and genres.
+  Similarity is a TF-IDF vector over TMDB keywords, genres, decade and recommendations. The film pool is built on the owner's PC (`npm run warmer:fetch -- 3000`, `npm run warmer:pool`) and loaded with `npm run db:import-warmer`, into one `warmer_pool` row that also holds the secret the daily film is picked with.
 
 A leaderboard (`/leaderboard`, `src/lib/leaderboard`) takes a name after Close-Ups, Casting call and Ratings Cliff and lists everyone's result for that day, plus all-time totals.
 There are no accounts: a name belongs to the first browser's random token, which the player can copy to another device; the server scores each post by replaying the moves against the board. Its UI is a placeholder awaiting a design.
@@ -20,11 +22,11 @@ No film or series is used twice across Close-Ups and Soundbytes: the labs' picke
 
 ## Status
 
-Three games are live (Soundbytes is archived) at absolutecinemadle.fun (Vercel Hobby with a Neon free database; see "Deploy" in README.md).
-Close-Ups needs a new week of content before the last imported day runs out; Casting call and Ratings Cliff fill themselves.
+Four games are live (Soundbytes is archived) at absolutecinemadle.fun (Vercel Hobby with a Neon free database; see "Deploy" in README.md).
+Close-Ups needs new content before the last imported day runs out (run 2-3 weeks at a time); Casting call, Ratings Cliff and Warmer fill themselves.
 The daily cron job (`/api/cron/daily`) needs `CRON_SECRET` set in the Vercel project.
 The labs run side by side on the owner's PC: downloads overlap GPU work, and `tools/gpu_lock.py` keeps one large model on the GPU at a time.
-Collage puzzles and Soundbytes answers are TMDB data: rows older than about 5 months (`synced_at`) must be re-exported or deleted.
+Collage puzzles, Soundbytes answers and Warmer's pool are TMDB data: rows older than about 5 months (`synced_at`) must be re-exported or deleted.
 The cron job refreshes Casting call's and Ratings Cliff's TMDB data after 5 months.
 Update this section as that work lands.
 

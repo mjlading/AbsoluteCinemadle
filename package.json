@@ -22,6 +22,9 @@
     "db:used-films": "tsx --env-file-if-exists=.env.local scripts/used-films.mts",
     "db:import-casting-call": "tsx --env-file-if-exists=.env.local scripts/import-casting-call.mts",
     "db:import-ratings-cliff": "tsx --env-file-if-exists=.env.local scripts/import-ratings-cliff.mts",
+    "warmer:fetch": "tsx --env-file-if-exists=.env.local scripts/warmer-fetch.mts",
+    "warmer:pool": "tsx scripts/warmer-pool.mts",
+    "db:import-warmer": "tsx --env-file-if-exists=.env.local scripts/import-warmer.mts",
     "ratings-cliff:build": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/build-ratings-cliff.mts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

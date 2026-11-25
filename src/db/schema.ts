@@ -16,6 +16,7 @@ import type { BoardGroup } from "@/lib/casting-call/generate";
 import type { CollageKeyword, CollagePuzzle } from "@/lib/collage/types";
 import type { RatingsCliffRound } from "@/lib/ratings-cliff/types";
 import type { SoundbytesBoard, StoredSoundNode } from "@/lib/soundbytes/types";
+import type { Pool } from "@/lib/warmer/pool";
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => "bytea" });
 
@@ -141,3 +142,17 @@ export const leaderboardEntries = pgTable(
   },
   (t) => [unique().on(t.playerId, t.game, t.date), index().on(t.game, t.date), index().on(t.ipHash, t.createdAt)],
 );
+
+/**
+ * Warmer's film pool: one row ("current") holding every film and its similarity vector
+ * (src/lib/warmer/pool.ts), built on the owner's PC and loaded with `npm run db:import-warmer`.
+ * `secret` seeds which film is hidden each day, so the public code and pool alone can't say.
+ * TMDB data, so `synced_at` is when it was fetched, for the 6-month limit.
+ */
+export const warmerPool = pgTable("warmer_pool", {
+  id: text("id").primaryKey(),
+  films: jsonb("films").$type<Pool["films"]>().notNull(),
+  vectors: jsonb("vectors").$type<Pool["vectors"]>().notNull(),
+  secret: text("secret").notNull(),
+  syncedAt: timestamp("synced_at", { withTimezone: true }).notNull(),
+});

@@ -13,6 +13,7 @@ export const SITE = {
     castingCallArchive: "/casting-call/archive",
     ratingsCliff: "/ratings-cliff",
     ratingsCliffArchive: "/ratings-cliff/archive",
+    warmer: "/warmer",
   },
   /** Close-Ups #1 is played on this date; its numbers count up one per day from it. */
   closeUpsLaunchDate: "2026-11-10",

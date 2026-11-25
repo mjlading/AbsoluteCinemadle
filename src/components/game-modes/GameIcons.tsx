@@ -117,6 +117,20 @@ const HANDS = {
   },
 } as const;
 
+/** A thermometer, red rising: warmer the closer you get. */
+export function WarmerIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 96 96" className={className} aria-hidden="true" focusable="false">
+      <g transform="rotate(8 48 48)">
+        <path d="M40 18a8 8 0 0116 0v42a14 14 0 11-16 0z" fill={PAPER} {...line} />
+        <rect x="45" y="34" width="6" height="34" rx="3" fill={RED} />
+        <circle cx="48" cy="71" r="8" fill={RED} />
+        <path d="M60 26h8M60 36h6M60 46h8" fill="none" {...line} />
+      </g>
+    </svg>
+  );
+}
+
 /**
  * One raised open hand, the meme's gesture; `side` says which of the title it stands on.
  * Its width is `--hand-size` (set by the parent) times the hand's own size.
