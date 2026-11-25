@@ -1,4 +1,4 @@
-CREATE TABLE "warmer_pool" (
+CREATE TABLE IF NOT EXISTS "warmer_pool" (
 	"id" text PRIMARY KEY NOT NULL,
 	"films" jsonb NOT NULL,
 	"vectors" jsonb NOT NULL,
