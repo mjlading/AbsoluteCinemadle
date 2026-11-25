@@ -5,6 +5,7 @@ import {
   RaisedHand,
   RatingsCliffIcon,
   SoundbytesIcon,
+  WarmerIcon,
 } from "@/components/game-modes/GameIcons";
 import { SiteFooter } from "@/components/game/SiteFooter";
 import { SITE } from "@/config/site";
@@ -63,6 +64,16 @@ export default function Home() {
                 tag="New"
                 icon={<RatingsCliffIcon className="size-24" />}
                 href={SITE.games.ratingsCliff}
+              />
+            </li>
+            <li>
+              <GameCard
+                title="Warmer"
+                blurb="Find the hidden film. Every guess says how close you are."
+                color="#f4a259"
+                tag="New"
+                icon={<WarmerIcon className="size-24" />}
+                href={SITE.games.warmer}
               />
             </li>
           </ul>
